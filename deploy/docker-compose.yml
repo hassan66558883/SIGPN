@@ -1,0 +1,93 @@
+# Production topology: Nginx (TLS termination) -> PMS app -> PostgreSQL
+# Usage (Ubuntu server):
+#   cp .env.production.example .env.production && edit secrets
+#   docker compose --env-file .env.production up -d --build
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pms}
+      POSTGRES_USER: ${POSTGRES_USER:-pms_app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pms_app} -d ${POSTGRES_DB:-pms}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [backend]
+
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      APP_NAME: ${APP_NAME:-Police Management System}
+      APP_URL: ${APP_URL:?set APP_URL}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pms_app}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-pms}?schema=public
+      AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET}
+      DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY:?set DATA_ENCRYPTION_KEY}
+      SESSION_IDLE_MINUTES: ${SESSION_IDLE_MINUTES:-60}
+      SESSION_ABSOLUTE_HOURS: ${SESSION_ABSOLUTE_HOURS:-10}
+      LOGIN_MAX_FAILURES: ${LOGIN_MAX_FAILURES:-5}
+      LOGIN_LOCK_MINUTES: ${LOGIN_LOCK_MINUTES:-15}
+      PASSWORD_MIN_LENGTH: ${PASSWORD_MIN_LENGTH:-12}
+      UPLOAD_DIR: /data/uploads
+      UPLOAD_MAX_MB: ${UPLOAD_MAX_MB:-25}
+      BACKUP_DIR: /data/backups
+      STT_PROVIDER: ${STT_PROVIDER:-simulated}
+      STT_API_KEY: ${STT_API_KEY:-}
+      TRUST_PROXY: "1"
+    volumes:
+      - uploads:/data/uploads
+      - backups:/data/backups
+    networks: [backend, frontend]
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on: [app]
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/pms.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/proxy_params_pms:/etc/nginx/proxy_params_pms:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    networks: [frontend]
+
+  backup:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER:-pms_app}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-pms}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+    volumes:
+      - backups:/backups
+      - ./backup/backup.sh:/backup.sh:ro
+    entrypoint: ["/bin/sh", "-c", "while true; do sh /backup.sh; sleep 86400; done"]
+    networks: [backend]
+
+volumes:
+  pgdata:
+  uploads:
+  backups:
+
+networks:
+  backend:
+    internal: true
+  frontend:

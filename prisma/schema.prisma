@@ -1,0 +1,2060 @@
+// ============================================================
+// POLICE MANAGEMENT SYSTEM (PMS) — PostgreSQL data model
+// Single source of truth for the ERD (docs/DATABASE_DOCUMENTATION.md).
+// Conventions:
+//  - ids are cuid strings; business numbers (CASE-2026-00001) come from DocumentSequence
+//  - critical records are never hard-deleted: deletedAt / status / supersede
+//  - AuditLog and CustodyEvent are append-only (DB triggers block UPDATE/DELETE)
+// ============================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ------------------------------------------------------------
+// 1. IDENTITY, ACCESS & SECURITY
+// ------------------------------------------------------------
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  LOCKED
+  SUSPENDED
+  DISABLED
+}
+
+/// Data visibility scope granted by a role.
+enum ScopeLevel {
+  NATIONAL
+  REGIONAL
+  STATION
+  OWN
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  shortName   String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  regions     Region[]
+  users       User[]
+}
+
+model Role {
+  id          String           @id @default(cuid())
+  code        String           @unique
+  name        String
+  description String?
+  scopeLevel  ScopeLevel       @default(STATION)
+  requiresMfa Boolean          @default(false)
+  isSystem    Boolean          @default(false)
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  permissions RolePermission[]
+  users       User[]
+}
+
+model Permission {
+  id          String           @id @default(cuid())
+  code        String           @unique
+  module      String
+  action      String
+  description String?
+  roles       RolePermission[]
+
+  @@index([module])
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+model User {
+  id                 String        @id @default(cuid())
+  username           String        @unique
+  email              String        @unique
+  firstName          String
+  lastName           String
+  phone              String?
+  passwordHash       String
+  passwordChangedAt  DateTime      @default(now())
+  mustChangePassword Boolean       @default(false)
+  status             UserStatus    @default(ACTIVE)
+  failedLoginCount   Int           @default(0)
+  lockedUntil        DateTime?
+  mfaEnabled         Boolean       @default(false)
+  mfaSecretEnc       String?
+  mfaEnrolledAt      DateTime?
+  lastLoginAt        DateTime?
+  lastLoginIp        String?
+  roleId             String
+  role               Role          @relation(fields: [roleId], references: [id])
+  organizationId     String?
+  organization       Organization? @relation(fields: [organizationId], references: [id])
+  regionId           String?
+  region             Region?       @relation(fields: [regionId], references: [id])
+  stationId          String?
+  station            Station?      @relation(fields: [stationId], references: [id])
+  officer            Officer?
+  createdById        String?
+  createdBy          User?         @relation("UserCreatedBy", fields: [createdById], references: [id])
+  createdUsers       User[]        @relation("UserCreatedBy")
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  deletedAt          DateTime?
+
+  sessions            Session[]
+  loginChallenges     LoginChallenge[]
+  passwordResetTokens PasswordResetToken[] @relation("ResetForUser")
+  issuedResetTokens   PasswordResetToken[] @relation("ResetIssuedBy")
+  mfaRecoveryCodes    MfaRecoveryCode[]
+  apiKeys             ApiKey[]
+  notifications       Notification[]
+  auditLogs           AuditLog[]
+  passwordHistory     PasswordHistory[]
+
+  // domain back-relations
+  personsCreated         Person[]              @relation("PersonCreatedBy")
+  complaintsCreated      Complaint[]           @relation("ComplaintCreatedBy")
+  complaintsAssigned     Complaint[]           @relation("ComplaintAssignedTo")
+  complaintsReviewed     Complaint[]           @relation("ComplaintReviewedBy")
+  casesCreated           Case[]                @relation("CaseCreatedBy")
+  casesLead              Case[]                @relation("CaseLead")
+  casesSupervised        Case[]                @relation("CaseSupervisor")
+  caseAssignments        CaseAssignment[]      @relation("CaseAssignmentUser")
+  caseAssignmentsMade    CaseAssignment[]      @relation("CaseAssignmentBy")
+  caseEvents             CaseEvent[]
+  caseNotes              CaseNote[]
+  tasksAssigned          Task[]                @relation("TaskAssignee")
+  tasksCreated           Task[]                @relation("TaskCreator")
+  investigationsLead     Investigation[]       @relation("InvestigationLead")
+  investigationsReviewed Investigation[]       @relation("InvestigationReviewer")
+  reportsAuthored        InvestigationReport[] @relation("ReportAuthor")
+  reportsReviewed        InvestigationReport[] @relation("ReportReviewer")
+  statementsTaken        Statement[]
+  interviewsLed          Interview[]           @relation("InterviewLead")
+  transcriptsReviewed    Transcript[]          @relation("TranscriptReviewer")
+  transcriptsApproved    Transcript[]          @relation("TranscriptApprover")
+  evidenceCollected      Evidence[]            @relation("EvidenceCollectedBy")
+  evidenceCustody        Evidence[]            @relation("EvidenceCustodian")
+  custodyFrom            CustodyEvent[]        @relation("CustodyFrom")
+  custodyTo              CustodyEvent[]        @relation("CustodyTo")
+  custodyRecorded        CustodyEvent[]        @relation("CustodyRecordedBy")
+  custodyAuthorized      CustodyEvent[]        @relation("CustodyAuthorizedBy")
+  warrantsRequested      Warrant[]             @relation("WarrantRequestedBy")
+  warrantsApproved       Warrant[]             @relation("WarrantApprovedBy")
+  warrantsExecuted       Warrant[]             @relation("WarrantExecutedBy")
+  arrestsRecorded        Arrest[]
+  detentionsRecorded     Detention[]
+  detentionLogs          DetentionLog[]
+  wantedIssued           WantedPerson[]        @relation("WantedIssuedBy")
+  wantedApproved         WantedPerson[]        @relation("WantedApprovedBy")
+  incidentsReported      Incident[]
+  patrolsCreated         Patrol[]
+  operationsCreated      Operation[]
+  documentsUploaded      Document[]
+  documentVersions       DocumentVersion[]
+  generatedReports       GeneratedReport[]
+  settingsUpdated        SystemSetting[]
+  backups                BackupRecord[]
+  officerAssignments     OfficerAssignment[]
+  maintenanceRecorded    MaintenanceRecord[]
+  fuelLogs               FuelLog[]
+
+  @@index([roleId])
+  @@index([stationId])
+  @@index([regionId])
+  @@index([status])
+  @@index([lastName, firstName])
+}
+
+model PasswordHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  passwordHash String
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Session {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash     String    @unique
+  ipAddress     String?
+  userAgent     String?
+  mfaVerified   Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  lastSeenAt    DateTime  @default(now())
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  revokedReason String?
+
+  @@index([userId, revokedAt])
+  @@index([expiresAt])
+}
+
+/// Short-lived second-factor challenge created after a correct password.
+model LoginChallenge {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  ipAddress  String?
+  userAgent  String?
+  attempts   Int       @default(0)
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+}
+
+model MfaRecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  codeHash  String    @unique
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation("ResetForUser", fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash  String    @unique
+  issuedById String?
+  issuedBy   User?     @relation("ResetIssuedBy", fields: [issuedById], references: [id])
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime  @default(now())
+}
+
+/// Brute-force tracking: every login attempt (success or failure) by identifier and IP.
+model LoginAttempt {
+  id         String   @id @default(cuid())
+  identifier String
+  ipAddress  String?
+  success    Boolean
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@index([identifier, createdAt])
+  @@index([ipAddress, createdAt])
+}
+
+/// Personal API keys for REST clients (Bearer). Scoped to the owner's permissions.
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name       String
+  keyPrefix  String
+  keyHash    String    @unique
+  lastUsedAt DateTime?
+  expiresAt  DateTime?
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// ------------------------------------------------------------
+// 2. ORGANIZATION & PERSONNEL
+// ------------------------------------------------------------
+
+model Region {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  code           String       @unique
+  name           String
+  capital        String?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  stations       Station[]
+  users          User[]
+  persons        Person[]
+  complaints     Complaint[]
+  cases          Case[]
+  incidents      Incident[]
+  operations     Operation[]
+}
+
+enum StationType {
+  HEADQUARTERS
+  CENTRAL_STATION
+  STATION
+  POST
+  BRIGADE
+  SPECIAL_UNIT
+}
+
+model Station {
+  id          String      @id @default(cuid())
+  regionId    String
+  region      Region      @relation(fields: [regionId], references: [id])
+  code        String      @unique
+  name        String
+  type        StationType @default(STATION)
+  address     String?
+  city        String?
+  phone       String?
+  email       String?
+  latitude    Float?
+  longitude   Float?
+  commanderId String?     @unique
+  commander   Officer?    @relation("StationCommander", fields: [commanderId], references: [id])
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  departments        Department[]
+  officers           Officer[]
+  users              User[]
+  complaints         Complaint[]
+  cases              Case[]
+  arrests            Arrest[]
+  detentions         Detention[]
+  incidents          Incident[]
+  patrols            Patrol[]
+  zones              Zone[]
+  operations         Operation[]
+  vehicles           Vehicle[]
+  storageLocations   StorageLocation[]
+  officerAssignments OfficerAssignment[]
+  documents          Document[]
+
+  @@index([regionId])
+}
+
+enum DepartmentType {
+  COMMAND
+  INVESTIGATION
+  PATROL
+  TRAFFIC
+  FORENSICS
+  INTELLIGENCE
+  CUSTODY
+  LOGISTICS
+  ADMINISTRATION
+  SPECIAL
+}
+
+model Department {
+  id        String         @id @default(cuid())
+  stationId String
+  station   Station        @relation(fields: [stationId], references: [id])
+  code      String
+  name      String
+  type      DepartmentType @default(INVESTIGATION)
+  headId    String?        @unique
+  head      Officer?       @relation("DepartmentHead", fields: [headId], references: [id])
+  isActive  Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  officers           Officer[]
+  cases              Case[]
+  officerAssignments OfficerAssignment[]
+
+  @@unique([stationId, code])
+}
+
+enum RankCategory {
+  COMMISSIONER
+  OFFICER
+  INSPECTOR
+  NON_COMMISSIONED
+  CONSTABLE
+  CIVILIAN
+}
+
+model Rank {
+  id          String              @id @default(cuid())
+  code        String              @unique
+  name        String
+  level       Int
+  category    RankCategory        @default(CONSTABLE)
+  isActive    Boolean             @default(true)
+  officers    Officer[]
+  assignments OfficerAssignment[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  UNKNOWN
+}
+
+enum DutyStatus {
+  ON_DUTY
+  OFF_DUTY
+  ON_LEAVE
+  TRAINING
+  SUSPENDED
+  RETIRED
+  DECEASED
+}
+
+model Officer {
+  id           String      @id @default(cuid())
+  badgeNumber  String      @unique
+  firstName    String
+  lastName     String
+  gender       Gender      @default(UNKNOWN)
+  dateOfBirth  DateTime?
+  phone        String?
+  email        String?
+  rankId       String
+  rank         Rank        @relation(fields: [rankId], references: [id])
+  stationId    String
+  station      Station     @relation(fields: [stationId], references: [id])
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  dutyStatus   DutyStatus  @default(ON_DUTY)
+  hiredAt      DateTime?
+  specialties  String?
+  notes        String?
+  userId       String?     @unique
+  user         User?       @relation(fields: [userId], references: [id])
+  isActive     Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  deletedAt    DateTime?
+
+  commandsStation     Station?            @relation("StationCommander")
+  headsDepartment     Department?         @relation("DepartmentHead")
+  assignments         OfficerAssignment[]
+  arrests             Arrest[]
+  patrolsSupervised   Patrol[]            @relation("PatrolSupervisor")
+  patrolMembers       PatrolOfficer[]
+  incidentOfficers    IncidentOfficer[]
+  operationsCommanded Operation[]         @relation("OperationCommander")
+  teamLeads           OperationTeam[]
+  teamMembers         OperationMember[]
+  vehicleAssignments  VehicleAssignment[]
+  fuelLogs            FuelLog[]
+
+  @@index([stationId])
+  @@index([departmentId])
+  @@index([lastName, firstName])
+}
+
+model OfficerAssignment {
+  id           String      @id @default(cuid())
+  officerId    String
+  officer      Officer     @relation(fields: [officerId], references: [id])
+  stationId    String
+  station      Station     @relation(fields: [stationId], references: [id])
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  rankId       String?
+  rank         Rank?       @relation(fields: [rankId], references: [id])
+  position     String?
+  startDate    DateTime
+  endDate      DateTime?
+  reason       String?
+  createdById  String?
+  createdBy    User?       @relation(fields: [createdById], references: [id])
+  createdAt    DateTime    @default(now())
+
+  @@index([officerId, startDate])
+}
+
+// ------------------------------------------------------------
+// 3. PERSONS
+// ------------------------------------------------------------
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
+  UNKNOWN
+}
+
+model Person {
+  id                  String        @id @default(cuid())
+  number              String        @unique
+  firstName           String
+  lastName            String
+  otherNames          String?
+  gender              Gender        @default(UNKNOWN)
+  dateOfBirth         DateTime?
+  placeOfBirth        String?
+  nationality         String?
+  maritalStatus       MaritalStatus @default(UNKNOWN)
+  occupation          String?
+  phone               String?
+  email               String?
+  address             String?
+  city                String?
+  regionId            String?
+  region              Region?       @relation(fields: [regionId], references: [id])
+  physicalDescription String?
+  distinguishingMarks String?
+  notes               String?
+  isDeceased          Boolean       @default(false)
+  createdById         String?
+  createdBy           User?         @relation("PersonCreatedBy", fields: [createdById], references: [id])
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  deletedAt           DateTime?
+  mergedIntoId        String?
+  mergedInto          Person?       @relation("PersonMerge", fields: [mergedIntoId], references: [id])
+  mergedFrom          Person[]      @relation("PersonMerge")
+
+  identifiers     PersonIdentifier[]
+  aliases         PersonAlias[]
+  relationsFrom   PersonRelationship[] @relation("RelFrom")
+  relationsTo     PersonRelationship[] @relation("RelTo")
+  complaints      Complaint[]
+  caseParties     CaseParty[]
+  statements      Statement[]
+  interviews      Interview[]
+  evidenceFrom    Evidence[]
+  warrants        Warrant[]
+  arrests         Arrest[]
+  detentions      Detention[]
+  wanted          WantedPerson[]
+  incidentPersons IncidentPerson[]
+
+  @@index([lastName, firstName])
+  @@index([phone])
+  @@index([dateOfBirth])
+  @@index([regionId])
+}
+
+enum IdentifierType {
+  NATIONAL_ID
+  PASSPORT
+  DRIVER_LICENSE
+  VOTER_CARD
+  RESIDENCE_PERMIT
+  BIRTH_CERTIFICATE
+  OTHER
+}
+
+model PersonIdentifier {
+  id        String         @id @default(cuid())
+  personId  String
+  person    Person         @relation(fields: [personId], references: [id])
+  type      IdentifierType
+  value     String
+  issuedBy  String?
+  issuedAt  DateTime?
+  expiresAt DateTime?
+  createdAt DateTime       @default(now())
+
+  @@unique([type, value])
+  @@index([personId])
+}
+
+model PersonAlias {
+  id       String @id @default(cuid())
+  personId String
+  person   Person @relation(fields: [personId], references: [id])
+  alias    String
+
+  @@index([alias])
+}
+
+enum RelationshipType {
+  SPOUSE
+  PARENT
+  CHILD
+  SIBLING
+  RELATIVE
+  ASSOCIATE
+  EMPLOYER
+  EMPLOYEE
+  NEIGHBOUR
+  OTHER
+}
+
+model PersonRelationship {
+  id           String           @id @default(cuid())
+  fromPersonId String
+  fromPerson   Person           @relation("RelFrom", fields: [fromPersonId], references: [id])
+  toPersonId   String
+  toPerson     Person           @relation("RelTo", fields: [toPersonId], references: [id])
+  type         RelationshipType
+  notes        String?
+  createdAt    DateTime         @default(now())
+
+  @@unique([fromPersonId, toPersonId, type])
+}
+
+enum DangerLevel {
+  LOW
+  MEDIUM
+  HIGH
+  EXTREME
+}
+
+enum WantedStatus {
+  DRAFT
+  PENDING_APPROVAL
+  ACTIVE
+  LOCATED
+  ARRESTED
+  CANCELLED
+  EXPIRED
+}
+
+model WantedPerson {
+  id               String       @id @default(cuid())
+  number           String       @unique
+  personId         String
+  person           Person       @relation(fields: [personId], references: [id])
+  caseId           String?
+  case             Case?        @relation(fields: [caseId], references: [id])
+  offense          String
+  reason           String
+  dangerLevel      DangerLevel  @default(MEDIUM)
+  status           WantedStatus @default(DRAFT)
+  lastSeenLocation String?
+  lastSeenAt       DateTime?
+  issuedById       String
+  issuedBy         User         @relation("WantedIssuedBy", fields: [issuedById], references: [id])
+  approvedById     String?
+  approvedBy       User?        @relation("WantedApprovedBy", fields: [approvedById], references: [id])
+  approvedAt       DateTime?
+  issuedAt         DateTime     @default(now())
+  expiresAt        DateTime?
+  closedAt         DateTime?
+  closureNotes     String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([status])
+  @@index([personId])
+}
+
+// ------------------------------------------------------------
+// 4. COMPLAINTS
+// ------------------------------------------------------------
+
+enum Priority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum OffenseCategory {
+  HOMICIDE
+  ASSAULT
+  SEXUAL_OFFENSE
+  ROBBERY
+  THEFT
+  BURGLARY
+  FRAUD
+  CORRUPTION
+  DRUG_OFFENSE
+  TRAFFICKING
+  CYBERCRIME
+  ARMS_OFFENSE
+  KIDNAPPING
+  DOMESTIC_VIOLENCE
+  TRAFFIC_OFFENSE
+  PUBLIC_ORDER
+  PROPERTY_DAMAGE
+  MISSING_PERSON
+  TERRORISM
+  OTHER
+}
+
+enum ComplaintStatus {
+  DRAFT
+  REGISTERED
+  UNDER_REVIEW
+  ASSIGNED
+  CONVERTED
+  CLOSED
+  REJECTED
+}
+
+model Complaint {
+  id            String          @id @default(cuid())
+  number        String          @unique
+  complainantId String?
+  complainant   Person?         @relation(fields: [complainantId], references: [id])
+  isAnonymous   Boolean         @default(false)
+  category      OffenseCategory @default(OTHER)
+  title         String
+  description   String
+  incidentAt    DateTime?
+  receivedAt    DateTime        @default(now())
+  locationText  String?
+  regionId      String
+  region        Region          @relation(fields: [regionId], references: [id])
+  stationId     String
+  station       Station         @relation(fields: [stationId], references: [id])
+  priority      Priority        @default(NORMAL)
+  status        ComplaintStatus @default(DRAFT)
+  assignedToId  String?
+  assignedTo    User?           @relation("ComplaintAssignedTo", fields: [assignedToId], references: [id])
+  reviewedById  String?
+  reviewedBy    User?           @relation("ComplaintReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt    DateTime?
+  reviewNotes   String?
+  closureReason String?
+  closedAt      DateTime?
+  caseId        String?         @unique
+  case          Case?           @relation(fields: [caseId], references: [id])
+  createdById   String
+  createdBy     User            @relation("ComplaintCreatedBy", fields: [createdById], references: [id])
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  deletedAt     DateTime?
+
+  @@index([status])
+  @@index([stationId, status])
+  @@index([regionId])
+  @@index([receivedAt])
+}
+
+// ------------------------------------------------------------
+// 5. CASES
+// ------------------------------------------------------------
+
+enum CaseStatus {
+  OPEN
+  ASSIGNED
+  UNDER_INVESTIGATION
+  PENDING_REVIEW
+  REFERRED
+  CLOSED
+  ARCHIVED
+}
+
+enum CaseDisposition {
+  SOLVED
+  UNSOLVED
+  UNFOUNDED
+  REFERRED_TO_PROSECUTION
+  TRANSFERRED
+  DISMISSED
+}
+
+model Case {
+  id               String           @id @default(cuid())
+  number           String           @unique
+  title            String
+  category         OffenseCategory
+  description      String
+  occurredAt       DateTime?
+  reportedAt       DateTime         @default(now())
+  locationText     String?
+  regionId         String
+  region           Region           @relation(fields: [regionId], references: [id])
+  stationId        String
+  station          Station          @relation(fields: [stationId], references: [id])
+  departmentId     String?
+  department       Department?      @relation(fields: [departmentId], references: [id])
+  priority         Priority         @default(NORMAL)
+  status           CaseStatus       @default(OPEN)
+  isSensitive      Boolean          @default(false)
+  leadId           String?
+  lead             User?            @relation("CaseLead", fields: [leadId], references: [id])
+  supervisorId     String?
+  supervisor       User?            @relation("CaseSupervisor", fields: [supervisorId], references: [id])
+  disposition      CaseDisposition?
+  dispositionNotes String?
+  closedAt         DateTime?
+  archivedAt       DateTime?
+  createdById      String
+  createdBy        User             @relation("CaseCreatedBy", fields: [createdById], references: [id])
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  deletedAt        DateTime?
+
+  complaint      Complaint?
+  assignments    CaseAssignment[]
+  parties        CaseParty[]
+  events         CaseEvent[]
+  notes          CaseNote[]
+  tasks          Task[]
+  investigations Investigation[]
+  reports        InvestigationReport[]
+  statements     Statement[]
+  interviews     Interview[]
+  evidence       Evidence[]
+  warrants       Warrant[]
+  arrests        Arrest[]
+  wanted         WantedPerson[]
+  incidents      Incident[]
+  operations     Operation[]
+  documents      Document[]
+
+  @@index([status])
+  @@index([stationId, status])
+  @@index([regionId])
+  @@index([leadId])
+  @@index([category])
+  @@index([reportedAt])
+}
+
+enum CaseRole {
+  LEAD
+  INVESTIGATOR
+  SUPERVISOR
+  ANALYST
+  SUPPORT
+}
+
+model CaseAssignment {
+  id           String    @id @default(cuid())
+  caseId       String
+  case         Case      @relation(fields: [caseId], references: [id])
+  userId       String
+  user         User      @relation("CaseAssignmentUser", fields: [userId], references: [id])
+  role         CaseRole  @default(INVESTIGATOR)
+  assignedById String
+  assignedBy   User      @relation("CaseAssignmentBy", fields: [assignedById], references: [id])
+  assignedAt   DateTime  @default(now())
+  endedAt      DateTime?
+  notes        String?
+
+  @@index([caseId, endedAt])
+  @@index([userId, endedAt])
+}
+
+enum PartyRole {
+  COMPLAINANT
+  VICTIM
+  WITNESS
+  SUSPECT
+  PERSON_OF_INTEREST
+  ACCUSED
+  OTHER
+}
+
+/// Status of a person's involvement. A SUSPECT is never presumed guilty:
+/// the default is UNDER_INVESTIGATION and only a competent authority can move it on.
+enum PartyStatus {
+  ACTIVE
+  UNDER_INVESTIGATION
+  CLEARED
+  CHARGED
+  REFERRED
+  WITHDRAWN
+}
+
+model CaseParty {
+  id        String      @id @default(cuid())
+  caseId    String
+  case      Case        @relation(fields: [caseId], references: [id])
+  personId  String
+  person    Person      @relation(fields: [personId], references: [id])
+  role      PartyRole
+  status    PartyStatus @default(ACTIVE)
+  notes     String?
+  injuries  String?
+  addedById String?
+  addedAt   DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([caseId, personId, role])
+  @@index([personId])
+  @@index([role])
+}
+
+model CaseEvent {
+  id          String   @id @default(cuid())
+  caseId      String
+  case        Case     @relation(fields: [caseId], references: [id])
+  kind        String
+  title       String
+  description String?
+  actorId     String?
+  actor       User?    @relation(fields: [actorId], references: [id])
+  entityType  String?
+  entityId    String?
+  occurredAt  DateTime @default(now())
+
+  @@index([caseId, occurredAt])
+}
+
+model CaseNote {
+  id             String   @id @default(cuid())
+  caseId         String
+  case           Case     @relation(fields: [caseId], references: [id])
+  authorId       String
+  author         User     @relation(fields: [authorId], references: [id])
+  content        String
+  isConfidential Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([caseId, createdAt])
+}
+
+// ------------------------------------------------------------
+// 6. INVESTIGATION
+// ------------------------------------------------------------
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  DONE
+  CANCELLED
+}
+
+model Task {
+  id              String         @id @default(cuid())
+  caseId          String
+  case            Case           @relation(fields: [caseId], references: [id])
+  investigationId String?
+  investigation   Investigation? @relation(fields: [investigationId], references: [id])
+  title           String
+  description     String?
+  priority        Priority       @default(NORMAL)
+  status          TaskStatus     @default(TODO)
+  assignedToId    String?
+  assignedTo      User?          @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  createdById     String
+  createdBy       User           @relation("TaskCreator", fields: [createdById], references: [id])
+  dueAt           DateTime?
+  completedAt     DateTime?
+  result          String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([caseId, status])
+  @@index([assignedToId, status])
+  @@index([dueAt])
+}
+
+enum InvestigationStatus {
+  OPEN
+  IN_PROGRESS
+  REPORT_SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  RETURNED
+  CLOSED
+}
+
+model Investigation {
+  id          String              @id @default(cuid())
+  number      String              @unique
+  caseId      String
+  case        Case                @relation(fields: [caseId], references: [id])
+  leadId      String
+  lead        User                @relation("InvestigationLead", fields: [leadId], references: [id])
+  status      InvestigationStatus @default(OPEN)
+  openedAt    DateTime            @default(now())
+  deadlineAt  DateTime?
+  summary     String?
+  findings    String?
+  reviewerId  String?
+  reviewer    User?               @relation("InvestigationReviewer", fields: [reviewerId], references: [id])
+  reviewedAt  DateTime?
+  reviewNotes String?
+  closedAt    DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  tasks   Task[]
+  reports InvestigationReport[]
+
+  @@index([caseId])
+  @@index([status])
+}
+
+enum ReportStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  RETURNED
+  SUPERSEDED
+}
+
+model InvestigationReport {
+  id              String        @id @default(cuid())
+  number          String        @unique
+  investigationId String
+  investigation   Investigation @relation(fields: [investigationId], references: [id])
+  caseId          String
+  case            Case          @relation(fields: [caseId], references: [id])
+  version         Int           @default(1)
+  title           String
+  content         String
+  conclusions     String?
+  recommendations String?
+  status          ReportStatus  @default(DRAFT)
+  authorId        String
+  author          User          @relation("ReportAuthor", fields: [authorId], references: [id])
+  submittedAt     DateTime?
+  reviewerId      String?
+  reviewer        User?         @relation("ReportReviewer", fields: [reviewerId], references: [id])
+  reviewedAt      DateTime?
+  reviewNotes     String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([investigationId])
+  @@index([caseId])
+}
+
+enum StatementType {
+  WRITTEN
+  ORAL_TRANSCRIBED
+  SWORN
+  CONFESSION
+}
+
+enum StatementStatus {
+  DRAFT
+  FINAL
+  RETRACTED
+}
+
+model Statement {
+  id             String          @id @default(cuid())
+  number         String          @unique
+  caseId         String
+  case           Case            @relation(fields: [caseId], references: [id])
+  personId       String
+  person         Person          @relation(fields: [personId], references: [id])
+  partyRole      PartyRole       @default(WITNESS)
+  type           StatementType   @default(WRITTEN)
+  status         StatementStatus @default(DRAFT)
+  takenById      String
+  takenBy        User            @relation(fields: [takenById], references: [id])
+  takenAt        DateTime        @default(now())
+  location       String?
+  language       String?
+  content        String
+  isConfidential Boolean         @default(false)
+  finalizedAt    DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  transcripts    Transcript[]
+
+  @@index([caseId])
+  @@index([personId])
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Interview {
+  id            String          @id @default(cuid())
+  number        String          @unique
+  caseId        String
+  case          Case            @relation(fields: [caseId], references: [id])
+  personId      String
+  person        Person          @relation(fields: [personId], references: [id])
+  partyRole     PartyRole       @default(WITNESS)
+  interviewerId String
+  interviewer   User            @relation("InterviewLead", fields: [interviewerId], references: [id])
+  scheduledAt   DateTime
+  startedAt     DateTime?
+  endedAt       DateTime?
+  location      String?
+  purpose       String?
+  summary       String?
+  status        InterviewStatus @default(SCHEDULED)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  transcripts   Transcript[]
+
+  @@index([caseId])
+  @@index([personId])
+}
+
+enum TranscriptStatus {
+  PENDING
+  PROCESSING
+  AUTOMATED_DRAFT
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+/// Speech-to-text output. Automated text is ALWAYS flagged as requiring human review.
+model Transcript {
+  id              String           @id @default(cuid())
+  interviewId     String?
+  interview       Interview?       @relation(fields: [interviewId], references: [id])
+  statementId     String?
+  statement       Statement?       @relation(fields: [statementId], references: [id])
+  audioDocumentId String?          @unique
+  audioDocument   Document?        @relation(fields: [audioDocumentId], references: [id])
+  provider        String
+  version         Int              @default(1)
+  status          TranscriptStatus @default(PENDING)
+  language        String?
+  automatedText   String?
+  reviewedText    String?
+  segments        Json?
+  durationSeconds Int?
+  reviewerId      String?
+  reviewer        User?            @relation("TranscriptReviewer", fields: [reviewerId], references: [id])
+  reviewedAt      DateTime?
+  approverId      String?
+  approver        User?            @relation("TranscriptApprover", fields: [approverId], references: [id])
+  approvedAt      DateTime?
+  reviewNotes     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([interviewId])
+  @@index([statementId])
+}
+
+// ------------------------------------------------------------
+// 7. EVIDENCE & CHAIN OF CUSTODY
+// ------------------------------------------------------------
+
+enum StorageLocationType {
+  EVIDENCE_ROOM
+  SAFE
+  REFRIGERATED
+  VEHICLE_LOT
+  LABORATORY
+  ARMORY
+  EXTERNAL
+}
+
+model StorageLocation {
+  id          String              @id @default(cuid())
+  stationId   String
+  station     Station             @relation(fields: [stationId], references: [id])
+  code        String              @unique
+  name        String
+  type        StorageLocationType @default(EVIDENCE_ROOM)
+  description String?
+  isActive    Boolean             @default(true)
+  evidence    Evidence[]
+  custodyFrom CustodyEvent[]      @relation("CustodyFromLocation")
+  custodyTo   CustodyEvent[]      @relation("CustodyToLocation")
+}
+
+enum EvidenceCategory {
+  PHYSICAL
+  DOCUMENT
+  DIGITAL
+  BIOLOGICAL
+  WEAPON
+  NARCOTICS
+  VEHICLE
+  CURRENCY
+  AUDIO_VIDEO
+  OTHER
+}
+
+enum EvidenceStatus {
+  COLLECTED
+  REGISTERED
+  STORED
+  TRANSFERRED
+  UNDER_EXAMINATION
+  RETURNED
+  RELEASED
+  DESTROYED
+  ARCHIVED
+}
+
+model Evidence {
+  id                    String           @id @default(cuid())
+  number                String           @unique
+  caseId                String
+  case                  Case             @relation(fields: [caseId], references: [id])
+  category              EvidenceCategory @default(PHYSICAL)
+  description           String
+  quantity              Decimal?         @db.Decimal(12, 3)
+  unit                  String?
+  sealNumber            String?
+  collectedAt           DateTime
+  collectedById         String
+  collectedBy           User             @relation("EvidenceCollectedBy", fields: [collectedById], references: [id])
+  collectedFrom         String?
+  collectedFromPersonId String?
+  collectedFromPerson   Person?          @relation(fields: [collectedFromPersonId], references: [id])
+  condition             String?
+  status                EvidenceStatus   @default(COLLECTED)
+  currentCustodianId    String?
+  currentCustodian      User?            @relation("EvidenceCustodian", fields: [currentCustodianId], references: [id])
+  currentLocationId     String?
+  currentLocation       StorageLocation? @relation(fields: [currentLocationId], references: [id])
+  isSensitive           Boolean          @default(false)
+  notes                 String?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  custody   CustodyEvent[]
+  documents Document[]
+
+  @@index([caseId])
+  @@index([status])
+  @@index([currentCustodianId])
+}
+
+enum CustodyAction {
+  COLLECTED
+  REGISTERED
+  STORED
+  TRANSFERRED
+  CHECKED_OUT
+  CHECKED_IN
+  EXAMINED
+  RETURNED
+  RELEASED
+  DESTROYED
+  ARCHIVED
+}
+
+/// Append-only chain of custody. Each row is hash-chained to the previous one.
+model CustodyEvent {
+  id             String           @id @default(cuid())
+  evidenceId     String
+  evidence       Evidence         @relation(fields: [evidenceId], references: [id])
+  seq            Int
+  action         CustodyAction
+  fromUserId     String?
+  fromUser       User?            @relation("CustodyFrom", fields: [fromUserId], references: [id])
+  toUserId       String?
+  toUser         User?            @relation("CustodyTo", fields: [toUserId], references: [id])
+  fromLocationId String?
+  fromLocation   StorageLocation? @relation("CustodyFromLocation", fields: [fromLocationId], references: [id])
+  toLocationId   String?
+  toLocation     StorageLocation? @relation("CustodyToLocation", fields: [toLocationId], references: [id])
+  occurredAt     DateTime
+  reason         String
+  condition      String?
+  notes          String?
+  authorizedById String?
+  authorizedBy   User?            @relation("CustodyAuthorizedBy", fields: [authorizedById], references: [id])
+  recordedById   String
+  recordedBy     User             @relation("CustodyRecordedBy", fields: [recordedById], references: [id])
+  recordedAt     DateTime         @default(now())
+  prevHash       String?
+  hash           String
+
+  @@unique([evidenceId, seq])
+  @@index([evidenceId, occurredAt])
+}
+
+// ------------------------------------------------------------
+// 8. WARRANTS, ARRESTS & DETENTION
+// ------------------------------------------------------------
+
+enum WarrantType {
+  ARREST
+  SEARCH
+  DETENTION
+  SUMMONS
+  SEIZURE
+  OTHER
+}
+
+enum WarrantStatus {
+  DRAFT
+  PENDING_APPROVAL
+  ACTIVE
+  EXECUTED
+  EXPIRED
+  CANCELLED
+  REJECTED
+}
+
+model Warrant {
+  id                  String        @id @default(cuid())
+  number              String        @unique
+  type                WarrantType
+  personId            String?
+  person              Person?       @relation(fields: [personId], references: [id])
+  caseId              String?
+  case                Case?         @relation(fields: [caseId], references: [id])
+  issuingAuthority    String
+  issuingAuthorityRef String?
+  grounds             String
+  targetAddress       String?
+  issuedAt            DateTime?
+  expiresAt           DateTime?
+  status              WarrantStatus @default(DRAFT)
+  requestedById       String
+  requestedBy         User          @relation("WarrantRequestedBy", fields: [requestedById], references: [id])
+  approvedById        String?
+  approvedBy          User?         @relation("WarrantApprovedBy", fields: [approvedById], references: [id])
+  approvedAt          DateTime?
+  decisionNotes       String?
+  executedAt          DateTime?
+  executedById        String?
+  executedBy          User?         @relation("WarrantExecutedBy", fields: [executedById], references: [id])
+  executionNotes      String?
+  cancelledAt         DateTime?
+  cancellationReason  String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  arrests   Arrest[]
+  documents Document[]
+
+  @@index([status])
+  @@index([expiresAt])
+  @@index([personId])
+  @@index([caseId])
+}
+
+enum ArrestAuthority {
+  WARRANT
+  FLAGRANTE_DELICTO
+  COURT_ORDER
+  PROBABLE_CAUSE
+  OTHER
+}
+
+enum ArrestStatus {
+  RECORDED
+  IN_CUSTODY
+  RELEASED
+  TRANSFERRED
+  CHARGED
+}
+
+model Arrest {
+  id                 String          @id @default(cuid())
+  number             String          @unique
+  personId           String
+  person             Person          @relation(fields: [personId], references: [id])
+  caseId             String?
+  case               Case?           @relation(fields: [caseId], references: [id])
+  warrantId          String?
+  warrant            Warrant?        @relation(fields: [warrantId], references: [id])
+  arrestingOfficerId String
+  arrestingOfficer   Officer         @relation(fields: [arrestingOfficerId], references: [id])
+  stationId          String
+  station            Station         @relation(fields: [stationId], references: [id])
+  arrestedAt         DateTime
+  locationText       String
+  authority          ArrestAuthority @default(FLAGRANTE_DELICTO)
+  charges            String
+  circumstances      String?
+  rightsReadAt       DateTime?
+  status             ArrestStatus    @default(RECORDED)
+  notes              String?
+  recordedById       String
+  recordedBy         User            @relation(fields: [recordedById], references: [id])
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  detentions Detention[]
+  documents  Document[]
+
+  @@index([personId])
+  @@index([caseId])
+  @@index([stationId, arrestedAt])
+  @@index([status])
+}
+
+enum DetentionStatus {
+  ACTIVE
+  EXTENDED
+  ENDED
+}
+
+enum DetentionEndReason {
+  RELEASED_NO_CHARGE
+  RELEASED_ON_BAIL
+  TRANSFERRED_PROSECUTION
+  TRANSFERRED_STATION
+  COURT_APPEARANCE
+  MEDICAL
+  OTHER
+}
+
+model Detention {
+  id                 String              @id @default(cuid())
+  number             String              @unique
+  arrestId           String
+  arrest             Arrest              @relation(fields: [arrestId], references: [id])
+  personId           String
+  person             Person              @relation(fields: [personId], references: [id])
+  stationId          String
+  station            Station             @relation(fields: [stationId], references: [id])
+  cellNumber         String?
+  startedAt          DateTime
+  legalLimitAt       DateTime
+  extendedUntil      DateTime?
+  extensionAuthority String?
+  extensionReason    String?
+  status             DetentionStatus     @default(ACTIVE)
+  endedAt            DateTime?
+  endReason          DetentionEndReason?
+  endNotes           String?
+  medicalNotes       String?
+  recordedById       String
+  recordedBy         User                @relation(fields: [recordedById], references: [id])
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  logs               DetentionLog[]
+
+  @@index([status])
+  @@index([stationId, status])
+  @@index([legalLimitAt])
+}
+
+enum DetentionLogType {
+  WELFARE_CHECK
+  MEAL
+  MEDICAL
+  VISIT
+  LEGAL_COUNSEL
+  TRANSFER
+  INCIDENT
+  NOTE
+}
+
+model DetentionLog {
+  id           String           @id @default(cuid())
+  detentionId  String
+  detention    Detention        @relation(fields: [detentionId], references: [id])
+  type         DetentionLogType
+  notes        String
+  occurredAt   DateTime         @default(now())
+  recordedById String
+  recordedBy   User             @relation(fields: [recordedById], references: [id])
+
+  @@index([detentionId, occurredAt])
+}
+
+// ------------------------------------------------------------
+// 9. OPERATIONS: PATROLS, INCIDENTS, OPERATIONS
+// ------------------------------------------------------------
+
+model Zone {
+  id          String   @id @default(cuid())
+  stationId   String
+  station     Station  @relation(fields: [stationId], references: [id])
+  code        String
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  patrols     Patrol[]
+
+  @@unique([stationId, code])
+}
+
+enum Shift {
+  MORNING
+  AFTERNOON
+  NIGHT
+  CUSTOM
+}
+
+enum PatrolStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Patrol {
+  id           String       @id @default(cuid())
+  number       String       @unique
+  stationId    String
+  station      Station      @relation(fields: [stationId], references: [id])
+  zoneId       String?
+  zone         Zone?        @relation(fields: [zoneId], references: [id])
+  shift        Shift        @default(MORNING)
+  mission      String
+  plannedStart DateTime
+  plannedEnd   DateTime
+  actualStart  DateTime?
+  actualEnd    DateTime?
+  status       PatrolStatus @default(PLANNED)
+  supervisorId String
+  supervisor   Officer      @relation("PatrolSupervisor", fields: [supervisorId], references: [id])
+  vehicleId    String?
+  vehicle      Vehicle?     @relation(fields: [vehicleId], references: [id])
+  startKm      Int?
+  endKm        Int?
+  report       String?
+  notes        String?
+  createdById  String
+  createdBy    User         @relation(fields: [createdById], references: [id])
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  officers  PatrolOfficer[]
+  incidents Incident[]
+
+  @@index([stationId, status])
+  @@index([plannedStart])
+}
+
+model PatrolOfficer {
+  patrolId  String
+  patrol    Patrol  @relation(fields: [patrolId], references: [id])
+  officerId String
+  officer   Officer @relation(fields: [officerId], references: [id])
+  role      String?
+
+  @@id([patrolId, officerId])
+}
+
+enum IncidentType {
+  DISTURBANCE
+  TRAFFIC_ACCIDENT
+  ASSAULT
+  THEFT
+  FIRE
+  MEDICAL
+  SUSPICIOUS_ACTIVITY
+  PUBLIC_ORDER
+  DOMESTIC
+  NOISE
+  MISSING_PERSON
+  OTHER
+}
+
+enum Severity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IncidentStatus {
+  REPORTED
+  RESPONDING
+  ON_SCENE
+  RESOLVED
+  ESCALATED
+  CLOSED
+}
+
+model Incident {
+  id           String         @id @default(cuid())
+  number       String         @unique
+  type         IncidentType   @default(OTHER)
+  severity     Severity       @default(MEDIUM)
+  title        String
+  description  String
+  occurredAt   DateTime
+  reportedAt   DateTime       @default(now())
+  locationText String
+  latitude     Float?
+  longitude    Float?
+  regionId     String
+  region       Region         @relation(fields: [regionId], references: [id])
+  stationId    String
+  station      Station        @relation(fields: [stationId], references: [id])
+  status       IncidentStatus @default(REPORTED)
+  caseId       String?
+  case         Case?          @relation(fields: [caseId], references: [id])
+  patrolId     String?
+  patrol       Patrol?        @relation(fields: [patrolId], references: [id])
+  report       String?
+  resolvedAt   DateTime?
+  reportedById String
+  reportedBy   User           @relation(fields: [reportedById], references: [id])
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  officers  IncidentOfficer[]
+  persons   IncidentPerson[]
+  documents Document[]
+
+  @@index([stationId, status])
+  @@index([occurredAt])
+  @@index([severity])
+}
+
+model IncidentOfficer {
+  incidentId String
+  incident   Incident @relation(fields: [incidentId], references: [id])
+  officerId  String
+  officer    Officer  @relation(fields: [officerId], references: [id])
+  role       String?
+
+  @@id([incidentId, officerId])
+}
+
+model IncidentPerson {
+  incidentId String
+  incident   Incident  @relation(fields: [incidentId], references: [id])
+  personId   String
+  person     Person    @relation(fields: [personId], references: [id])
+  role       PartyRole @default(OTHER)
+  notes      String?
+
+  @@id([incidentId, personId])
+}
+
+enum OperationType {
+  RAID
+  CHECKPOINT
+  SURVEILLANCE
+  ESCORT
+  CROWD_CONTROL
+  SEARCH
+  JOINT
+  OTHER
+}
+
+enum OperationStatus {
+  PLANNED
+  APPROVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model Operation {
+  id           String          @id @default(cuid())
+  number       String          @unique
+  name         String
+  type         OperationType   @default(OTHER)
+  objective    String
+  plan         String?
+  riskLevel    Severity        @default(MEDIUM)
+  regionId     String
+  region       Region          @relation(fields: [regionId], references: [id])
+  stationId    String
+  station      Station         @relation(fields: [stationId], references: [id])
+  commanderId  String
+  commander    Officer         @relation("OperationCommander", fields: [commanderId], references: [id])
+  caseId       String?
+  case         Case?           @relation(fields: [caseId], references: [id])
+  plannedStart DateTime
+  plannedEnd   DateTime
+  actualStart  DateTime?
+  actualEnd    DateTime?
+  status       OperationStatus @default(PLANNED)
+  finalReport  String?
+  outcome      String?
+  createdById  String
+  createdBy    User            @relation(fields: [createdById], references: [id])
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  teams     OperationTeam[]
+  resources OperationResource[]
+  documents Document[]
+
+  @@index([stationId, status])
+  @@index([plannedStart])
+}
+
+model OperationTeam {
+  id          String            @id @default(cuid())
+  operationId String
+  operation   Operation         @relation(fields: [operationId], references: [id])
+  name        String
+  leaderId    String?
+  leader      Officer?          @relation(fields: [leaderId], references: [id])
+  mission     String?
+  members     OperationMember[]
+}
+
+model OperationMember {
+  teamId    String
+  team      OperationTeam @relation(fields: [teamId], references: [id])
+  officerId String
+  officer   Officer       @relation(fields: [officerId], references: [id])
+  role      String?
+
+  @@id([teamId, officerId])
+}
+
+model OperationResource {
+  id          String    @id @default(cuid())
+  operationId String
+  operation   Operation @relation(fields: [operationId], references: [id])
+  vehicleId   String?
+  vehicle     Vehicle?  @relation(fields: [vehicleId], references: [id])
+  description String
+  quantity    Int       @default(1)
+}
+
+// ------------------------------------------------------------
+// 10. FLEET
+// ------------------------------------------------------------
+
+enum VehicleType {
+  PATROL_CAR
+  MOTORCYCLE
+  VAN
+  PICKUP
+  TRUCK
+  BUS
+  UNMARKED
+  OTHER
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  IN_USE
+  MAINTENANCE
+  OUT_OF_SERVICE
+  DECOMMISSIONED
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  ELECTRIC
+  HYBRID
+  OTHER
+}
+
+model Vehicle {
+  id                 String        @id @default(cuid())
+  fleetNumber        String        @unique
+  plateNumber        String        @unique
+  vin                String?       @unique
+  make               String
+  model              String
+  year               Int?
+  color              String?
+  type               VehicleType   @default(PATROL_CAR)
+  fuelType           FuelType      @default(PETROL)
+  stationId          String
+  station            Station       @relation(fields: [stationId], references: [id])
+  status             VehicleStatus @default(AVAILABLE)
+  mileageKm          Int           @default(0)
+  acquiredAt         DateTime?
+  insuranceExpiresAt DateTime?
+  inspectionDueAt    DateTime?
+  notes              String?
+  isActive           Boolean       @default(true)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  assignments VehicleAssignment[]
+  maintenance MaintenanceRecord[]
+  fuelLogs    FuelLog[]
+  patrols     Patrol[]
+  opResources OperationResource[]
+  documents   Document[]
+
+  @@index([stationId, status])
+}
+
+model VehicleAssignment {
+  id        String    @id @default(cuid())
+  vehicleId String
+  vehicle   Vehicle   @relation(fields: [vehicleId], references: [id])
+  officerId String?
+  officer   Officer?  @relation(fields: [officerId], references: [id])
+  purpose   String
+  startAt   DateTime
+  endAt     DateTime?
+  startKm   Int?
+  endKm     Int?
+  notes     String?
+  createdAt DateTime  @default(now())
+
+  @@index([vehicleId, startAt])
+}
+
+enum MaintenanceType {
+  SERVICE
+  REPAIR
+  INSPECTION
+  TIRES
+  BODYWORK
+  OTHER
+}
+
+enum MaintenanceStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model MaintenanceRecord {
+  id           String            @id @default(cuid())
+  vehicleId    String
+  vehicle      Vehicle           @relation(fields: [vehicleId], references: [id])
+  type         MaintenanceType   @default(SERVICE)
+  status       MaintenanceStatus @default(SCHEDULED)
+  description  String
+  scheduledAt  DateTime
+  performedAt  DateTime?
+  mileageKm    Int?
+  cost         Decimal?          @db.Decimal(12, 2)
+  provider     String?
+  nextDueAt    DateTime?
+  nextDueKm    Int?
+  recordedById String
+  recordedBy   User              @relation(fields: [recordedById], references: [id])
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([vehicleId, scheduledAt])
+  @@index([status])
+}
+
+model FuelLog {
+  id           String   @id @default(cuid())
+  vehicleId    String
+  vehicle      Vehicle  @relation(fields: [vehicleId], references: [id])
+  officerId    String?
+  officer      Officer? @relation(fields: [officerId], references: [id])
+  filledAt     DateTime @default(now())
+  liters       Decimal  @db.Decimal(10, 2)
+  cost         Decimal? @db.Decimal(12, 2)
+  mileageKm    Int?
+  station      String?
+  recordedById String
+  recordedBy   User     @relation(fields: [recordedById], references: [id])
+
+  @@index([vehicleId, filledAt])
+}
+
+// ------------------------------------------------------------
+// 11. DOCUMENTS, REPORTS, NOTIFICATIONS
+// ------------------------------------------------------------
+
+enum DocumentEntity {
+  CASE
+  COMPLAINT
+  EVIDENCE
+  PERSON
+  ARREST
+  WARRANT
+  INCIDENT
+  PATROL
+  OPERATION
+  VEHICLE
+  OFFICER
+  STATEMENT
+  INTERVIEW
+  INVESTIGATION
+  REPORT
+  GENERAL
+}
+
+enum DocumentCategory {
+  PHOTO
+  SCAN
+  FORM
+  REPORT
+  AUDIO
+  VIDEO
+  IDENTITY
+  LEGAL
+  OTHER
+}
+
+enum Classification {
+  INTERNAL
+  CONFIDENTIAL
+  RESTRICTED
+  SECRET
+}
+
+model Document {
+  id             String           @id @default(cuid())
+  title          String
+  entityType     DocumentEntity
+  entityId       String?
+  category       DocumentCategory @default(OTHER)
+  classification Classification   @default(INTERNAL)
+  description    String?
+  currentVersion Int              @default(1)
+  uploadedById   String
+  uploadedBy     User             @relation(fields: [uploadedById], references: [id])
+  stationId      String?
+  station        Station?         @relation(fields: [stationId], references: [id])
+  caseId         String?
+  case           Case?            @relation(fields: [caseId], references: [id])
+  evidenceId     String?
+  evidence       Evidence?        @relation(fields: [evidenceId], references: [id])
+  warrantId      String?
+  warrant        Warrant?         @relation(fields: [warrantId], references: [id])
+  arrestId       String?
+  arrest         Arrest?          @relation(fields: [arrestId], references: [id])
+  incidentId     String?
+  incident       Incident?        @relation(fields: [incidentId], references: [id])
+  operationId    String?
+  operation      Operation?       @relation(fields: [operationId], references: [id])
+  vehicleId      String?
+  vehicle        Vehicle?         @relation(fields: [vehicleId], references: [id])
+  isArchived     Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  deletedAt      DateTime?
+
+  versions   DocumentVersion[]
+  transcript Transcript?
+  generated  GeneratedReport?
+
+  @@index([entityType, entityId])
+  @@index([caseId])
+}
+
+model DocumentVersion {
+  id           String   @id @default(cuid())
+  documentId   String
+  document     Document @relation(fields: [documentId], references: [id])
+  version      Int
+  fileName     String
+  mimeType     String
+  sizeBytes    Int
+  storagePath  String
+  sha256       String
+  changeNote   String?
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id])
+  uploadedAt   DateTime @default(now())
+
+  @@unique([documentId, version])
+}
+
+enum ReportType {
+  CASE
+  INVESTIGATION
+  ARREST
+  EVIDENCE
+  INCIDENT
+  PATROL
+  STATION
+  STATISTICAL
+}
+
+model GeneratedReport {
+  id            String     @id @default(cuid())
+  number        String     @unique
+  type          ReportType
+  title         String
+  parameters    Json?
+  entityId      String?
+  generatedById String
+  generatedBy   User       @relation(fields: [generatedById], references: [id])
+  generatedAt   DateTime   @default(now())
+  documentId    String?    @unique
+  document      Document?  @relation(fields: [documentId], references: [id])
+
+  @@index([type, generatedAt])
+}
+
+enum NotificationKind {
+  INFO
+  ASSIGNMENT
+  DEADLINE
+  APPROVAL
+  ALERT
+  SECURITY
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      NotificationKind @default(INFO)
+  title     String
+  body      String
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt, createdAt])
+}
+
+// ------------------------------------------------------------
+// 12. AUDIT, SYSTEM, BACKUP
+// ------------------------------------------------------------
+
+enum AuditOutcome {
+  SUCCESS
+  DENIED
+  FAILURE
+}
+
+/// Immutable audit log (DB trigger forbids UPDATE/DELETE).
+model AuditLog {
+  id          String       @id @default(cuid())
+  at          DateTime     @default(now())
+  actorId     String?
+  actor       User?        @relation(fields: [actorId], references: [id])
+  actorLabel  String
+  action      String
+  module      String
+  entityType  String?
+  entityId    String?
+  entityLabel String?
+  summary     String
+  before      Json?
+  after       Json?
+  outcome     AuditOutcome @default(SUCCESS)
+  ipAddress   String?
+  userAgent   String?
+  sessionId   String?
+
+  @@index([at])
+  @@index([actorId, at])
+  @@index([entityType, entityId])
+  @@index([module, action])
+}
+
+model DocumentSequence {
+  key    String @id
+  prefix String
+  width  Int    @default(5)
+  next   Int    @default(1)
+}
+
+model SystemSetting {
+  key         String   @id
+  value       Json
+  description String?
+  updatedById String?
+  updatedBy   User?    @relation(fields: [updatedById], references: [id])
+  updatedAt   DateTime @updatedAt
+}
+
+enum BackupStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+  RESTORED
+}
+
+model BackupRecord {
+  id            String       @id @default(cuid())
+  type          String       @default("FULL")
+  status        BackupStatus @default(RUNNING)
+  fileName      String?
+  sizeBytes     Int?
+  sha256        String?
+  startedAt     DateTime     @default(now())
+  finishedAt    DateTime?
+  notes         String?
+  triggeredById String?
+  triggeredBy   User?        @relation(fields: [triggeredById], references: [id])
+}

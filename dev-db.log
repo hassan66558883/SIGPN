@@ -1,0 +1,39 @@
+[dev-db] initialising cluster in C:\Users\DELL\police managment  system\.pgdata
+[pg] The files belonging to this database system will be owned by user "DELL".
+This user must also own the server process.
+[pg] The database cluster will be initialized with locale "C".
+The default text search configuration will be set to "english".
+
+Data page checksums are enabled.
+[pg] 
+[pg] creating directory C:/Users/DELL/police managment  system/.pgdata ...
+[pg] ok
+[pg] creating subdirectories ...
+[pg] ok
+[pg] selecting dynamic shared memory implementation ... windows
+[pg] selecting default "max_connections" ...
+[pg] 100
+selecting default "shared_buffers" ...
+[pg] 128MB
+selecting default time zone ...
+[pg] Africa/Lagos
+creating configuration files ...
+[pg] ok
+running bootstrap script ...
+[pg] ok
+[pg] performing post-bootstrap initialization ...
+[pg] ok
+syncing data to disk ...
+[pg] ok
+[pg] 
+Success. You can now start the database server using:
+
+    ^"C^:^\Users^\DELL^\police^ managment^ ^ system^\node^_modules^\^@embedded^-postgres^\windows^-x64^\native^\bin^\pg^_ctl^" -D ^"C^:^\Users^\DELL^\police^ managment^ ^ system^\^.pgdata^" -l logfile start
+[pg] 2026-09-11 17:55:16.782 WAT [2560] LOG:  starting PostgreSQL 18.4 on x86_64-windows, compiled by msvc-19.44.35226, 64-bit
+[pg] 2026-09-11 17:55:16.785 WAT [2560] LOG:  listening on IPv6 address "::1", port 5436
+[pg] 2026-09-11 17:55:16.786 WAT [2560] LOG:  listening on IPv4 address "127.0.0.1", port 5436
+[pg] 2026-09-11 17:55:16.846 WAT [13032] LOG:  database system was shut down at 2026-09-11 17:55:13 WAT
+[pg] 2026-09-11 17:55:16.851 WAT [2560] LOG:  database system is ready to accept connections
+[dev-db] PostgreSQL listening on 127.0.0.1:5436 (user pms_app)
+[dev-db] database "pms" created
+[dev-db] ready. Ctrl+C to stop.
