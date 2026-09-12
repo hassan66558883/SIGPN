@@ -34,6 +34,7 @@ _Cumulative security posture and test results. Critical/high findings block phas
 | API keys: `pms_<prefix>_<secret>`, SHA-256 stored, expiry, max 5, owner permissions, revocation | 1 | implemented + tested |
 | Audit of every auth event, mutation, denied access and export, with redaction of secrets | 1 | implemented + tested |
 | Secrets: `.env` git-ignored; MFA secrets encrypted; audit redaction | 0/1 | implemented |
+| Territorial scope (Role + Organizational scope + Permission): NATIONAL / REGIONAL (province) / DEPARTMENTAL / STATION incl. attached posts & units; 404 outside scope | 2 | implemented + 8 isolation tests |
 | Case-level authorization | 5 | pending |
 | File upload validation & authorized downloads | 9 | pending |
 | Dedicated penetration-style testing | 14 | pending |
@@ -53,6 +54,16 @@ _Cumulative security posture and test results. Critical/high findings block phas
 | SQL injection-shaped input, malformed JSON | yes (P1-S16) | parameterized queries, 422 | — |
 | Secret leakage in API responses | yes (P1-I9) | no hashes/secrets | — |
 | Audit tampering | Phase 0 | blocked by trigger | — |
+
+## Phase 2 security test results
+
+| Vulnerability | Tested | Result | Severity |
+| ------------- | ------ | ------ | -------- |
+| Cross-station data leak (officers, structures, accounts) | yes (P2-S1..S3, S7) | blocked (404) | — |
+| Cross-province leak | yes (P2-S4, S7) | blocked | — |
+| Departmental scope overflow | yes (P2-S5) | blocked | — |
+| Post seeing parent/siblings | yes (P2-S2) | blocked | — |
+| Recursive hierarchy cycle (DoS) | yes (P2-S8 + validation) | impossible | — |
 
 ## Residual risks / notes
 

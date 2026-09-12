@@ -237,6 +237,20 @@ Environments: **Development** (Windows/macOS/Linux, embedded PostgreSQL, `npm ru
 
 See `.env.example`. Required in production: `DATABASE_URL`, `AUTH_SECRET`, `DATA_ENCRYPTION_KEY`, `APP_URL`. Optional tuning: session, lockout, password policy, upload limits, backup dir, STT provider. `TRUST_PROXY=1` makes the app trust `X-Forwarded-For` from Nginx.
 
+## 12b. Territorial hierarchy (TPMS)
+
+```text
+Tchad (Organization)
+ └─ Province (table Region — 23 official provinces)
+     └─ Département administratif (AdminDepartment)
+         └─ Commune / Sous-préfecture / Arrondissement (Commune)
+             └─ Quartier / Localité (Locality)
+Police structures (Station): DG, directions provinciales/départementales, commissariats centraux, commissariats
+  └─ Postes / Unités (Station.parentId, recursive) └─ Services (Department) └─ Agents (Officer)
+```
+
+Every structure carries a status (ACTIVE / INACTIVE / UNDER_CONSTRUCTION / PLANNED), optional territorial attachments and an `isDemo` flag. Authorization = Role + organizational scope + permission: scope levels NATIONAL, REGIONAL (province), DEPARTMENTAL, STATION (own structure + descendants), OWN; resolved once per request into `Actor.stationIds` and applied by `scopeWhere()` / `inScope()`.
+
 ## 13. Module map
 
 | # | Module | Phase | Main tables |

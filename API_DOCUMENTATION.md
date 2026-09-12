@@ -28,6 +28,26 @@ Base URL: `/api/v1` · Format: JSON · Auth: session cookie **or** `Authorizatio
 | `/api/v1/roles` | GET | session/key | `roles:view` | — | `data: Role[]` with `permissions[]`, `userCount` | 401, 403 | 1 |
 | `/api/v1/audit` | GET | session/key | `audit:view` | query `q, module, action, actorId, entityType, entityId, outcome, from, to, page, pageSize≤100` | `data: AuditLog[]`, `meta` | 401, 403, 422 | 1 |
 | `/api/v1/audit/export` | GET | session/key | `audit:export` | same filters | `text/csv` attachment (≤5000 rows); the export itself is audited (`AUDIT_EXPORTED`) | 401, 403 | 1 |
+| `/api/v1/provinces` | GET | session/key | `org:view` | — | `data: Province[]` with `adminDepartments[].communes[]` and `isDemo` flags; NATIONAL sees all, others their own province | 401, 403 | 2 |
+| `/api/v1/stations` | GET | session/key | `org:view` | query `q, regionId, adminDepartmentId, parentId, type, status, page, pageSize` | `data: Station[]` (type, status, parentId, counts) restricted to the caller's territorial scope (own structure + attached posts/units for station actors) | 401, 403, 422 | 2 |
+| `/api/v1/stations` | POST | session/key | `org:manage` | `stationSchema` (province, type, status, optional department/commune/locality/parent; POST/UNIT require a parent; no cycles) | 201 `data: Station` | 409 duplicate code / STATE scope; 422 | 2 |
+| `/api/v1/stations/{id}` | GET | session/key | `org:view` | path id | `data: Station` with territory, parent, children, departments, counts | 404 when outside scope | 2 |
+| `/api/v1/officers` | GET | session/key | `officers:view` | query `q, stationId, departmentId, rankId, dutyStatus, includeInactive, page, pageSize` | `data: Officer[]` inside the caller's scope | 401, 403, 422 | 2 |
+| `/api/v1/officers` | POST | session/key | `officers:manage` | `officerSchema` (badge, names, rank, station, department?) | 201 `data: Officer` + initial assignment; audited `OFFICER_CREATED` | 409 duplicate badge / STATE scope; 422 | 2 |
+| `/api/v1/officers/{id}` | GET | session/key | `officers:view` | path id | `data: Officer & { assignments[] }` | 404 when outside scope | 2 |
+
+## Territorial scope (Role + Organizational scope + Permission)
+
+Every list and every unitary read applies the caller's scope in addition to the permission:
+
+| Scope level | Sees |
+| ----------- | ---- |
+| NATIONAL | everything |
+| REGIONAL | one province (all departments, communes, structures, officers of the province) |
+| DEPARTMENTAL | every police structure attached to one administrative department |
+| STATION / OWN | the actor's structure and its attached posts/units (recursive), nothing else |
+
+Records outside the scope answer 404 (no existence leak). Master-data writes (provinces, departments, communes, localities, structures) are allowed to NATIONAL actors and to REGIONAL actors inside their own province; services of a structure can also be managed by its STATION/DEPARTMENTAL actors.
 
 ## Authentication for API clients
 

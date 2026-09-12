@@ -2,6 +2,20 @@
 
 All notable changes to the Police Management System. Dates are ISO (UTC+1, N'Djamena).
 
+## [0.3.0] — 2026-09-12 — Phase 2: Structures nationales & territoire (TPMS)
+
+### Added
+- Territorial hierarchy: provinces (table Region, 23 official provinces of Chad), administrative departments, communes / sub-prefectures / arrondissements, localities — configurable, flagged official vs DEMO.
+- Police hierarchy: extended structure types (provincial/departmental directorates, posts, units), statuses ACTIVE / INACTIVE / UNDER_CONSTRUCTION / PLANNED, parent/child attachment with cycle protection, commander, territorial attachments.
+- Scope: new DEPARTMENTAL level and role DEPARTMENTAL_COMMANDER; station scope now includes attached posts/units (recursive); 8 territorial isolation tests.
+- Screens: organization overview, province, department, structure (resources & attachments), officers list/new/detail with assignment history and duty status, users placement by department, pre-fill from officer.
+- REST API: /provinces, /stations, /stations/{id}, /officers, /officers/{id}.
+- Seed: Chad referential + DEMO structures (14), officers (118), demo accounts (17); DEMO banner (DEMO_MODE).
+- Product renamed TPMS – Tchad Police Management System.
+
+### Changed
+- Migration `national_territory` is additive only (no drop); legacy fictional regions converted to real provinces keeping their ids.
+
 ## [0.2.0] — 2026-09-12 — Phase 1: Authentication & Security Foundation
 
 ### Added

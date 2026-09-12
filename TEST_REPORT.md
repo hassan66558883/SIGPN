@@ -8,6 +8,9 @@ _Cumulative. Only tests that were actually executed are recorded. Per-phase deta
 | ----- | ---- | ----------- | -------- | -------- | ---------- | ------ |
 | 0 | — | 5 pass (`tests/integration/db-integrity.test.ts`) + 3 tooling checks | 2 pass | 2 pass | n/a (no UI yet) | PASS |
 | 1 | 16 pass (`tests/unit/auth-primitives.test.ts`, `tests/unit/i18n.test.ts`) | 14 pass (`db-integrity`, `users-api`) | 16 pass (`tests/security/auth.test.ts`) + 11 manual browser checks | 12 pass | 5 breakpoints pass | PASS |
+| 2 | 16 pass (re-run) | 22 pass (`db-integrity`, `users-api`, `territory-scope` 8) | 16 pass (re-run) + 8 territorial isolation tests | 8 pass | 2 breakpoints (1366, 375) | PASS |
+
+Last full regression run: 2026-09-12 17:10 — 54 automated tests green, `tsc`, `eslint`, `next build` OK.
 
 How to run: `npm test` (unit) · `npm run test:integration` (needs dev DB) · `npm run test:security` (needs `npm run dev` on 3300 + seed). Last full regression run: 2026-09-12 (all suites green, `tsc --noEmit` and `eslint` clean).
 
@@ -104,3 +107,24 @@ How to run: `npm test` (unit) · `npm run test:integration` (needs dev DB) · `n
 ### Negative tests executed in Phase 1
 
 Empty fields (login, MFA, API body) · invalid ids (404 out of scope) · duplicate username/e-mail (409) · weak/temporary passwords (422) · unauthorized page (403 page) · unauthorized API (401/403) · SQL-shaped input · non-JSON body · wrong TOTP code · expired session · repeated status transition (409) · self role/status change (403/409).
+
+## Phase 2 — executed tests (2026-09-12)
+
+### Territorial scope isolation (`tests/integration/territory-scope.test.ts`) — 8/8
+
+| Test ID | Test | Result |
+| ------- | ---- | ------ |
+| P2-S1 | Station commander (CS-01) sees own structure + attached posts/units (PP-NDJ-01A, PP-NDJ-02A, BAC-NDJ), not sibling CA-NDJ-05 nor other provinces | PASS |
+| P2-S2 | Agent of a post sees only their own post | PASS |
+| P2-S3 | Officer / structure of another commissariat → 404 (no existence leak); own attached post → 200 | PASS |
+| P2-S4 | Provincial commander sees every structure of the province, none from other provinces, 1 province in /provinces | PASS |
+| P2-S5 | Departmental commander sees exactly the structures of the administrative department | PASS |
+| P2-S6 | National admin sees 23 provinces and every structure | PASS |
+| P2-S7 | Moundou commander isolated from N'Djamena | PASS |
+| P2-S8 | Hierarchy integrity: no orphan POST/UNIT, no cycle | PASS |
+
+### Regression (re-run after the territorial migration)
+Unit 16/16 · users-api 9/9 (assertion updated: station scope now includes attached posts) · db-integrity 5/5 · security 16/16 · `next build` OK.
+
+### Manual browser checks
+Organisation, Province (Ville de N'Djamena), Département (DEP-NDJ), Commissariat (CS-01: 3 postes/unités, 7 services, 14 agents, 7 comptes), Agents (118), Utilisateurs (17), Nouvel utilisateur — all render without console errors; FR default, DEMO banner, DEMO/Référentiel badges; 1366×768 and 375×812.
