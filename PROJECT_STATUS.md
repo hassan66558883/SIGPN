@@ -4,7 +4,7 @@ _Last updated: 2026-09-12 (end of Phase 1)_
 
 | Item | Value |
 | ---- | ----- |
-| Current Phase | 2 — Organization & Master Data |
+| Current Phase | 2 — Structures nationales & territoire (TPMS) — audit livré, voir docs/AUDIT_TPMS_2026-09-12.md |
 | Completed Phases | 0, 1 |
 | Overall Completion | 12 % (2/16 phases) |
 | Features Completed | Architecture & data model; authentication (sessions, password policy, reset), MFA (TOTP + recovery), brute-force protection, RBAC (92 permissions, 12 roles, scope levels), users/roles/permissions administration, security centre, immutable audit log + export, notifications inbox, account self-service (sessions, API keys), REST API v1 (auth/users/roles/audit), bilingual UI (FR default / EN), responsive shell |

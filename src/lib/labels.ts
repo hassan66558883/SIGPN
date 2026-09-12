@@ -54,6 +54,54 @@ export const SEVERITY: LabelMap = {
   CRITICAL: def("Critique", "Critical", "danger"),
 };
 
+export const STATION_TYPE: LabelMap = {
+  HEADQUARTERS: def("Direction générale", "Headquarters", "violet"),
+  CENTRAL_STATION: def("Commissariat central", "Central station", "info"),
+  STATION: def("Commissariat", "Station", "neutral"),
+  POST: def("Poste de police", "Police post", "neutral"),
+  BRIGADE: def("Brigade", "Brigade", "neutral"),
+  SPECIAL_UNIT: def("Unité spéciale", "Special unit", "warning"),
+};
+
+export const DEPARTMENT_TYPE: LabelMap = {
+  COMMAND: def("Commandement", "Command", "violet"),
+  INVESTIGATION: def("Enquêtes", "Investigation", "info"),
+  PATROL: def("Patrouille", "Patrol", "neutral"),
+  TRAFFIC: def("Circulation", "Traffic", "neutral"),
+  FORENSICS: def("Police scientifique", "Forensics", "info"),
+  INTELLIGENCE: def("Renseignement", "Intelligence", "warning"),
+  CUSTODY: def("Garde à vue", "Custody", "neutral"),
+  LOGISTICS: def("Logistique", "Logistics", "neutral"),
+  ADMINISTRATION: def("Administration", "Administration", "neutral"),
+  SPECIAL: def("Unité spéciale", "Special", "warning"),
+};
+
+export const RANK_CATEGORY: LabelMap = {
+  COMMISSIONER: def("Commissaires", "Commissioners", "violet"),
+  OFFICER: def("Officiers", "Officers", "info"),
+  INSPECTOR: def("Inspecteurs", "Inspectors", "info"),
+  NON_COMMISSIONED: def("Sous-officiers", "Non-commissioned", "neutral"),
+  CONSTABLE: def("Gardiens de la paix", "Constables", "neutral"),
+  CIVILIAN: def("Personnel civil", "Civilian", "neutral"),
+};
+
+export const GENDER: LabelMap = {
+  MALE: def("Masculin", "Male"),
+  FEMALE: def("Féminin", "Female"),
+  OTHER: def("Autre", "Other"),
+  UNKNOWN: def("Non renseigné", "Unknown"),
+};
+
+export const DUTY_STATUS: LabelMap = {
+  ON_DUTY: def("En service", "On duty", "success"),
+  OFF_DUTY: def("Repos", "Off duty", "neutral"),
+  ON_LEAVE: def("En congé", "On leave", "info"),
+  TRAINING: def("En formation", "Training", "info"),
+  SUSPENDED: def("Suspendu", "Suspended", "danger"),
+  RETIRED: def("Retraité", "Retired", "neutral"),
+  DECEASED: def("Décédé", "Deceased", "neutral"),
+};
+
 export function labelOf(map: LabelMap, key: string | null | undefined, locale: Locale): LabelDef {
   if (!key) return { label: "—", tone: "neutral" };
   const d = map[key];
