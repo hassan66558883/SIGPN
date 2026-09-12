@@ -5,7 +5,7 @@ import { getMessages } from "@/lib/i18n";
 import { I18nProvider } from "@/components/i18n-provider";
 
 export const metadata: Metadata = {
-  title: { default: "PMS", template: "%s · PMS" },
+  title: { default: "TPMS", template: "%s · TPMS" },
   description: "Police Management System — integrated complaints, cases, investigations, evidence, arrests, warrants, operations, personnel and fleet management.",
   robots: { index: false, follow: false },
   icons: { icon: "/icon.svg" },

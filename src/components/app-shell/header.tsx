@@ -6,11 +6,18 @@ import { Badge } from "@/components/ui";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { getLocale, getT } from "@/server/i18n";
 import { roleName } from "@/lib/i18n/catalog";
+import { env } from "@/server/env";
 
 export async function Header({ actor, unreadCount, sections }: { actor: Actor; unreadCount: number; sections: SidebarSection[] }) {
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   const ini = `${actor.firstName[0] ?? ""}${actor.lastName[0] ?? ""}`.toUpperCase();
   return (
+    <>
+      {env.demoMode ? (
+        <div className="no-print bg-warning px-3 py-1 text-center text-[11px] font-bold uppercase tracking-widest text-white" role="status">
+          {t("demo.banner")}
+        </div>
+      ) : null}
     <header className="no-print sticky top-0 z-20 flex h-14 items-center justify-between gap-3 border-b border-line bg-white/95 px-3 backdrop-blur sm:px-4 lg:px-6">
       <div className="flex min-w-0 items-center gap-2">
         <MobileNav sections={sections} />
@@ -46,5 +53,6 @@ export async function Header({ actor, unreadCount, sections }: { actor: Actor; u
         </form>
       </div>
     </header>
+    </>
   );
 }

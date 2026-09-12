@@ -57,10 +57,11 @@ export async function unreadCount(actor: Actor) {
 }
 
 export async function referenceLists() {
-  const [roles, regions, stations] = await Promise.all([
+  const [roles, regions, adminDepartments, stations] = await Promise.all([
     prisma.role.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, scopeLevel: true, requiresMfa: true } }),
     prisma.region.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true } }),
-    prisma.station.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, regionId: true } }),
+    prisma.adminDepartment.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, regionId: true } }),
+    prisma.station.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, regionId: true, adminDepartmentId: true } }),
   ]);
-  return { roles, regions, stations };
+  return { roles, regions, adminDepartments, stations };
 }

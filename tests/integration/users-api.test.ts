@@ -61,7 +61,11 @@ test("GET /users is paginated and scoped: station commander only sees their stat
   assert.equal(chief.res.status, 200);
   const users = chief.json.data as unknown as { username: string; station: { code: string } | null }[];
   assert.ok(users.length > 0);
-  for (const u of users) assert.equal(u.station?.code, "CS-01", `${u.username} outside station scope`);
+  // A station commander sees the users of their own structure AND of its attached posts/units.
+  const allowed = await pool.query(`WITH RECURSIVE t AS (SELECT id, code FROM "Station" WHERE code='CS-01' UNION ALL SELECT s.id, s.code FROM "Station" s JOIN t ON s."parentId"=t.id) SELECT code FROM t`);
+  const codes = new Set(allowed.rows.map((r) => r.code as string));
+  for (const u of users) assert.ok(u.station && codes.has(u.station.code), `${u.username} outside station scope (${u.station?.code})`);
+  assert.ok(users.some((u) => u.station?.code === "CS-01"));
 });
 
 test("POST /users: validation (422), duplicate (409), weak password (422)", async () => {

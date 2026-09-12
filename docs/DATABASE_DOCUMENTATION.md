@@ -1,10 +1,10 @@
 # Police Management System — Database Documentation
 
-_Generated from `prisma/schema.prisma` on 2026-09-11 by `scripts/gen-db-docs.ts`. Do not edit by hand._
+_Generated from `prisma/schema.prisma` on 2026-09-12 by `scripts/gen-db-docs.ts`. Do not edit by hand._
 
 - Engine: PostgreSQL 18 · ORM: Prisma 7 (pg adapter)
-- Tables: **64** · Enums: **57**
-- Migrations: `20260911165632_init`, `20260911165825_immutability_triggers`
+- Tables: **67** · Enums: **60**
+- Migrations: `20260911165632_init`, `20260911165825_immutability_triggers`, `20260912102414_national_territory`
 
 ## Integrity rules
 
@@ -100,6 +100,8 @@ Constraints/indexes: `@@id([roleId, permissionId])`
 | organization | Organization? | nullable, FK → Organization |
 | regionId | String? | nullable, FK → String |
 | region | Region? | nullable, FK → Region |
+| adminDepartmentId | String? | nullable, FK → String |
+| adminDepartment | AdminDepartment? | nullable, FK → AdminDepartment |
 | stationId | String? | nullable, FK → String |
 | station | Station? | nullable, FK → Station |
 | officer | Officer? | nullable, FK → Officer |
@@ -277,9 +279,11 @@ Personal API keys for REST clients (Bearer). Scoped to the owner's permissions.
 Constraints/indexes: `@@index([userId])`
 
 
-## 2. ORGANIZATION & PERSONNEL
+## 2. ORGANIZATION, TERRITORY & PERSONNEL
 
 ### Region
+
+Province (kept as table "Region" for backward compatibility; presented as "Province" in the UI).
 
 | Column | Type | Notes |
 | ------ | ---- | ----- |
@@ -290,8 +294,10 @@ Constraints/indexes: `@@index([userId])`
 | name | String | FK → String |
 | capital | String? | nullable, FK → String |
 | isActive | Boolean | default true |
+| isDemo | Boolean | default false |
 | createdAt | DateTime | default now( |
 | updatedAt | DateTime | auto-updated |
+| adminDepartments | AdminDepartment[] | 1→N relation |
 | stations | Station[] | 1→N relation |
 | users | User[] | 1→N relation |
 | persons | Person[] | 1→N relation |
@@ -300,7 +306,9 @@ Constraints/indexes: `@@index([userId])`
 | incidents | Incident[] | 1→N relation |
 | operations | Operation[] | 1→N relation |
 
-### Station
+### AdminDepartment
+
+Administrative department (département) of a province.
 
 | Column | Type | Notes |
 | ------ | ---- | ----- |
@@ -309,7 +317,80 @@ Constraints/indexes: `@@index([userId])`
 | region | Region | FK → Region |
 | code | String | unique, FK → String |
 | name | String | FK → String |
+| capital | String? | nullable, FK → String |
+| isActive | Boolean | default true |
+| isDemo | Boolean | default false |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+| communes | Commune[] | 1→N relation |
+| stations | Station[] | 1→N relation |
+| users | User[] | 1→N relation |
+
+Constraints/indexes: `@@index([regionId])`
+
+### Commune
+
+Commune, sous-préfecture or urban arrondissement of an administrative department.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| adminDepartmentId | String | FK → String |
+| adminDepartment | AdminDepartment | FK → AdminDepartment |
+| code | String | unique, FK → String |
+| name | String | FK → String |
+| type | CommuneType | enum, default COMMUNE |
+| isActive | Boolean | default true |
+| isDemo | Boolean | default false |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+| localities | Locality[] | 1→N relation |
+| stations | Station[] | 1→N relation |
+
+Constraints/indexes: `@@index([adminDepartmentId])`
+
+### Locality
+
+Quartier / village / localité (only when official data is available; otherwise demo).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| communeId | String | FK → String |
+| commune | Commune | FK → Commune |
+| code | String? | unique, nullable, FK → String |
+| name | String | FK → String |
+| type | LocalityType | enum, default QUARTIER |
+| isActive | Boolean | default true |
+| isDemo | Boolean | default false |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+| stations | Station[] | 1→N relation |
+
+Constraints/indexes: `@@index([communeId])`
+
+### Station
+
+Police structure: commissariat, poste, unité, brigade, direction. Posts and units hang under a parent station.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| regionId | String | FK → String |
+| region | Region | FK → Region |
+| adminDepartmentId | String? | nullable, FK → String |
+| adminDepartment | AdminDepartment? | nullable, FK → AdminDepartment |
+| communeId | String? | nullable, FK → String |
+| commune | Commune? | nullable, FK → Commune |
+| localityId | String? | nullable, FK → String |
+| locality | Locality? | nullable, FK → Locality |
+| parentId | String? | nullable, FK → String |
+| parent | Station? | nullable, FK → Station |
+| children | Station[] | 1→N relation |
+| code | String | unique, FK → String |
+| name | String | FK → String |
 | type | StationType | enum, default STATION |
+| status | StationStatus | enum, default ACTIVE |
 | address | String? | nullable, FK → String |
 | city | String? | nullable, FK → String |
 | phone | String? | nullable, FK → String |
@@ -319,6 +400,7 @@ Constraints/indexes: `@@index([userId])`
 | commanderId | String? | unique, nullable, FK → String |
 | commander | Officer? | nullable, FK → Officer |
 | isActive | Boolean | default true |
+| isDemo | Boolean | default false |
 | createdAt | DateTime | default now( |
 | updatedAt | DateTime | auto-updated |
 | departments | Department[] | 1→N relation |
@@ -337,7 +419,7 @@ Constraints/indexes: `@@index([userId])`
 | officerAssignments | OfficerAssignment[] | 1→N relation |
 | documents | Document[] | 1→N relation |
 
-Constraints/indexes: `@@index([regionId])`
+Constraints/indexes: `@@index([regionId])`, `@@index([adminDepartmentId])`, `@@index([communeId])`, `@@index([parentId])`, `@@index([status])`
 
 ### Department
 
@@ -1564,8 +1646,11 @@ Constraints/indexes: `@@index([at])`, `@@index([actorId, at])`, `@@index([entity
 ## Enumerations
 
 - **UserStatus**: PENDING, ACTIVE, LOCKED, SUSPENDED, DISABLED
-- **ScopeLevel**: NATIONAL, REGIONAL, STATION, OWN
-- **StationType**: HEADQUARTERS, CENTRAL_STATION, STATION, POST, BRIGADE, SPECIAL_UNIT
+- **ScopeLevel**: NATIONAL, REGIONAL, DEPARTMENTAL, STATION, OWN
+- **CommuneType**: COMMUNE, SOUS_PREFECTURE, ARRONDISSEMENT
+- **LocalityType**: QUARTIER, VILLAGE, CANTON, LOCALITE
+- **StationType**: HEADQUARTERS, PROVINCIAL_DIRECTION, DEPARTMENTAL_DIRECTION, CENTRAL_STATION, STATION, POST, UNIT, BRIGADE, SPECIAL_UNIT
+- **StationStatus**: ACTIVE, INACTIVE, UNDER_CONSTRUCTION, PLANNED
 - **DepartmentType**: COMMAND, INVESTIGATION, PATROL, TRAFFIC, FORENSICS, INTELLIGENCE, CUSTODY, LOGISTICS, ADMINISTRATION, SPECIAL
 - **RankCategory**: COMMISSIONER, OFFICER, INSPECTOR, NON_COMMISSIONED, CONSTABLE, CIVILIAN
 - **Gender**: MALE, FEMALE, OTHER, UNKNOWN

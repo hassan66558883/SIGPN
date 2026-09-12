@@ -17,6 +17,7 @@ export const organizationSchema = z.object({
 });
 export type OrganizationInput = z.infer<typeof organizationSchema>;
 
+/** Province (table Region). */
 export const regionSchema = z.object({
   code: code(12),
   name: z.string().trim().min(2).max(100),
@@ -25,11 +26,48 @@ export const regionSchema = z.object({
 });
 export type RegionInput = z.infer<typeof regionSchema>;
 
-export const stationSchema = z.object({
-  regionId: z.string().min(1, "region is required"),
+export const adminDepartmentSchema = z.object({
+  regionId: z.string().min(1, "province is required"),
   code: code(16),
   name: z.string().trim().min(2).max(120),
-  type: z.enum(["HEADQUARTERS", "CENTRAL_STATION", "STATION", "POST", "BRIGADE", "SPECIAL_UNIT"]),
+  capital: optionalText(100),
+  isActive: checkbox.default(true),
+});
+export type AdminDepartmentInput = z.infer<typeof adminDepartmentSchema>;
+
+export const communeSchema = z.object({
+  adminDepartmentId: z.string().min(1, "department is required"),
+  code: code(20),
+  name: z.string().trim().min(2).max(120),
+  type: z.enum(["COMMUNE", "SOUS_PREFECTURE", "ARRONDISSEMENT"]).default("COMMUNE"),
+  isActive: checkbox.default(true),
+});
+export type CommuneInput = z.infer<typeof communeSchema>;
+
+export const localitySchema = z.object({
+  communeId: z.string().min(1, "commune is required"),
+  code: optionalText(24),
+  name: z.string().trim().min(2).max(120),
+  type: z.enum(["QUARTIER", "VILLAGE", "CANTON", "LOCALITE"]).default("QUARTIER"),
+  isActive: checkbox.default(true),
+});
+export type LocalityInput = z.infer<typeof localitySchema>;
+
+export const STATION_TYPES = ["HEADQUARTERS", "PROVINCIAL_DIRECTION", "DEPARTMENTAL_DIRECTION", "CENTRAL_STATION", "STATION", "POST", "UNIT", "BRIGADE", "SPECIAL_UNIT"] as const;
+export const STATION_STATUSES = ["ACTIVE", "INACTIVE", "UNDER_CONSTRUCTION", "PLANNED"] as const;
+/** Types that must hang under a parent structure. */
+export const CHILD_STATION_TYPES: readonly string[] = ["POST", "UNIT"];
+
+export const stationSchema = z.object({
+  regionId: z.string().min(1, "province is required"),
+  adminDepartmentId: optionalText(64),
+  communeId: optionalText(64),
+  localityId: optionalText(64),
+  parentId: optionalText(64),
+  code: code(16),
+  name: z.string().trim().min(2).max(120),
+  type: z.enum(STATION_TYPES),
+  status: z.enum(STATION_STATUSES).default("ACTIVE"),
   address: optionalText(200),
   city: optionalText(100),
   phone: optionalText(30),
@@ -37,7 +75,6 @@ export const stationSchema = z.object({
   latitude: optionalText(20),
   longitude: optionalText(20),
   commanderId: optionalText(64),
-  isActive: checkbox.default(true),
 });
 export type StationInput = z.infer<typeof stationSchema>;
 

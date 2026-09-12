@@ -6,7 +6,7 @@ import { getRequestContext } from "@/server/request-context";
 import { fail, formEntries, revalidateAll } from "@/server/action-utils";
 import { requirePermissionForAction } from "@/server/auth/dal";
 import * as svc from "@/server/org/service";
-import { assignmentSchema, departmentSchema, dutyStatusSchema, officerSchema, organizationSchema, rankSchema, regionSchema, stationSchema } from "@/server/org/schemas";
+import { adminDepartmentSchema, assignmentSchema, communeSchema, departmentSchema, dutyStatusSchema, localitySchema, officerSchema, organizationSchema, rankSchema, regionSchema, stationSchema } from "@/server/org/schemas";
 import type { FormState } from "@/components/forms";
 
 const id = (fd: FormData, key = "id") => String(fd.get(key) ?? "");
@@ -30,7 +30,7 @@ export async function createRegionAction(_p: FormState, fd: FormData): Promise<F
     created = r.id;
     revalidateAll();
   } catch (e) {
-    return fail(e, "Could not create the region.", "org");
+    return fail(e, "Could not create the province.", "org");
   }
   redirect(`/admin/organization/regions/${created}?created=1`);
 }
@@ -40,9 +40,66 @@ export async function updateRegionAction(_p: FormState, fd: FormData): Promise<F
     const actor = await requirePermissionForAction("org:manage");
     await svc.updateRegion(actor, id(fd), regionSchema.parse(formEntries(fd)), await getRequestContext());
     revalidateAll();
-    return { ok: true, message: "Region updated." };
+    return { ok: true, message: "Province updated." };
   } catch (e) {
-    return fail(e, "Could not update the region.", "org");
+    return fail(e, "Could not update the province.", "org");
+  }
+}
+
+export async function createAdminDepartmentAction(_p: FormState, fd: FormData): Promise<FormState> {
+  let created: string;
+  try {
+    const actor = await requirePermissionForAction("org:manage");
+    const d = await svc.createAdminDepartment(actor, adminDepartmentSchema.parse(formEntries(fd)), await getRequestContext());
+    created = d.id;
+    revalidateAll();
+  } catch (e) {
+    return fail(e, "Could not create the department.", "org");
+  }
+  redirect(`/admin/organization/departments/${created}?created=1`);
+}
+
+export async function updateAdminDepartmentAction(_p: FormState, fd: FormData): Promise<FormState> {
+  try {
+    const actor = await requirePermissionForAction("org:manage");
+    await svc.updateAdminDepartment(actor, id(fd), adminDepartmentSchema.omit({ regionId: true }).parse(formEntries(fd)), await getRequestContext());
+    revalidateAll();
+    return { ok: true, message: "Department updated." };
+  } catch (e) {
+    return fail(e, "Could not update the department.", "org");
+  }
+}
+
+export async function createCommuneAction(_p: FormState, fd: FormData): Promise<FormState> {
+  try {
+    const actor = await requirePermissionForAction("org:manage");
+    await svc.createCommune(actor, communeSchema.parse(formEntries(fd)), await getRequestContext());
+    revalidateAll();
+    return { ok: true, message: "Commune created." };
+  } catch (e) {
+    return fail(e, "Could not create the commune.", "org");
+  }
+}
+
+export async function updateCommuneAction(_p: FormState, fd: FormData): Promise<FormState> {
+  try {
+    const actor = await requirePermissionForAction("org:manage");
+    await svc.updateCommune(actor, id(fd), communeSchema.omit({ adminDepartmentId: true }).parse(formEntries(fd)), await getRequestContext());
+    revalidateAll();
+    return { ok: true, message: "Commune updated." };
+  } catch (e) {
+    return fail(e, "Could not update the commune.", "org");
+  }
+}
+
+export async function createLocalityAction(_p: FormState, fd: FormData): Promise<FormState> {
+  try {
+    const actor = await requirePermissionForAction("org:manage");
+    await svc.createLocality(actor, localitySchema.parse(formEntries(fd)), await getRequestContext());
+    revalidateAll();
+    return { ok: true, message: "Locality created." };
+  } catch (e) {
+    return fail(e, "Could not create the locality.", "org");
   }
 }
 
@@ -130,8 +187,7 @@ export async function createOfficerAction(_p: FormState, fd: FormData): Promise<
 export async function updateOfficerAction(_p: FormState, fd: FormData): Promise<FormState> {
   try {
     const actor = await requirePermissionForAction("officers:manage");
-    const entries = formEntries(fd);
-    const input = officerSchema.omit({ stationId: true, rankId: true, departmentId: true }).parse(entries);
+    const input = officerSchema.omit({ stationId: true, rankId: true, departmentId: true }).parse(formEntries(fd));
     await svc.updateOfficer(actor, id(fd), input, await getRequestContext());
     revalidateAll();
     return { ok: true, message: "Officer updated." };

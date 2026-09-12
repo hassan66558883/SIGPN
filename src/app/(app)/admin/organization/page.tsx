@@ -14,14 +14,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function OrganizationPage() {
   const actor = await requirePermission("org:view");
-  const [o, t, locale] = await Promise.all([organizationOverview(), getT(), getLocale()]);
+  const [o, t, locale] = await Promise.all([organizationOverview(actor), getT(), getLocale()]);
   const canManage = actor.permissions.has("org:manage");
   const national = actor.scopeLevel === "NATIONAL";
   return (
     <div>
       <PageHeader eyebrow={t("admin.eyebrow")} title={t("org.title")} subtitle={t("org.subtitle")} />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label={t("org.stat.regions")} value={o.regions.filter((r) => r.isActive).length} tone="violet" />
+        <StatCard label={t("terr.departments")} value={o.totals.adminDepartments} tone="info" />
         <StatCard label={t("org.stat.stations")} value={o.totals.stations} tone="info" />
         <StatCard label={t("org.stat.departments")} value={o.totals.departments} tone="neutral" />
         <StatCard label={t("org.stat.officers")} value={o.totals.officers} tone="success" href="/officers" />
@@ -38,7 +39,7 @@ export default async function OrganizationPage() {
             <EmptyState>—</EmptyState>
           )}
         </Card>
-        <Card className="lg:col-span-2" title={t("org.regions")} padded={false} actions={canManage && national ? <span className="text-xs text-slate">{t("org.newRegion")} ↓</span> : null}>
+        <Card className="lg:col-span-2" title={t("org.regions")} padded={false}>
           {o.regions.length === 0 ? (
             <div className="p-5">
               <EmptyState>{t("org.noRegions")}</EmptyState>
@@ -49,9 +50,9 @@ export default async function OrganizationPage() {
                 <tr>
                   <th>{t("org.col.region")}</th>
                   <th>{t("org.col.capital")}</th>
+                  <th>{t("terr.departments")}</th>
                   <th>{t("org.col.stations")}</th>
                   <th>{t("org.col.officers")}</th>
-                  <th>{t("org.col.users")}</th>
                   <th>{t("org.col.state")}</th>
                 </tr>
               </thead>
@@ -62,12 +63,19 @@ export default async function OrganizationPage() {
                       <Link href={`/admin/organization/regions/${r.id}`} className="font-semibold text-blue hover:underline">
                         {r.name}
                       </Link>
-                      <span className="block font-mono text-[11px] text-slate">{r.code}</span>
+                      <span className="block font-mono text-[11px] text-slate">
+                        {r.code}
+                        {r.isDemo ? (
+                          <Badge tone="warning" className="ms-1" title={t("terr.demoHint")}>
+                            {t("terr.demo")}
+                          </Badge>
+                        ) : null}
+                      </span>
                     </td>
                     <td data-label={t("org.col.capital")}>{r.capital ?? "—"}</td>
+                    <td data-label={t("terr.departments")}>{r._count.adminDepartments}</td>
                     <td data-label={t("org.col.stations")}>{r.activeStations}</td>
                     <td data-label={t("org.col.officers")}>{r.officers}</td>
-                    <td data-label={t("org.col.users")}>{r._count.users}</td>
                     <td data-label={t("org.col.state")}>{r.isActive ? <Badge tone="success">{t("common.active")}</Badge> : <Badge>{t("common.inactive")}</Badge>}</td>
                   </tr>
                 ))}

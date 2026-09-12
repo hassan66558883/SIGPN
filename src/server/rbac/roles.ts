@@ -122,6 +122,14 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     permissions: [...READ_ALL, ...INVESTIGATIVE_WRITE, ...COMMAND, "cases:archive", "warrants:execute", "org:manage"],
   },
   {
+    code: "DEPARTMENTAL_COMMANDER",
+    name: "Departmental Commander",
+    description: "Commands the police structures of one administrative department.",
+    scopeLevel: "DEPARTMENTAL",
+    requiresMfa: true,
+    permissions: [...READ_ALL, ...INVESTIGATIVE_WRITE, ...COMMAND, "warrants:execute", "vehicles:manage", "maintenance:manage", "evidence:manage_locations"],
+  },
+  {
     code: "STATION_COMMANDER",
     name: "Station Commander",
     description: "Commands a police station: reviews complaints, assigns cases, supervises investigations.",

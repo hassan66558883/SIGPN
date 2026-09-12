@@ -8,6 +8,13 @@ import { AuthError } from "@/server/errors";
 import { getSessionToken, resolveSession } from "@/server/auth/session";
 import type { Permission } from "@/server/rbac/permissions";
 
+/**
+ * Authorization principle: Role + Organizational scope + Permission.
+ * - permissions: what the actor may do (from the role)
+ * - scopeLevel + regionId / adminDepartmentId / stationIds: where the actor may do it
+ *   NATIONAL → everywhere · REGIONAL → one province · DEPARTMENTAL → all stations of one administrative
+ *   department · STATION/OWN → the actor's station **and its child posts/units** (stationIds).
+ */
 export type Actor = {
   id: string;
   username: string;
@@ -24,8 +31,12 @@ export type Actor = {
   organizationId: string | null;
   regionId: string | null;
   regionName: string | null;
+  adminDepartmentId: string | null;
+  adminDepartmentName: string | null;
   stationId: string | null;
   stationName: string | null;
+  /** Station ids visible to a DEPARTMENTAL / STATION / OWN actor (own station + descendants, or all stations of the department). null = not station-restricted. */
+  stationIds: string[] | null;
   officerId: string | null;
   mfaEnabled: boolean;
   mfaVerified: boolean;
@@ -46,8 +57,10 @@ const userSelect = {
   mustChangePassword: true,
   organizationId: true,
   regionId: true,
+  adminDepartmentId: true,
   stationId: true,
   region: { select: { name: true } },
+  adminDepartment: { select: { name: true } },
   station: { select: { name: true } },
   officer: { select: { id: true } },
   role: { select: { id: true, code: true, name: true, scopeLevel: true, requiresMfa: true, isActive: true, permissions: { select: { permission: { select: { code: true } } } } } },
@@ -59,8 +72,28 @@ export async function loadUserRow(userId: string) {
   return prisma.user.findUnique({ where: { id: userId }, select: userSelect });
 }
 
-export function buildActor(u: UserRow, session: { id: string | null; mfaVerified: boolean }, authMethod: Actor["authMethod"]): Actor | null {
+/** Own station plus every descendant post/unit (recursive), regardless of status. */
+export async function stationDescendantIds(stationId: string): Promise<string[]> {
+  const rows = await prisma.$queryRaw<{ id: string }[]>`
+    WITH RECURSIVE tree AS (
+      SELECT id FROM "Station" WHERE id = ${stationId}
+      UNION ALL
+      SELECT s.id FROM "Station" s JOIN tree t ON s."parentId" = t.id
+    )
+    SELECT id FROM tree`;
+  return rows.map((r) => r.id);
+}
+
+export async function departmentStationIds(adminDepartmentId: string): Promise<string[]> {
+  const rows = await prisma.station.findMany({ where: { adminDepartmentId }, select: { id: true } });
+  return rows.map((r) => r.id);
+}
+
+export async function buildActor(u: UserRow, session: { id: string | null; mfaVerified: boolean }, authMethod: Actor["authMethod"]): Promise<Actor | null> {
   if (!u || u.deletedAt || u.status !== "ACTIVE" || !u.role.isActive) return null;
+  let stationIds: string[] | null = null;
+  if (u.role.scopeLevel === "STATION" || u.role.scopeLevel === "OWN") stationIds = u.stationId ? await stationDescendantIds(u.stationId) : [];
+  else if (u.role.scopeLevel === "DEPARTMENTAL") stationIds = u.adminDepartmentId ? await departmentStationIds(u.adminDepartmentId) : [];
   return {
     id: u.id,
     username: u.username,
@@ -77,8 +110,11 @@ export function buildActor(u: UserRow, session: { id: string | null; mfaVerified
     organizationId: u.organizationId,
     regionId: u.regionId,
     regionName: u.region?.name ?? null,
+    adminDepartmentId: u.adminDepartmentId,
+    adminDepartmentName: u.adminDepartment?.name ?? null,
     stationId: u.stationId,
     stationName: u.station?.name ?? null,
+    stationIds,
     officerId: u.officer?.id ?? null,
     mfaEnabled: u.mfaEnabled,
     mfaVerified: session.mfaVerified,
@@ -167,18 +203,33 @@ export async function requirePermissionForAction(permission: Permission, actorIn
 
 // ---------- Scope helpers ----------
 
-/** Prisma where-fragment restricting rows to the actor's organizational scope. */
-export function scopeWhere(actor: Actor, fields: { stationId?: string; regionId?: string } = { stationId: "stationId", regionId: "regionId" }): Record<string, unknown> {
+export type ScopeFields = {
+  /** column holding the station id (default "stationId") */
+  stationId?: string;
+  /** column holding the province id (default "regionId"); set `via: "station"` when the table has no province column */
+  regionId?: string;
+  /** "column" (default) filters REGIONAL actors on the province column; "station" filters through the `station` relation */
+  via?: "column" | "station";
+};
+
+const NONE = "__none__";
+
+/**
+ * Prisma where-fragment restricting rows to the actor's organizational scope.
+ * STATION/OWN and DEPARTMENTAL actors are restricted to `stationIds`; REGIONAL to their province; NATIONAL unrestricted.
+ */
+export function scopeWhere(actor: Actor, fields: ScopeFields = {}): Record<string, unknown> {
   const stationField = fields.stationId ?? "stationId";
   const regionField = fields.regionId ?? "regionId";
   switch (actor.scopeLevel) {
     case "NATIONAL":
       return {};
     case "REGIONAL":
-      return { [regionField]: actor.regionId ?? "__none__" };
+      return fields.via === "station" ? { station: { regionId: actor.regionId ?? NONE } } : { [regionField]: actor.regionId ?? NONE };
+    case "DEPARTMENTAL":
     case "STATION":
     case "OWN":
-      return { [stationField]: actor.stationId ?? "__none__" };
+      return { [stationField]: { in: actor.stationIds && actor.stationIds.length ? actor.stationIds : [NONE] } };
   }
 }
 
@@ -190,6 +241,12 @@ export function inScope(actor: Actor, rec: { stationId?: string | null; regionId
     case "REGIONAL":
       return !!actor.regionId && rec.regionId === actor.regionId;
     default:
-      return !!actor.stationId && rec.stationId === actor.stationId;
+      return !!rec.stationId && !!actor.stationIds && actor.stationIds.includes(rec.stationId);
   }
+}
+
+/** Whether the actor may administer master data of a province (NATIONAL, or REGIONAL of that province). */
+export function canManageRegion(actor: Actor, regionId: string | null | undefined): boolean {
+  if (actor.scopeLevel === "NATIONAL") return true;
+  return actor.scopeLevel === "REGIONAL" && !!regionId && actor.regionId === regionId;
 }

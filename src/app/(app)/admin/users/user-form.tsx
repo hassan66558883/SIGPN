@@ -11,23 +11,29 @@ import { roleName } from "@/lib/i18n/catalog";
 export type Refs = {
   roles: { id: string; code: string; name: string; scopeLevel: string; requiresMfa: boolean }[];
   regions: { id: string; code: string; name: string }[];
-  stations: { id: string; code: string; name: string; regionId: string }[];
+  adminDepartments: { id: string; code: string; name: string; regionId: string }[];
+  stations: { id: string; code: string; name: string; regionId: string; adminDepartmentId: string | null }[];
 };
 
-export type UserFormValues = { id?: string; username?: string; email?: string; firstName?: string; lastName?: string; phone?: string | null; roleId?: string; regionId?: string | null; stationId?: string | null };
+export type UserFormValues = { id?: string; username?: string; email?: string; firstName?: string; lastName?: string; phone?: string | null; roleId?: string; regionId?: string | null; adminDepartmentId?: string | null; stationId?: string | null; officerId?: string | null };
 
 export function UserForm({ action, refs, values = {}, mode }: { action: (prev: FormState, fd: FormData) => Promise<FormState>; refs: Refs; values?: UserFormValues; mode: "create" | "edit" }) {
   const [roleId, setRoleId] = useState(values.roleId ?? "");
   const [regionId, setRegionId] = useState(values.regionId ?? "");
+  const [adminDepartmentId, setAdminDepartmentId] = useState(values.adminDepartmentId ?? "");
   const t = useT();
   const locale = useLocale();
   const role = refs.roles.find((r) => r.id === roleId);
-  const stations = refs.stations.filter((s) => !regionId || s.regionId === regionId);
+  const departments = refs.adminDepartments.filter((d) => !regionId || d.regionId === regionId);
+  const stations = refs.stations.filter((s) => (!regionId || s.regionId === regionId) && (!adminDepartmentId || s.adminDepartmentId === adminDepartmentId || !s.adminDepartmentId));
+  const needsStation = role?.scopeLevel === "STATION" || role?.scopeLevel === "OWN";
+  const needsDepartment = role?.scopeLevel === "DEPARTMENTAL";
   return (
     <ActionForm action={action}>
       {(state) => (
         <>
           {values.id ? <input type="hidden" name="id" value={values.id} /> : null}
+          {values.officerId ? <input type="hidden" name="officerId" value={values.officerId} /> : null}
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t("userForm.firstName")} htmlFor="firstName" required error={state.fieldErrors?.firstName}>
               <input id="firstName" name="firstName" className="input" required maxLength={60} defaultValue={values.firstName ?? ""} />
@@ -37,7 +43,7 @@ export function UserForm({ action, refs, values = {}, mode }: { action: (prev: F
             </Field>
             {mode === "create" ? (
               <Field label={t("userForm.username")} htmlFor="username" required hint={t("userForm.usernameHint")} error={state.fieldErrors?.username}>
-                <input id="username" name="username" className="input" required minLength={3} maxLength={40} pattern="[A-Za-z0-9._-]+" autoComplete="off" />
+                <input id="username" name="username" className="input" required minLength={3} maxLength={40} pattern="[A-Za-z0-9._-]+" autoComplete="off" defaultValue={values.username ?? ""} />
               </Field>
             ) : (
               <Field label={t("userForm.username")}>
@@ -60,10 +66,23 @@ export function UserForm({ action, refs, values = {}, mode }: { action: (prev: F
               <Select id="roleId" name="roleId" required placeholder={t("userForm.selectRole")} value={roleId} onChange={(e) => setRoleId(e.target.value)} options={refs.roles.map((r) => ({ value: r.id, label: `${roleName(r.code, r.name, locale)} (${r.code})` }))} />
             </Field>
             <Field label={t("userForm.region")} htmlFor="regionId" hint={t("userForm.regionHint")} error={state.fieldErrors?.regionId}>
-              <Select id="regionId" name="regionId" placeholder={t("userForm.noneNational")} value={regionId} onChange={(e) => setRegionId(e.target.value)} options={refs.regions.map((r) => ({ value: r.id, label: r.name }))} />
+              <Select
+                id="regionId"
+                name="regionId"
+                placeholder={t("userForm.noneNational")}
+                value={regionId}
+                onChange={(e) => {
+                  setRegionId(e.target.value);
+                  setAdminDepartmentId("");
+                }}
+                options={refs.regions.map((r) => ({ value: r.id, label: r.name }))}
+              />
             </Field>
-            <Field label={t("userForm.station")} htmlFor="stationId" hint={t("userForm.stationHint")} error={state.fieldErrors?.stationId}>
-              <Select id="stationId" name="stationId" placeholder={t("userForm.none")} defaultValue={values.stationId ?? ""} options={stations.map((s) => ({ value: s.id, label: `${s.code} · ${s.name}` }))} />
+            <Field label={t("station.adminDepartment")} htmlFor="adminDepartmentId" hint={needsDepartment ? t("common.required") : undefined} error={state.fieldErrors?.adminDepartmentId}>
+              <Select id="adminDepartmentId" name="adminDepartmentId" placeholder={t("userForm.none")} value={adminDepartmentId} onChange={(e) => setAdminDepartmentId(e.target.value)} options={departments.map((d) => ({ value: d.id, label: d.name }))} required={needsDepartment} />
+            </Field>
+            <Field label={t("userForm.station")} htmlFor="stationId" hint={needsStation ? t("common.required") : t("userForm.stationHint")} error={state.fieldErrors?.stationId}>
+              <Select id="stationId" name="stationId" placeholder={t("userForm.none")} defaultValue={values.stationId ?? ""} options={stations.map((s) => ({ value: s.id, label: `${s.code} · ${s.name}` }))} required={needsStation} />
             </Field>
             {mode === "create" ? (
               <Field label={t("userForm.tempPassword")} htmlFor="temporaryPassword" required hint={t("userForm.tempPasswordHint")} error={state.fieldErrors?.temporaryPassword} className="sm:col-span-2">

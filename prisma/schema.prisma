@@ -29,9 +29,12 @@ enum UserStatus {
 }
 
 /// Data visibility scope granted by a role.
+/// NATIONAL = whole country · REGIONAL = one province · DEPARTMENTAL = one administrative department ·
+/// STATION = one police structure and its child posts/units · OWN = own records only.
 enum ScopeLevel {
   NATIONAL
   REGIONAL
+  DEPARTMENTAL
   STATION
   OWN
 }
@@ -108,6 +111,8 @@ model User {
   organization       Organization? @relation(fields: [organizationId], references: [id])
   regionId           String?
   region             Region?       @relation(fields: [regionId], references: [id])
+  adminDepartmentId  String?
+  adminDepartment    AdminDepartment? @relation(fields: [adminDepartmentId], references: [id])
   stationId          String?
   station            Station?      @relation(fields: [stationId], references: [id])
   officer            Officer?
@@ -278,9 +283,14 @@ model ApiKey {
 }
 
 // ------------------------------------------------------------
-// 2. ORGANIZATION & PERSONNEL
+// 2. ORGANIZATION, TERRITORY & PERSONNEL
+// Territorial hierarchy (Chad): Country (Organization) → Province (Region) → Administrative department
+// (AdminDepartment) → Commune / Sous-préfecture (Commune) → Quartier / Localité (Locality).
+// Police hierarchy: Station (commissariat) → child Station (POST / UNIT via parentId) → Department (service) → Officer.
+// `isDemo` marks fictional demonstration records as opposed to official referential data.
 // ------------------------------------------------------------
 
+/// Province (kept as table "Region" for backward compatibility; presented as "Province" in the UI).
 model Region {
   id             String       @id @default(cuid())
   organizationId String
@@ -289,8 +299,10 @@ model Region {
   name           String
   capital        String?
   isActive       Boolean      @default(true)
+  isDemo         Boolean      @default(false)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+  adminDepartments AdminDepartment[]
   stations       Station[]
   users          User[]
   persons        Person[]
@@ -300,33 +312,122 @@ model Region {
   operations     Operation[]
 }
 
+/// Administrative department (département) of a province.
+model AdminDepartment {
+  id        String    @id @default(cuid())
+  regionId  String
+  region    Region    @relation(fields: [regionId], references: [id])
+  code      String    @unique
+  name      String
+  capital   String?
+  isActive  Boolean   @default(true)
+  isDemo    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  communes  Commune[]
+  stations  Station[]
+  users     User[]
+
+  @@index([regionId])
+}
+
+enum CommuneType {
+  COMMUNE
+  SOUS_PREFECTURE
+  ARRONDISSEMENT
+}
+
+/// Commune, sous-préfecture or urban arrondissement of an administrative department.
+model Commune {
+  id                String          @id @default(cuid())
+  adminDepartmentId String
+  adminDepartment   AdminDepartment @relation(fields: [adminDepartmentId], references: [id])
+  code              String          @unique
+  name              String
+  type              CommuneType     @default(COMMUNE)
+  isActive          Boolean         @default(true)
+  isDemo            Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  localities        Locality[]
+  stations          Station[]
+
+  @@index([adminDepartmentId])
+}
+
+enum LocalityType {
+  QUARTIER
+  VILLAGE
+  CANTON
+  LOCALITE
+}
+
+/// Quartier / village / localité (only when official data is available; otherwise demo).
+model Locality {
+  id        String       @id @default(cuid())
+  communeId String
+  commune   Commune      @relation(fields: [communeId], references: [id])
+  code      String?      @unique
+  name      String
+  type      LocalityType @default(QUARTIER)
+  isActive  Boolean      @default(true)
+  isDemo    Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  stations  Station[]
+
+  @@index([communeId])
+}
+
 enum StationType {
   HEADQUARTERS
+  PROVINCIAL_DIRECTION
+  DEPARTMENTAL_DIRECTION
   CENTRAL_STATION
   STATION
   POST
+  UNIT
   BRIGADE
   SPECIAL_UNIT
 }
 
+enum StationStatus {
+  ACTIVE
+  INACTIVE
+  UNDER_CONSTRUCTION
+  PLANNED
+}
+
+/// Police structure: commissariat, poste, unité, brigade, direction. Posts and units hang under a parent station.
 model Station {
-  id          String      @id @default(cuid())
-  regionId    String
-  region      Region      @relation(fields: [regionId], references: [id])
-  code        String      @unique
-  name        String
-  type        StationType @default(STATION)
-  address     String?
-  city        String?
-  phone       String?
-  email       String?
-  latitude    Float?
-  longitude   Float?
-  commanderId String?     @unique
-  commander   Officer?    @relation("StationCommander", fields: [commanderId], references: [id])
-  isActive    Boolean     @default(true)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id                String        @id @default(cuid())
+  regionId          String
+  region            Region        @relation(fields: [regionId], references: [id])
+  adminDepartmentId String?
+  adminDepartment   AdminDepartment? @relation(fields: [adminDepartmentId], references: [id])
+  communeId         String?
+  commune           Commune?      @relation(fields: [communeId], references: [id])
+  localityId        String?
+  locality          Locality?     @relation(fields: [localityId], references: [id])
+  parentId          String?
+  parent            Station?      @relation("StationHierarchy", fields: [parentId], references: [id])
+  children          Station[]     @relation("StationHierarchy")
+  code              String        @unique
+  name              String
+  type              StationType   @default(STATION)
+  status            StationStatus @default(ACTIVE)
+  address           String?
+  city              String?
+  phone             String?
+  email             String?
+  latitude          Float?
+  longitude         Float?
+  commanderId       String?       @unique
+  commander         Officer?      @relation("StationCommander", fields: [commanderId], references: [id])
+  isActive          Boolean       @default(true)
+  isDemo            Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   departments        Department[]
   officers           Officer[]
@@ -345,6 +446,10 @@ model Station {
   documents          Document[]
 
   @@index([regionId])
+  @@index([adminDepartmentId])
+  @@index([communeId])
+  @@index([parentId])
+  @@index([status])
 }
 
 enum DepartmentType {

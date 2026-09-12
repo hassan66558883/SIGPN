@@ -1,15 +1,26 @@
 import "server-only";
 import type { DutyStatus } from "@/generated/prisma/client";
 import { prisma } from "@/server/db";
-import { inScope, scopeWhere, type Actor } from "@/server/auth/dal";
+import { canManageRegion, inScope, scopeWhere, type Actor } from "@/server/auth/dal";
 import { NotFoundError } from "@/server/errors";
 
-export async function organizationOverview() {
+/** Provinces visible to the actor (NATIONAL: all; others: own province). */
+function regionFilter(actor: Actor) {
+  return actor.scopeLevel === "NATIONAL" ? {} : { id: actor.regionId ?? "__none__" };
+}
+
+export async function organizationOverview(actor: Actor) {
+  const rf = regionFilter(actor);
   const [org, regions, ranks, totals] = await Promise.all([
     prisma.organization.findFirst({ where: { isActive: true }, orderBy: { createdAt: "asc" } }),
-    prisma.region.findMany({ orderBy: { name: "asc" }, include: { _count: { select: { stations: true, users: true } } } }),
+    prisma.region.findMany({ where: rf, orderBy: { name: "asc" }, include: { _count: { select: { stations: true, users: true, adminDepartments: true } } } }),
     prisma.rank.findMany({ orderBy: [{ level: "desc" }], include: { _count: { select: { officers: true } } } }),
-    Promise.all([prisma.station.count({ where: { isActive: true } }), prisma.department.count({ where: { isActive: true } }), prisma.officer.count({ where: { isActive: true, deletedAt: null } })]),
+    Promise.all([
+      prisma.station.count({ where: { isActive: true, region: rf } }),
+      prisma.department.count({ where: { isActive: true, station: { region: rf } } }),
+      prisma.officer.count({ where: { isActive: true, deletedAt: null, station: { region: rf } } }),
+      prisma.adminDepartment.count({ where: { isActive: true, region: rf } }),
+    ]),
   ]);
   const stationsByRegion = await prisma.station.groupBy({ by: ["regionId"], where: { isActive: true }, _count: true });
   const officersByRegion = await prisma.officer.findMany({ where: { isActive: true, deletedAt: null }, select: { station: { select: { regionId: true } } } });
@@ -19,20 +30,39 @@ export async function organizationOverview() {
     org,
     regions: regions.map((r) => ({ ...r, activeStations: stationsByRegion.find((s) => s.regionId === r.id)?._count ?? 0, officers: officerCount.get(r.id) ?? 0 })),
     ranks,
-    totals: { stations: totals[0], departments: totals[1], officers: totals[2] },
+    totals: { stations: totals[0], departments: totals[1], officers: totals[2], adminDepartments: totals[3] },
   };
 }
 
-export async function getRegion(id: string) {
+export async function getRegion(actor: Actor, id: string) {
+  if (actor.scopeLevel !== "NATIONAL" && actor.regionId !== id) throw new NotFoundError("Province");
   const r = await prisma.region.findUnique({
     where: { id },
     include: {
       organization: { select: { name: true } },
-      stations: { orderBy: { name: "asc" }, include: { commander: { select: { id: true, firstName: true, lastName: true, badgeNumber: true } }, _count: { select: { departments: true, officers: true, users: true } } } },
+      adminDepartments: { orderBy: { name: "asc" }, include: { _count: { select: { communes: true, stations: true } } } },
+      stations: {
+        orderBy: [{ parentId: "asc" }, { name: "asc" }],
+        include: { commander: { select: { id: true, firstName: true, lastName: true, badgeNumber: true } }, parent: { select: { id: true, name: true } }, adminDepartment: { select: { name: true } }, _count: { select: { departments: true, officers: true, users: true, children: true } } },
+      },
     },
   });
-  if (!r) throw new NotFoundError("Region");
+  if (!r) throw new NotFoundError("Province");
   return r;
+}
+
+export async function getAdminDepartment(actor: Actor, id: string) {
+  const d = await prisma.adminDepartment.findUnique({
+    where: { id },
+    include: {
+      region: { select: { id: true, code: true, name: true } },
+      communes: { orderBy: { name: "asc" }, include: { _count: { select: { localities: true, stations: true } } } },
+      stations: { orderBy: { name: "asc" }, include: { parent: { select: { id: true, name: true } }, commune: { select: { name: true } }, _count: { select: { officers: true, children: true } } } },
+    },
+  });
+  if (!d) throw new NotFoundError("Department");
+  if (actor.scopeLevel !== "NATIONAL" && actor.regionId !== d.regionId) throw new NotFoundError("Department");
+  return d;
 }
 
 export async function getStation(actor: Actor, id: string) {
@@ -40,27 +70,30 @@ export async function getStation(actor: Actor, id: string) {
     where: { id },
     include: {
       region: { select: { id: true, code: true, name: true } },
+      adminDepartment: { select: { id: true, code: true, name: true } },
+      commune: { select: { id: true, code: true, name: true, type: true } },
+      locality: { select: { id: true, name: true, type: true } },
+      parent: { select: { id: true, code: true, name: true, type: true } },
+      children: { orderBy: { name: "asc" }, include: { _count: { select: { officers: true, departments: true } } } },
       commander: { select: { id: true, firstName: true, lastName: true, badgeNumber: true, rank: { select: { name: true } } } },
       departments: { orderBy: { name: "asc" }, include: { head: { select: { id: true, firstName: true, lastName: true, badgeNumber: true } }, _count: { select: { officers: true } } } },
-      _count: { select: { officers: true, users: true, vehicles: true } },
+      _count: { select: { officers: true, users: true, vehicles: true, cases: true, complaints: true, incidents: true, children: true } },
     },
   });
   if (!s) throw new NotFoundError("Station");
-  // Reading master data is allowed for everyone with org:view; details are still scoped for regional/station actors.
-  if (!inScope(actor, { stationId: s.id, regionId: s.regionId }) && actor.scopeLevel !== "NATIONAL") {
-    if (actor.scopeLevel === "REGIONAL" && actor.regionId !== s.regionId) throw new NotFoundError("Station");
-  }
+  // Visibility: national/regional admins of the province, or actors whose station scope includes this structure.
+  const visible = canManageRegion(actor, s.regionId) || actor.scopeLevel === "NATIONAL" || (actor.scopeLevel === "REGIONAL" && actor.regionId === s.regionId) || inScope(actor, { stationId: s.id, regionId: s.regionId });
+  if (!visible) throw new NotFoundError("Station");
   return s;
 }
 
 export async function listOfficers(actor: Actor, filter: { q?: string; stationId?: string; departmentId?: string; rankId?: string; dutyStatus?: DutyStatus; includeInactive?: boolean; page?: number; pageSize?: number } = {}) {
   const page = filter.page ?? 1;
   const pageSize = Math.min(filter.pageSize ?? 25, 100);
-  const scope = actor.scopeLevel === "REGIONAL" ? { station: { regionId: actor.regionId ?? "__none__" } } : scopeWhere(actor, { stationId: "stationId" });
   const where = {
     deletedAt: null,
     ...(filter.includeInactive ? {} : { isActive: true }),
-    ...(actor.scopeLevel === "REGIONAL" ? scope : scope),
+    ...scopeWhere(actor, { via: "station" }),
     ...(filter.stationId ? { stationId: filter.stationId } : {}),
     ...(filter.departmentId ? { departmentId: filter.departmentId } : {}),
     ...(filter.rankId ? { rankId: filter.rankId } : {}),
@@ -92,22 +125,25 @@ export async function officerAssignments(officerId: string) {
 
 /** Reference lists for forms (active only), scoped for non-national actors. */
 export async function orgReferences(actor: Actor) {
-  const regionWhere = actor.scopeLevel === "NATIONAL" ? {} : { id: actor.regionId ?? "__none__" };
-  const stationWhere = actor.scopeLevel === "NATIONAL" ? {} : actor.scopeLevel === "REGIONAL" ? { regionId: actor.regionId ?? "__none__" } : { id: actor.stationId ?? "__none__" };
-  const [regions, stations, departments, ranks] = await Promise.all([
+  const regionWhere = regionFilter(actor);
+  const stationWhere = actor.scopeLevel === "NATIONAL" ? {} : actor.scopeLevel === "REGIONAL" ? { regionId: actor.regionId ?? "__none__" } : { id: { in: actor.stationIds?.length ? actor.stationIds : ["__none__"] } };
+  const [regions, adminDepartments, communes, stations, departments, ranks] = await Promise.all([
     prisma.region.findMany({ where: { isActive: true, ...regionWhere }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true } }),
-    prisma.station.findMany({ where: { isActive: true, ...stationWhere }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, regionId: true, type: true } }),
+    prisma.adminDepartment.findMany({ where: { isActive: true, region: regionWhere }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, regionId: true } }),
+    prisma.commune.findMany({ where: { isActive: true, adminDepartment: { region: regionWhere } }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, type: true, adminDepartmentId: true } }),
+    prisma.station.findMany({ where: { isActive: true, ...stationWhere }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, regionId: true, type: true, parentId: true } }),
     prisma.department.findMany({ where: { isActive: true, station: stationWhere }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, stationId: true, type: true } }),
     prisma.rank.findMany({ where: { isActive: true }, orderBy: { level: "desc" }, select: { id: true, code: true, name: true, level: true, category: true } }),
   ]);
-  return { regions, stations, departments, ranks };
+  return { regions, adminDepartments, communes, stations, departments, ranks };
 }
 
 export async function stationOfficersForSelect(stationId: string) {
   return prisma.officer.findMany({ where: { stationId, isActive: true, deletedAt: null }, orderBy: [{ rank: { level: "desc" } }, { lastName: "asc" }], select: { id: true, badgeNumber: true, firstName: true, lastName: true, rank: { select: { name: true } } } });
 }
 
-export async function officersWithoutAccount(actor: Actor) {
-  const scope = actor.scopeLevel === "REGIONAL" ? { station: { regionId: actor.regionId ?? "__none__" } } : scopeWhere(actor, { stationId: "stationId" });
-  return prisma.officer.findMany({ where: { userId: null, isActive: true, deletedAt: null, ...scope }, orderBy: { lastName: "asc" }, select: { id: true, badgeNumber: true, firstName: true, lastName: true, stationId: true } });
+/** Localities of a commune (for station forms). */
+export async function localitiesOf(communeId: string | null | undefined) {
+  if (!communeId) return [];
+  return prisma.locality.findMany({ where: { communeId, isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true, type: true } });
 }

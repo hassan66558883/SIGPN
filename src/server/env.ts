@@ -83,4 +83,8 @@ export const env = {
   get demoPassword() {
     return optional("DEMO_PASSWORD", "Demo-Pms-2026!");
   },
+  /** DEMO environment: shows the demonstration banner and enables demo-only helpers. */
+  get demoMode() {
+    return optional("DEMO_MODE", process.env.NODE_ENV === "production" ? "0" : "1") === "1";
+  },
 };

@@ -55,7 +55,7 @@ export default async function UserDetailPage({ params, searchParams }: PageProps
         <div className="space-y-4 lg:col-span-2">
           <Card title={t("user.accountDetails")}>
             {actor.permissions.has("users:update") ? (
-              <UserForm action={updateUserAction} refs={refs} mode="edit" values={{ id: user.id, username: user.username, email: user.email, firstName: user.firstName, lastName: user.lastName, phone: user.phone, roleId: user.roleId, regionId: user.regionId, stationId: user.stationId }} />
+              <UserForm action={updateUserAction} refs={refs} mode="edit" values={{ id: user.id, username: user.username, email: user.email, firstName: user.firstName, lastName: user.lastName, phone: user.phone, roleId: user.roleId, regionId: user.regionId, adminDepartmentId: user.adminDepartmentId, stationId: user.stationId }} />
             ) : (
               <DL items={[{ label: t("account.role"), value: roleName(user.role.code, user.role.name, locale) }, { label: t("account.region"), value: user.region?.name ?? "—" }, { label: t("account.station"), value: user.station?.name ?? "—" }, { label: t("user.phone"), value: user.phone ?? "—" }]} />
             )}

@@ -20,9 +20,30 @@ export const USER_STATUS: LabelMap = {
 
 export const SCOPE_LEVEL: LabelMap = {
   NATIONAL: def("National", "National", "violet"),
-  REGIONAL: def("Régional", "Regional", "info"),
+  REGIONAL: def("Provincial", "Provincial", "info"),
+  DEPARTMENTAL: def("Départemental", "Departmental", "info"),
   STATION: def("Commissariat", "Station", "neutral"),
   OWN: def("Dossiers propres", "Own records", "neutral"),
+};
+
+export const STATION_STATUS: LabelMap = {
+  ACTIVE: def("En activité", "Active", "success"),
+  INACTIVE: def("Inactif", "Inactive", "neutral"),
+  UNDER_CONSTRUCTION: def("En construction", "Under construction", "warning"),
+  PLANNED: def("Planifié", "Planned", "info"),
+};
+
+export const COMMUNE_TYPE: LabelMap = {
+  COMMUNE: def("Commune", "Commune"),
+  SOUS_PREFECTURE: def("Sous-préfecture", "Sub-prefecture"),
+  ARRONDISSEMENT: def("Arrondissement", "Arrondissement"),
+};
+
+export const LOCALITY_TYPE: LabelMap = {
+  QUARTIER: def("Quartier", "Neighbourhood"),
+  VILLAGE: def("Village", "Village"),
+  CANTON: def("Canton", "Canton"),
+  LOCALITE: def("Localité", "Locality"),
 };
 
 export const AUDIT_OUTCOME: LabelMap = {
@@ -56,9 +77,12 @@ export const SEVERITY: LabelMap = {
 
 export const STATION_TYPE: LabelMap = {
   HEADQUARTERS: def("Direction générale", "Headquarters", "violet"),
+  PROVINCIAL_DIRECTION: def("Direction provinciale", "Provincial directorate", "violet"),
+  DEPARTMENTAL_DIRECTION: def("Direction départementale", "Departmental directorate", "info"),
   CENTRAL_STATION: def("Commissariat central", "Central station", "info"),
   STATION: def("Commissariat", "Station", "neutral"),
   POST: def("Poste de police", "Police post", "neutral"),
+  UNIT: def("Unité", "Unit", "neutral"),
   BRIGADE: def("Brigade", "Brigade", "neutral"),
   SPECIAL_UNIT: def("Unité spéciale", "Special unit", "warning"),
 };

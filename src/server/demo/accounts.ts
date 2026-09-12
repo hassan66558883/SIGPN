@@ -1,16 +1,23 @@
-/** Fictional demonstration accounts (created by the seed). All share DEMO_PASSWORD. */
+/**
+ * Fictional demonstration accounts (created by the seed). All share DEMO_PASSWORD.
+ * `station` / `department` / `province` codes place the account in the territorial hierarchy.
+ */
 export const DEMO_ACCOUNTS = [
   { username: "admin", roleCode: "SUPER_ADMIN", roleName: "System Administrator", firstName: "Aisha", lastName: "Mbaye", hint: "national · MFA required" },
-  { username: "commander.national", roleCode: "NATIONAL_COMMANDER", roleName: "National Commander", firstName: "Daniel", lastName: "Okafor", hint: "national · MFA required" },
-  { username: "commander.central", roleCode: "REGIONAL_COMMANDER", roleName: "Regional Commander", firstName: "Grace", lastName: "Abubakar", hint: "Central region · MFA required" },
-  { username: "chief.cs1", roleCode: "STATION_COMMANDER", roleName: "Station Commander", firstName: "Samuel", lastName: "Kone", hint: "Central Station 1 · MFA required" },
-  { username: "inv.diallo", roleCode: "INVESTIGATOR", roleName: "Investigator", firstName: "Fatou", lastName: "Diallo", hint: "Central Station 1" },
-  { username: "inv.mensah", roleCode: "INVESTIGATOR", roleName: "Investigator", firstName: "Kwame", lastName: "Mensah", hint: "Central Station 1" },
-  { username: "desk.cs1", roleCode: "DESK_OFFICER", roleName: "Desk / Duty Officer", firstName: "Amina", lastName: "Sow", hint: "Central Station 1" },
-  { username: "patrol.cs1", roleCode: "PATROL_OFFICER", roleName: "Patrol Officer", firstName: "Joseph", lastName: "Traore", hint: "Central Station 1" },
-  { username: "evidence.cs1", roleCode: "EVIDENCE_CUSTODIAN", roleName: "Evidence Custodian", firstName: "Mariam", lastName: "Bello", hint: "Central Station 1 · MFA required" },
-  { username: "custody.cs1", roleCode: "CUSTODY_OFFICER", roleName: "Custody Officer", firstName: "Peter", lastName: "Adeyemi", hint: "Central Station 1" },
-  { username: "fleet.central", roleCode: "FLEET_MANAGER", roleName: "Fleet Manager", firstName: "Ibrahim", lastName: "Sanogo", hint: "Central region" },
+  { username: "commander.national", roleCode: "NATIONAL_COMMANDER", roleName: "National Commander", firstName: "Daniel", lastName: "Okafor", hint: "Direction générale · MFA required" },
+  { username: "commander.central", roleCode: "REGIONAL_COMMANDER", roleName: "Regional Commander", firstName: "Grace", lastName: "Abubakar", hint: "Province de N'Djamena · MFA required", province: "NDJ" },
+  { username: "commander.dept", roleCode: "DEPARTMENTAL_COMMANDER", roleName: "Departmental Commander", firstName: "Hamid", lastName: "Doumro", hint: "Département Ville de N'Djamena · MFA required", province: "NDJ", department: "DEP-NDJ" },
+  { username: "chief.cs1", roleCode: "STATION_COMMANDER", roleName: "Station Commander", firstName: "Samuel", lastName: "Kone", hint: "Commissariat Central N'Djamena · MFA required", station: "CS-01" },
+  { username: "chief.arr5", roleCode: "STATION_COMMANDER", roleName: "Station Commander", firstName: "Ngarmbatina", lastName: "Kemba", hint: "Commissariat 5e arrondissement · MFA required", station: "CA-NDJ-05" },
+  { username: "chief.mdu", roleCode: "STATION_COMMANDER", roleName: "Station Commander", firstName: "Djasrabé", lastName: "Nadjita", hint: "Commissariat Central Moundou · MFA required", station: "NS-01" },
+  { username: "inv.diallo", roleCode: "INVESTIGATOR", roleName: "Investigator", firstName: "Fatou", lastName: "Diallo", hint: "Commissariat Central N'Djamena", station: "CS-01" },
+  { username: "inv.mensah", roleCode: "INVESTIGATOR", roleName: "Investigator", firstName: "Kwame", lastName: "Mensah", hint: "Commissariat Central N'Djamena", station: "CS-01" },
+  { username: "desk.cs1", roleCode: "DESK_OFFICER", roleName: "Desk / Duty Officer", firstName: "Amina", lastName: "Sow", hint: "Commissariat Central N'Djamena", station: "CS-01" },
+  { username: "desk.post1", roleCode: "DESK_OFFICER", roleName: "Desk / Duty Officer", firstName: "Mounira", lastName: "Abbo", hint: "Poste 1er arrondissement", station: "PP-NDJ-01A" },
+  { username: "patrol.cs1", roleCode: "PATROL_OFFICER", roleName: "Patrol Officer", firstName: "Joseph", lastName: "Traore", hint: "Commissariat Central N'Djamena", station: "CS-01" },
+  { username: "evidence.cs1", roleCode: "EVIDENCE_CUSTODIAN", roleName: "Evidence Custodian", firstName: "Mariam", lastName: "Bello", hint: "Commissariat Central N'Djamena · MFA required", station: "CS-01" },
+  { username: "custody.cs1", roleCode: "CUSTODY_OFFICER", roleName: "Custody Officer", firstName: "Peter", lastName: "Adeyemi", hint: "Commissariat Central N'Djamena", station: "CS-01" },
+  { username: "fleet.central", roleCode: "FLEET_MANAGER", roleName: "Fleet Manager", firstName: "Ibrahim", lastName: "Sanogo", hint: "Province de N'Djamena", province: "NDJ" },
   { username: "analyst", roleCode: "ANALYST", roleName: "Crime Analyst", firstName: "Ruth", lastName: "Nakamura", hint: "national" },
   { username: "auditor", roleCode: "AUDITOR", roleName: "Auditor", firstName: "Omar", lastName: "Haddad", hint: "national · MFA required" },
 ] as const;

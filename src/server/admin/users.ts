@@ -25,6 +25,7 @@ export const userCreateSchema = z.object({
   phone: optionalText(30),
   roleId: z.string().min(1, "role is required"),
   regionId: optionalText(64),
+  adminDepartmentId: optionalText(64),
   stationId: optionalText(64),
   officerId: optionalText(64),
   temporaryPassword: z.string().min(1).max(200),
@@ -55,6 +56,8 @@ const publicUser = {
   role: { select: { id: true, code: true, name: true, scopeLevel: true, requiresMfa: true } },
   regionId: true,
   region: { select: { id: true, name: true } },
+  adminDepartmentId: true,
+  adminDepartment: { select: { id: true, name: true } },
   stationId: true,
   station: { select: { id: true, name: true, code: true } },
   officer: { select: { id: true, badgeNumber: true } },
@@ -76,18 +79,27 @@ function assertPlacementInScope(actor: Actor, placement: { regionId: string | nu
   if (!inScope(actor, placement)) throw new BusinessError("You can only manage users inside your own region/station.", "STATE");
 }
 
-async function resolvePlacement(input: { regionId?: string; stationId?: string }) {
+/** Resolves and validates the territorial placement: station ⇒ department/province derived; department ⇒ province derived. */
+async function resolvePlacement(input: { regionId?: string; adminDepartmentId?: string; stationId?: string }) {
   const stationId = input.stationId || null;
+  let adminDepartmentId = input.adminDepartmentId || null;
   let regionId = input.regionId || null;
   if (stationId) {
-    const st = await prisma.station.findUnique({ where: { id: stationId }, select: { regionId: true, isActive: true } });
+    const st = await prisma.station.findUnique({ where: { id: stationId }, select: { regionId: true, adminDepartmentId: true, isActive: true } });
     if (!st || !st.isActive) throw new BusinessError("Selected station is invalid.");
     regionId = st.regionId;
+    adminDepartmentId = st.adminDepartmentId ?? adminDepartmentId;
+  }
+  if (adminDepartmentId) {
+    const d = await prisma.adminDepartment.findUnique({ where: { id: adminDepartmentId }, select: { regionId: true, isActive: true } });
+    if (!d || !d.isActive) throw new BusinessError("Selected department is invalid.");
+    if (regionId && regionId !== d.regionId && !stationId) throw new BusinessError("The department must belong to the selected province.");
+    regionId = regionId ?? d.regionId;
   } else if (regionId) {
     const rg = await prisma.region.findUnique({ where: { id: regionId }, select: { id: true } });
-    if (!rg) throw new BusinessError("Selected region is invalid.");
+    if (!rg) throw new BusinessError("Selected province is invalid.");
   }
-  return { regionId, stationId };
+  return { regionId, adminDepartmentId, stationId };
 }
 
 export async function listUsers(actor: Actor, filter: { q?: string; status?: UserStatus; roleId?: string; stationId?: string; page?: number; pageSize?: number } = {}) {
@@ -118,6 +130,7 @@ export async function createUser(actor: Actor, input: UserCreateInput, ctx: Requ
   const placement = await resolvePlacement(input);
   assertPlacementInScope(actor, placement);
   if (role.scopeLevel === "REGIONAL" && !placement.regionId) throw new BusinessError("A regional role requires a region.");
+  if (role.scopeLevel === "DEPARTMENTAL" && !placement.adminDepartmentId) throw new BusinessError("A departmental role requires an administrative department.");
   if ((role.scopeLevel === "STATION" || role.scopeLevel === "OWN") && !placement.stationId) throw new BusinessError("A station-scoped role requires a station.");
   const pwErrors = passwordPolicyErrors(input.temporaryPassword, { username: input.username, email: input.email });
   if (pwErrors.length) throw new BusinessError(`Temporary password does not meet the policy: ${pwErrors.join("; ")}.`);
@@ -140,6 +153,7 @@ export async function createUser(actor: Actor, input: UserCreateInput, ctx: Requ
         mustChangePassword: true,
         roleId: role.id,
         regionId: placement.regionId,
+        adminDepartmentId: placement.adminDepartmentId,
         stationId: placement.stationId,
         organizationId: actor.organizationId,
         createdById: actor.id,
@@ -171,7 +185,7 @@ export async function updateUser(actor: Actor, id: string, input: UserUpdateInpu
   const after = await prisma.$transaction(async (tx) => {
     const u = await tx.user.update({
       where: { id },
-      data: { email: input.email, firstName: input.firstName, lastName: input.lastName, phone: input.phone || null, roleId: input.roleId, regionId: placement.regionId, stationId: placement.stationId },
+      data: { email: input.email, firstName: input.firstName, lastName: input.lastName, phone: input.phone || null, roleId: input.roleId, regionId: placement.regionId, adminDepartmentId: placement.adminDepartmentId, stationId: placement.stationId },
       select: publicUser,
     });
     if (input.officerId !== undefined) {

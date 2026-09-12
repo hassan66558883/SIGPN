@@ -7,7 +7,8 @@ import type { Locale } from "@/lib/i18n";
 export const ROLE_NAMES_FR: Record<string, string> = {
   SUPER_ADMIN: "Administrateur système",
   NATIONAL_COMMANDER: "Commandant national",
-  REGIONAL_COMMANDER: "Commandant régional",
+  REGIONAL_COMMANDER: "Directeur provincial",
+  DEPARTMENTAL_COMMANDER: "Commandant départemental",
   STATION_COMMANDER: "Commissaire de poste",
   INVESTIGATOR: "Enquêteur",
   DESK_OFFICER: "Agent d'accueil / de permanence",
@@ -22,7 +23,8 @@ export const ROLE_NAMES_FR: Record<string, string> = {
 export const ROLE_DESCRIPTIONS_FR: Record<string, string> = {
   SUPER_ADMIN: "Accès complet à tous les modules, y compris la sécurité et l'administration système.",
   NATIONAL_COMMANDER: "Supervision nationale : lecture de tout, approbation des mandats, avis de recherche, opérations et rapports.",
-  REGIONAL_COMMANDER: "Commande tous les commissariats d'une région.",
+  REGIONAL_COMMANDER: "Dirige toutes les structures policières d'une province.",
+  DEPARTMENTAL_COMMANDER: "Commande les structures policières d'un département administratif.",
   STATION_COMMANDER: "Commande un commissariat : examine les plaintes, affecte les affaires, supervise les enquêtes.",
   INVESTIGATOR: "Mène les enquêtes sur les affaires affectées : personnes, déclarations, auditions, pièces, demandes de mandat, arrestations.",
   DESK_OFFICER: "Accueil : enregistre les plaintes, les personnes et les incidents.",

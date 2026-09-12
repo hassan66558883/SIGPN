@@ -1,7 +1,6 @@
 /**
- * Foundation seed (idempotent): permission catalog, system roles, minimal organization
- * (1 organization, 2 regions, 2 stations) and the fictional demo accounts.
- * Later phases add the full master data and operational demo data.
+ * Foundation seed (idempotent): permission catalog, system roles, national organization,
+ * territorial referential + DEMO structures (seed-territory) and the fictional demo accounts.
  */
 import { prisma } from "@/server/db";
 import { env } from "@/server/env";
@@ -9,6 +8,7 @@ import { hashPassword } from "@/server/auth/password";
 import { PERMISSION_CATALOG } from "@/server/rbac/permissions";
 import { SYSTEM_ROLES } from "@/server/rbac/roles";
 import { DEMO_ACCOUNTS } from "@/server/demo/accounts";
+import { seedTerritory } from "@/server/demo/seed-territory";
 
 export async function syncPermissionCatalog() {
   for (const [code, description] of PERMISSION_CATALOG) {
@@ -25,7 +25,7 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
   for (const def of SYSTEM_ROLES) {
     const role = await prisma.role.upsert({
       where: { code: def.code },
-      update: { name: def.name, description: def.description, isSystem: true, requiresMfa: def.requiresMfa },
+      update: { name: def.name, description: def.description, isSystem: true, requiresMfa: def.requiresMfa, scopeLevel: def.scopeLevel },
       create: { code: def.code, name: def.name, description: def.description, scopeLevel: def.scopeLevel, requiresMfa: def.requiresMfa, isSystem: true },
     });
     const existing = await prisma.rolePermission.count({ where: { roleId: role.id } });
@@ -37,17 +37,13 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
   return SYSTEM_ROLES.length;
 }
 
-export async function seedMinimalOrganization() {
-  const org = await prisma.organization.upsert({ where: { code: "NPS" }, update: {}, create: { code: "NPS", name: "National Police Service", shortName: "NPS", description: "Fictional national police organization used for demonstration." } });
-  const central = await prisma.region.upsert({ where: { code: "CEN" }, update: {}, create: { organizationId: org.id, code: "CEN", name: "Central Region", capital: "Capital City" } });
-  const north = await prisma.region.upsert({ where: { code: "NOR" }, update: {}, create: { organizationId: org.id, code: "NOR", name: "Northern Region", capital: "Northgate" } });
-  const cs1 = await prisma.station.upsert({ where: { code: "CS-01" }, update: {}, create: { regionId: central.id, code: "CS-01", name: "Central Station 1", type: "CENTRAL_STATION", city: "Capital City", address: "1 Justice Avenue" } });
-  const ns1 = await prisma.station.upsert({ where: { code: "NS-01" }, update: {}, create: { regionId: north.id, code: "NS-01", name: "Northgate Station", type: "STATION", city: "Northgate", address: "12 Market Road" } });
-  return { org, central, north, cs1, ns1 };
+export async function seedOrganization() {
+  return prisma.organization.upsert({ where: { code: "NPS" }, update: {}, create: { code: "NPS", name: "Police Nationale du Tchad", shortName: "PNT", description: "Organisation nationale (démonstration TPMS)." } });
 }
 
+/** Creates missing demo accounts and (re)places every demo account in the territorial hierarchy. */
 export async function seedDemoAccounts() {
-  const { org, central, cs1 } = await seedMinimalOrganization();
+  const org = await seedOrganization();
   const roles = await prisma.role.findMany({ select: { id: true, code: true, scopeLevel: true } });
   const roleByCode = new Map(roles.map((r) => [r.code, r]));
   const passwordHash = await hashPassword(env.demoPassword);
@@ -55,9 +51,19 @@ export async function seedDemoAccounts() {
   for (const a of DEMO_ACCOUNTS) {
     const role = roleByCode.get(a.roleCode);
     if (!role) throw new Error(`role ${a.roleCode} missing`);
-    const placement = role.scopeLevel === "NATIONAL" ? { regionId: null, stationId: null } : role.scopeLevel === "REGIONAL" ? { regionId: central.id, stationId: null } : { regionId: central.id, stationId: cs1.id };
+    const station = "station" in a && a.station ? await prisma.station.findUnique({ where: { code: a.station }, select: { id: true, regionId: true, adminDepartmentId: true } }) : null;
+    const department = "department" in a && a.department ? await prisma.adminDepartment.findUnique({ where: { code: a.department }, select: { id: true, regionId: true } }) : null;
+    const province = "province" in a && a.province ? await prisma.region.findUnique({ where: { code: a.province }, select: { id: true } }) : null;
+    const placement = {
+      stationId: station?.id ?? null,
+      adminDepartmentId: station?.adminDepartmentId ?? department?.id ?? null,
+      regionId: station?.regionId ?? department?.regionId ?? province?.id ?? null,
+    };
     const existing = await prisma.user.findUnique({ where: { username: a.username } });
-    if (existing) continue;
+    if (existing) {
+      await prisma.user.update({ where: { id: existing.id }, data: { ...placement, roleId: role.id } });
+      continue;
+    }
     await prisma.user.create({
       data: { username: a.username, email: `${a.username}@pms.example`, firstName: a.firstName, lastName: a.lastName, passwordHash, roleId: role.id, organizationId: org.id, ...placement, mustChangePassword: false, status: "ACTIVE" },
     });
@@ -69,7 +75,9 @@ export async function seedDemoAccounts() {
 export async function seedFoundation() {
   const permissions = await syncPermissionCatalog();
   const roles = await syncSystemRoles();
+  await seedOrganization();
+  const territory = await seedTerritory();
   const users = await seedDemoAccounts();
-  await prisma.auditLog.create({ data: { actorLabel: "system", action: "SEED_FOUNDATION", module: "system", summary: `Foundation seed: ${permissions} permissions, ${roles} roles, ${users} new demo users` } });
-  return { permissions, roles, users };
+  await prisma.auditLog.create({ data: { actorLabel: "system", action: "SEED_FOUNDATION", module: "system", summary: `Seed: ${permissions} permissions, ${roles} roles, ${territory.provinces} provinces, ${territory.stations} demo structures, ${territory.officers} new demo officers, ${users} new demo users` } });
+  return { permissions, roles, users, territory };
 }
