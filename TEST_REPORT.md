@@ -9,8 +9,9 @@ _Cumulative. Only tests that were actually executed are recorded. Per-phase deta
 | 0 | — | 5 pass (`tests/integration/db-integrity.test.ts`) + 3 tooling checks | 2 pass | 2 pass | n/a (no UI yet) | PASS |
 | 1 | 16 pass (`tests/unit/auth-primitives.test.ts`, `tests/unit/i18n.test.ts`) | 14 pass (`db-integrity`, `users-api`) | 16 pass (`tests/security/auth.test.ts`) + 11 manual browser checks | 12 pass | 5 breakpoints pass | PASS |
 | 2 | 16 pass (re-run) | 22 pass (`db-integrity`, `users-api`, `territory-scope` 8) | 16 pass (re-run) + 8 territorial isolation tests | 8 pass | 2 breakpoints (1366, 375) | PASS |
+| 3 | 22 pass (`workflows` 6 new) | 30 pass (`complaints-cases` 8 new) | 16 pass (re-run) + 4 case-level/person-scope tests | 13 pass | 2 breakpoints (desktop, 375) | PASS |
 
-Last full regression run: 2026-09-12 17:10 — 54 automated tests green, `tsc`, `eslint`, `next build` OK.
+Last full regression run: 2026-09-12 23:30 — 68 automated tests green, `tsc`, `eslint`, `next build` OK.
 
 How to run: `npm test` (unit) · `npm run test:integration` (needs dev DB) · `npm run test:security` (needs `npm run dev` on 3300 + seed). Last full regression run: 2026-09-12 (all suites green, `tsc --noEmit` and `eslint` clean).
 
@@ -128,3 +129,27 @@ Unit 16/16 · users-api 9/9 (assertion updated: station scope now includes attac
 
 ### Manual browser checks
 Organisation, Province (Ville de N'Djamena), Département (DEP-NDJ), Commissariat (CS-01: 3 postes/unités, 7 services, 14 agents, 7 comptes), Agents (118), Utilisateurs (17), Nouvel utilisateur — all render without console errors; FR default, DEMO banner, DEMO/Référentiel badges; 1366×768 and 375×812.
+
+## Phase 3 — executed tests (2026-09-12)
+
+### Unit (`tests/unit/workflows.test.ts`) — 6/6 (total unit 22/22)
+Complaint schema minimums/defaults · case schema category/sensitive flag · party schema role/person · person schema (identifier pair, forceCreate) · bilingual labels for every workflow status, party role/status and 20 offence categories · FR/EN dictionaries in sync.
+
+### Integration (`tests/integration/complaints-cases.test.ts`) — 8/8 (total integration 30/30)
+
+| Test ID | Test | Result |
+| ------- | ---- | ------ |
+| P3-I1 | Duplicate detection: same identifier → 409; same phone → candidates returned, no creation; `forceCreate` → created | PASS |
+| P3-I2 | Person scope: a person registered by CS-01 is invisible (list, search, direct read → 404) to CA-NDJ-05; national persons remain visible | PASS |
+| P3-I3 | Complaint workflow end-to-end: draft → register → review → assign (out-of-scope investigator → 422) → convert; illegal transition → 409; audit sequence CREATED/REGISTERED/REVIEWED/ASSIGNED/CONVERTED | PASS |
+| P3-I4 | Case operations: party (suspect ⇒ UNDER_INVESTIGATION), party status, task + status, note, timeline entries | PASS |
+| P3-I5 | Case-level authorization: attached post agent cannot see the parent commissariat's case (404); another commissariat 404; team member 200 | PASS |
+| P3-I6 | Sensitive case hidden from non-members without `cases:view_sensitive`, visible to team member and national | PASS |
+| P3-I7 | Supervisor closure requires disposition (422); closed case read-only (409); non-member write → 403 | PASS |
+| P3-I8 | Merge: links (complaints, parties, aliases, identifiers) redirected, source keeps `mergedIntoId`, source excluded from lists | PASS |
+
+### Regression
+Unit 22/22 · integration 30/30 (`db-integrity` 5, `users-api` 9, `territory-scope` 8, `complaints-cases` 8) · security 16/16 (two tests — CSRF and logout — are flaky when the suite is re-run within 15 minutes because of the in-memory per-identifier login limiter; re-run green) · `tsc`, `eslint`, `next build` OK.
+
+### Manual browser checks
+Plaintes (75, compteurs), Fiche plainte (stepper, faits, traitement), Affaire CASE-2026-00001 (vue d'ensemble, personnes avec présomption d'innocence, tâches, audit), Personnes, Fiche personne, Enregistrer une personne, Mes tâches, Fiche agent (fonction, formations), Organisation (fonctions) — no console errors; FR default; 375×812 on the case workspace (scrollable tabs, stacked task cards).

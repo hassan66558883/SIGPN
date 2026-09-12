@@ -17,6 +17,12 @@ _Cumulative security posture and test results. Critical/high findings block phas
 | P1-F3 | MFA recovery codes could disappear before being read (page re-render after enrolment) | Low (usability/security) | Enrolment action no longer revalidates; codes shown once by the client component |
 | P1-F4 | Three server pages passed functions to a client component (500 on roles/password pages) | Low (availability) | Forms moved to client components (`role-form.tsx`, `password-form.tsx`) |
 
+## Findings fixed during Phase 3
+
+| ID | Finding | Severity | Fix |
+| -- | ------- | -------- | --- |
+| P3-F1 | Person search: the territorial scope filter (Prisma `OR`) was overridden by the free-text search `OR` → a station could find persons registered by another station | **High** | Scope, "mine" and search filters combined with `AND: [...]` in persons, complaints and cases queries; regression test P3-I2 |
+
 ## Controls status
 
 | Control | Phase | Status |
@@ -35,7 +41,8 @@ _Cumulative security posture and test results. Critical/high findings block phas
 | Audit of every auth event, mutation, denied access and export, with redaction of secrets | 1 | implemented + tested |
 | Secrets: `.env` git-ignored; MFA secrets encrypted; audit redaction | 0/1 | implemented |
 | Territorial scope (Role + Organizational scope + Permission): NATIONAL / REGIONAL (province) / DEPARTMENTAL / STATION incl. attached posts & units; 404 outside scope | 2 | implemented + 8 isolation tests |
-| Case-level authorization | 5 | pending |
+| Case-level authorization: territorial scope AND (not sensitive OR `cases:view_sensitive` OR team member); writes limited to team / `cases:assign`; per-operation permissions (charge/refer, close, archive) | 3 | implemented + 3 tests |
+| Person register visibility: national records shared, station-registered records limited to the registering scope | 3 | implemented + tested |
 | File upload validation & authorized downloads | 9 | pending |
 | Dedicated penetration-style testing | 14 | pending |
 
@@ -64,6 +71,18 @@ _Cumulative security posture and test results. Critical/high findings block phas
 | Departmental scope overflow | yes (P2-S5) | blocked | — |
 | Post seeing parent/siblings | yes (P2-S2) | blocked | — |
 | Recursive hierarchy cycle (DoS) | yes (P2-S8 + validation) | impossible | — |
+
+## Phase 3 security test results
+
+| Vulnerability | Tested | Result | Severity |
+| ------------- | ------ | ------ | -------- |
+| Cross-station person leak (list, search, picker, direct read) | yes (P3-I2) | blocked (404 / absent) after fix P3-F1 | — |
+| Cross-station / attached-post complaint & case leak | yes (P3-I5) | blocked (404) | — |
+| Sensitive case read by non-member | yes (P3-I6) | blocked (404) | — |
+| Case write by non-member / after closure | yes (P3-I7) | 403 / 409 | — |
+| State-machine bypass (complaint, case) | yes (P3-I3, I7) | 409 STATE | — |
+| API `PATCH { op }` without the operation's permission | yes (P3-I3, I4) | 403 | — |
+| Identity document reuse across persons | yes (P3-I1) | 409 | — |
 
 ## Residual risks / notes
 

@@ -2,6 +2,26 @@
 
 All notable changes to the Police Management System. Dates are ISO (UTC+1, N'Djamena).
 
+## [0.4.0] — 2026-09-12 — Phase 3: Personnel (positions, trainings), Persons, Complaints, Cases
+
+### Added
+- Personnel: configurable positions (`Position`) carried by officers and assignments; trainings with life cycle (planned → in progress → completed / failed / cancelled), result, certificate, expiry.
+- Persons register: full profile, typed identifiers (unique type+value), aliases, relationships, duplicate detection at creation (identifier, phone, name + birth date, accent-insensitive via `unaccent_safe()`), explicit forced creation, merge of duplicates (links redirected, `mergedIntoId`, no deletion), optional station attachment with territorial visibility.
+- Complaints: draft/registered intake (identified or anonymous complainant), 20 offence categories, priority, workflow DRAFT → REGISTERED → UNDER_REVIEW → ASSIGNED → CONVERTED / CLOSED / REJECTED with locked transitions and concurrency guards, review, assignment to an in-scope investigator, motivated closure, conversion to a case.
+- Cases: creation (direct or by conversion), investigation team (lead, supervisor, members, history), parties with presumption-of-innocence notice and party status, tasks (+ "My tasks"), notes (confidential), automatic timeline, audit trail, state machine with mandatory disposition at closure and read-only afterwards, sensitive flag.
+- Case-level authorization: territorial scope AND (not sensitive OR `cases:view_sensitive` OR team member); writes limited to the team or `cases:assign`; per-operation permissions for charging/referring, closing, archiving.
+- Person picker component (server search, accessible combobox).
+- REST API: `/persons`, `/persons/search`, `/persons/{id}`, `/complaints`, `/complaints/{id}` (PATCH ops register/review/assign/close/convert), `/cases`, `/cases/{id}` (PATCH ops assign/addParty/partyStatus/note/task/taskStatus/status).
+- DEMO seed: 10 positions, 124 trainings, 90 persons, 70 complaints, 16 cases (fictional, idempotent).
+- Tests: 6 unit (workflows/schemas/labels), 8 integration (duplicate detection, person scope, complaint workflow + audit sequence, case authorization incl. attached post isolation and sensitive cases, supervisor closure/read-only).
+
+### Fixed
+- Person search scope filter (an `OR`) was overridden by the search `OR` → cross-station leak; scope, "mine" and search filters are now combined with `AND` in persons, complaints and cases queries.
+- Complaint review returned 500 (`updateMany` with relation `connect`); transitions now write scalar foreign keys.
+
+### Changed
+- Migration `personnel_positions_trainings_person_station` is additive (2 tables, 3 columns, `unaccent` extension + `unaccent_safe()`).
+
 ## [0.3.0] — 2026-09-12 — Phase 2: Structures nationales & territoire (TPMS)
 
 ### Added
