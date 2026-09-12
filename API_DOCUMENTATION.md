@@ -5,16 +5,32 @@ Base URL: `/api/v1` · Format: JSON · Auth: session cookie **or** `Authorizatio
 ## Conventions
 
 - Success: `{ "data": …, "meta": { "page", "pageSize", "total" }? }`
-- Error: `{ "error": { "code": "UNAUTHENTICATED|FORBIDDEN|NOT_FOUND|VALIDATION|CONFLICT|RATE_LIMITED|INTERNAL", "message": string, "details"?: object } }`
-- HTTP codes: 200/201 success · 400 malformed · 401 unauthenticated · 403 forbidden (audited) · 404 not found / out of scope · 409 state conflict · 422 validation · 429 rate limited · 500 internal (no details leaked).
-- Pagination: `?page=1&pageSize=25` (max 100). Sorting: `?sort=createdAt:desc`.
-- State-changing requests authenticated by cookie must send header `X-Requested-With: PMS` (CSRF defence); API-key requests are exempt.
-- Every mutation and every 403 is written to the audit log.
+- Error: `{ "error": { "code": "UNAUTHENTICATED|FORBIDDEN|CSRF|SECURITY_STEP_REQUIRED|NOT_FOUND|VALIDATION|CONFLICT|STATE|RATE_LIMITED|INTERNAL", "message": string, "details"?: object } }`
+- HTTP codes: 200/201 success · 401 unauthenticated · 403 forbidden (audited) / CSRF / security step pending · 404 not found or out of scope · 409 state conflict · 422 validation · 429 rate limited (`Retry-After` header) · 500 internal (no details leaked).
+- Pagination: `?page=1&pageSize=25` (max 100). Sorting where documented.
+- **CSRF**: state-changing requests authenticated by the session cookie must send `X-Requested-With: PMS`; API-key requests are exempt.
+- **Security steps**: a cookie session whose user must change their password or enrol/verify MFA receives `403 SECURITY_STEP_REQUIRED` on every `/api/v1` call until the step is completed in the web UI.
+- **Rate limits** (per client IP, in-process): 240 read requests/min, 60 mutations/min; login 100/IP and 20/identifier per 15 min; MFA 10 per 10 min; password reset 5 per hour. Nginx adds `10 r/m` on `/login` and `120 r/m` on `/api/`.
+- Every mutation and every 403 is written to the immutable audit log. Messages are English; the web UI translates them (French default).
 
 ## Endpoints
 
 | Endpoint | Method | Auth | Permission | Validation | Response | Errors | Phase |
 | -------- | ------ | ---- | ---------- | ---------- | -------- | ------ | ----- |
-| `/api/health` | GET | none | — | — | `{ status: "ok", time }` | — | 0 |
+| `/api/health` | GET | none | — | — | `{ status: "ok"\|"degraded", time }` (503 when DB unreachable) | — | 1 |
+| `/api/v1/auth/login` | POST | none | — | `{ identifier: string(1–120), password: string(1–200) }` | `{ authenticated: true, userId }` + `Set-Cookie: pms_session` (HttpOnly, SameSite=Lax, Secure in prod) — or `{ mfaRequired: true }` when the account has MFA (complete in the web UI or use an API key) | 422 generic "Invalid username or password." (no user enumeration; identical body for unknown user and wrong password); 422 locked/inactive; 429 | 1 |
+| `/api/v1/auth/logout` | POST | session/key | — | header `X-Requested-With: PMS` (cookie) | `{ loggedOut: true }`; session revoked, cookie cleared | 401, 403 CSRF | 1 |
+| `/api/v1/auth/me` | GET | session/key | — | — | `{ id, username, email, firstName, lastName, role:{code,name,scopeLevel}, regionId, stationId, mfaEnabled, authMethod, permissions[] }` | 401, 403 SECURITY_STEP_REQUIRED | 1 |
+| `/api/v1/users` | GET | session/key | `users:view` | query `q≤100, status∈UserStatus, roleId, stationId, page, pageSize` | `data: User[]` (public fields, no hashes/secrets) limited to the caller's scope; `meta` | 401, 403, 422 | 1 |
+| `/api/v1/users` | POST | session/key | `users:create` | `userCreateSchema`: username (3–40, `[a-z0-9._-]`), email, firstName, lastName, phone?, roleId, regionId?, stationId?, officerId?, temporaryPassword (policy) | 201 `data: User` (mustChangePassword=true) | 409 duplicate username/e-mail; 409 STATE role not grantable (privilege escalation guard) / placement out of scope; 422 | 1 |
+| `/api/v1/users/{id}` | GET | session/key | `users:view` | path id | `data: User` | 404 (also when out of scope) | 1 |
+| `/api/v1/users/{id}` | PATCH | session/key | `users:update` (+`users:manage_status` for `op:"status"`) | `userUpdateSchema` **or** `{ op:"status", status:"ACTIVE"\|"SUSPENDED"\|"DISABLED", reason? }` | `data: User`; role change revokes the target's sessions | 403 self role change / escalation; 409 STATE invalid transition, last admin; 422 | 1 |
+| `/api/v1/roles` | GET | session/key | `roles:view` | — | `data: Role[]` with `permissions[]`, `userCount` | 401, 403 | 1 |
+| `/api/v1/audit` | GET | session/key | `audit:view` | query `q, module, action, actorId, entityType, entityId, outcome, from, to, page, pageSize≤100` | `data: AuditLog[]`, `meta` | 401, 403, 422 | 1 |
+| `/api/v1/audit/export` | GET | session/key | `audit:export` | same filters | `text/csv` attachment (≤5000 rows); the export itself is audited (`AUDIT_EXPORTED`) | 401, 403 | 1 |
 
-_Endpoints are appended as each phase delivers them._
+## Authentication for API clients
+
+1. Sign in to the web UI, open **Mon compte › Clés API**, create a key (shown once, format `pms_<prefix>_<secret>`; only its SHA-256 is stored).
+2. Send `Authorization: Bearer pms_…` on every request. The key carries exactly the owner's permissions and scope; revoking the key or disabling the user stops access immediately.
+3. Keys can expire (`expiresInDays`) and are limited to 5 active per user.

@@ -14,7 +14,7 @@ Version 0.1 · Phase 0 deliverable · 2026-09-11
 | ADR-6 | **Append-only audit log and chain of custody** enforced by PostgreSQL triggers, not only by application code. | Historical custody records and audit rows must be tamper-evident even for a DBA using the app role. Custody events are additionally hash-chained. |
 | ADR-7 | **Local encrypted-at-rest-capable file storage** under `UPLOAD_DIR` with content-hash naming, MIME/magic validation, versioned documents; downloads only through authorized route handlers. | No object storage is available on the target Ubuntu server; a volume-backed directory with strict path handling meets the requirement and can be swapped for S3-compatible storage behind `src/server/storage`. |
 | ADR-8 | **Soft-delete / status transitions only** for critical records. | Data-integrity rule of the specification. |
-| ADR-9 | **English UI**, labels centralized in one file. | The specification is in English; centralization keeps i18n possible. |
+| ADR-9 | **Bilingual UI, French by default, English as second language** (owner decision, Phase 1). Locale is a cookie (`pms_lang`), never inferred from `Accept-Language`, so French is always the default. All UI strings are keys in `src/lib/i18n/fr.ts` (reference) / `en.ts` (TypeScript enforces identical keys); enum labels, system role names and permission descriptions are bilingual; service-layer messages stay English and are translated on display (`src/lib/i18n/errors.ts`); audit summaries stay English as system records. | Operational users work in French; English remains available for partners and documentation alignment with the English specification. Cookie-based locale avoids `/fr/...` route prefixes in an internal application. |
 
 ## 2. System architecture
 

@@ -1,0 +1,143 @@
+/**
+ * French labels for code-defined catalogs whose English text lives in the server layer:
+ * system role names and permission descriptions. Custom roles fall back to their stored name.
+ */
+import type { Locale } from "@/lib/i18n";
+
+export const ROLE_NAMES_FR: Record<string, string> = {
+  SUPER_ADMIN: "Administrateur système",
+  NATIONAL_COMMANDER: "Commandant national",
+  REGIONAL_COMMANDER: "Commandant régional",
+  STATION_COMMANDER: "Commissaire de poste",
+  INVESTIGATOR: "Enquêteur",
+  DESK_OFFICER: "Agent d'accueil / de permanence",
+  PATROL_OFFICER: "Agent de patrouille",
+  EVIDENCE_CUSTODIAN: "Gestionnaire des pièces à conviction",
+  CUSTODY_OFFICER: "Agent de garde à vue",
+  FLEET_MANAGER: "Gestionnaire du parc",
+  ANALYST: "Analyste criminel",
+  AUDITOR: "Auditeur",
+};
+
+export const ROLE_DESCRIPTIONS_FR: Record<string, string> = {
+  SUPER_ADMIN: "Accès complet à tous les modules, y compris la sécurité et l'administration système.",
+  NATIONAL_COMMANDER: "Supervision nationale : lecture de tout, approbation des mandats, avis de recherche, opérations et rapports.",
+  REGIONAL_COMMANDER: "Commande tous les commissariats d'une région.",
+  STATION_COMMANDER: "Commande un commissariat : examine les plaintes, affecte les affaires, supervise les enquêtes.",
+  INVESTIGATOR: "Mène les enquêtes sur les affaires affectées : personnes, déclarations, auditions, pièces, demandes de mandat, arrestations.",
+  DESK_OFFICER: "Accueil : enregistre les plaintes, les personnes et les incidents.",
+  PATROL_OFFICER: "Agent de terrain : patrouilles et signalement d'incidents.",
+  EVIDENCE_CUSTODIAN: "Gère la salle des pièces à conviction et la chaîne de possession.",
+  CUSTODY_OFFICER: "Gère les cellules de garde à vue et les registres de suivi des personnes retenues.",
+  FLEET_MANAGER: "Gère les véhicules, la maintenance et le carburant d'une région.",
+  ANALYST: "Analyse et rapports nationaux en lecture seule.",
+  AUDITOR: "Accès en lecture seule à tous les dossiers et au journal d'audit.",
+};
+
+export function roleName(code: string, stored: string, locale: Locale): string {
+  return locale === "fr" ? ROLE_NAMES_FR[code] ?? stored : stored;
+}
+
+export function roleDescription(code: string, stored: string | null | undefined, locale: Locale): string | null {
+  if (locale === "fr" && ROLE_DESCRIPTIONS_FR[code]) return ROLE_DESCRIPTIONS_FR[code];
+  return stored ?? null;
+}
+
+export const PERMISSION_DESCRIPTIONS_FR: Record<string, string> = {
+  "dashboard:view": "Consulter le tableau de bord",
+  "statistics:view": "Consulter les statistiques et analyses",
+  "users:view": "Consulter les comptes utilisateurs",
+  "users:create": "Créer des comptes utilisateurs",
+  "users:update": "Modifier les comptes utilisateurs (profil, rôle, périmètre)",
+  "users:manage_status": "Activer, suspendre, désactiver, déverrouiller des comptes",
+  "users:reset_password": "Émettre des réinitialisations de mot de passe",
+  "users:manage_sessions": "Consulter et révoquer les sessions d'autres utilisateurs",
+  "roles:view": "Consulter les rôles et leurs permissions",
+  "roles:manage": "Créer des rôles et modifier leurs permissions",
+  "permissions:view": "Consulter le catalogue des permissions",
+  "security:view": "Consulter le centre de sécurité (tentatives, sessions, verrouillages)",
+  "security:manage": "Gérer les paramètres de sécurité, réinitialiser la 2FA, révoquer des clés API",
+  "audit:view": "Consulter le journal d'audit",
+  "audit:export": "Exporter le journal d'audit",
+  "system:settings": "Modifier les paramètres système",
+  "system:backup": "Lancer et restaurer des sauvegardes",
+  "system:demo": "Charger les données de démonstration",
+  "org:view": "Consulter organisations, régions, commissariats, services, grades",
+  "org:manage": "Gérer organisations, régions, commissariats, services, grades",
+  "officers:view": "Consulter les agents",
+  "officers:manage": "Créer/modifier les agents et leurs affectations",
+  "persons:view": "Consulter les personnes",
+  "persons:create": "Enregistrer des personnes",
+  "persons:update": "Modifier les personnes, identifiants, relations",
+  "persons:merge": "Fusionner des doublons de personnes",
+  "wanted:view": "Consulter les personnes recherchées",
+  "wanted:create": "Créer des avis de recherche",
+  "wanted:approve": "Approuver/annuler des avis de recherche",
+  "wanted:update": "Modifier des avis de recherche",
+  "complaints:view": "Consulter les plaintes",
+  "complaints:create": "Enregistrer des plaintes",
+  "complaints:update": "Modifier des plaintes",
+  "complaints:review": "Examiner des plaintes",
+  "complaints:assign": "Affecter des plaintes",
+  "complaints:convert": "Convertir des plaintes en affaires",
+  "complaints:close": "Clôturer ou rejeter des plaintes",
+  "cases:view": "Consulter les affaires du périmètre",
+  "cases:view_sensitive": "Consulter les affaires marquées sensibles",
+  "cases:create": "Ouvrir des affaires",
+  "cases:update": "Modifier des affaires, ajouter parties, notes, tâches",
+  "cases:assign": "Affecter enquêteurs et superviseurs",
+  "cases:close": "Clôturer des affaires avec une décision",
+  "cases:archive": "Archiver des affaires clôturées",
+  "investigations:view": "Consulter les enquêtes",
+  "investigations:manage": "Ouvrir et gérer enquêtes, tâches, rapports",
+  "investigations:review": "Revue de supervision des enquêtes et rapports",
+  "statements:view": "Consulter les déclarations",
+  "statements:create": "Enregistrer des déclarations",
+  "statements:finalize": "Finaliser ou rétracter des déclarations",
+  "interviews:view": "Consulter les auditions",
+  "interviews:manage": "Planifier et conduire des auditions",
+  "transcripts:view": "Consulter les transcriptions",
+  "transcripts:review": "Relire/corriger les transcriptions automatiques",
+  "transcripts:approve": "Approuver les transcriptions",
+  "evidence:view": "Consulter les pièces à conviction",
+  "evidence:create": "Enregistrer des pièces à conviction",
+  "evidence:update": "Modifier la description des pièces",
+  "evidence:transfer": "Transférer la possession / entrées-sorties",
+  "evidence:release": "Restituer, libérer, détruire ou archiver des pièces",
+  "evidence:manage_locations": "Gérer les lieux de stockage",
+  "warrants:view": "Consulter les mandats",
+  "warrants:create": "Demander des mandats",
+  "warrants:approve": "Approuver ou rejeter des mandats",
+  "warrants:execute": "Exécuter des mandats",
+  "warrants:cancel": "Annuler des mandats",
+  "arrests:view": "Consulter les arrestations",
+  "arrests:create": "Enregistrer des arrestations",
+  "arrests:update": "Modifier des arrestations",
+  "detention:view": "Consulter les registres de garde à vue",
+  "detention:manage": "Gérer les gardes à vue et leurs registres",
+  "detention:extend": "Prolonger une garde à vue au-delà du délai légal sur autorisation",
+  "patrols:view": "Consulter les patrouilles",
+  "patrols:manage": "Planifier et conduire des patrouilles",
+  "incidents:view": "Consulter les incidents",
+  "incidents:create": "Signaler des incidents",
+  "incidents:update": "Modifier et clôturer des incidents",
+  "operations:view": "Consulter les opérations",
+  "operations:manage": "Planifier et exécuter des opérations",
+  "operations:approve": "Approuver des opérations",
+  "vehicles:view": "Consulter les véhicules",
+  "vehicles:manage": "Gérer véhicules, affectations, carburant",
+  "maintenance:view": "Consulter la maintenance",
+  "maintenance:manage": "Gérer les enregistrements de maintenance",
+  "documents:view": "Consulter et télécharger des documents",
+  "documents:view_confidential": "Consulter les documents confidentiels/restreints",
+  "documents:upload": "Téléverser des documents et de nouvelles versions",
+  "documents:archive": "Archiver des documents",
+  "reports:view": "Consulter les rapports générés",
+  "reports:generate": "Générer des rapports",
+  "reports:export": "Exporter rapports et données",
+  "apikeys:manage_own": "Créer/révoquer ses propres clés API",
+};
+
+export function permissionDescription(code: string, stored: string, locale: Locale): string {
+  return locale === "fr" ? PERMISSION_DESCRIPTIONS_FR[code] ?? stored : stored;
+}
