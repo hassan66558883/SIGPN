@@ -3,8 +3,8 @@
 _Generated from `prisma/schema.prisma` on 2026-09-12 by `scripts/gen-db-docs.ts`. Do not edit by hand._
 
 - Engine: PostgreSQL 18 · ORM: Prisma 7 (pg adapter)
-- Tables: **67** · Enums: **60**
-- Migrations: `20260911165632_init`, `20260911165825_immutability_triggers`, `20260912102414_national_territory`
+- Tables: **69** · Enums: **61**
+- Migrations: `20260911165632_init`, `20260911165825_immutability_triggers`, `20260912102414_national_territory`, `20260912161408_personnel_positions_trainings_person_station`
 
 ## Integrity rules
 
@@ -164,6 +164,7 @@ Constraints/indexes: `@@id([roleId, permissionId])`
 | settingsUpdated | SystemSetting[] | 1→N relation |
 | backups | BackupRecord[] | 1→N relation |
 | officerAssignments | OfficerAssignment[] | 1→N relation |
+| trainingsRecorded | Training[] | 1→N relation |
 | maintenanceRecorded | MaintenanceRecord[] | 1→N relation |
 | fuelLogs | FuelLog[] | 1→N relation |
 
@@ -418,6 +419,7 @@ Police structure: commissariat, poste, unité, brigade, direction. Posts and uni
 | storageLocations | StorageLocation[] | 1→N relation |
 | officerAssignments | OfficerAssignment[] | 1→N relation |
 | documents | Document[] | 1→N relation |
+| persons | Person[] | 1→N relation |
 
 Constraints/indexes: `@@index([regionId])`, `@@index([adminDepartmentId])`, `@@index([communeId])`, `@@index([parentId])`, `@@index([status])`
 
@@ -474,6 +476,8 @@ Constraints/indexes: `@@unique([stationId, code])`
 | departmentId | String? | nullable, FK → String |
 | department | Department? | nullable, FK → Department |
 | dutyStatus | DutyStatus | enum, default ON_DUTY |
+| positionId | String? | nullable, FK → String |
+| position | Position? | nullable, FK → Position |
 | hiredAt | DateTime? | nullable |
 | specialties | String? | nullable, FK → String |
 | notes | String? | nullable, FK → String |
@@ -495,6 +499,7 @@ Constraints/indexes: `@@unique([stationId, code])`
 | teamMembers | OperationMember[] | 1→N relation |
 | vehicleAssignments | VehicleAssignment[] | 1→N relation |
 | fuelLogs | FuelLog[] | 1→N relation |
+| trainings | Training[] | 1→N relation |
 
 Constraints/indexes: `@@index([stationId])`, `@@index([departmentId])`, `@@index([lastName, firstName])`
 
@@ -512,6 +517,8 @@ Constraints/indexes: `@@index([stationId])`, `@@index([departmentId])`, `@@index
 | rankId | String? | nullable, FK → String |
 | rank | Rank? | nullable, FK → Rank |
 | position | String? | nullable, FK → String |
+| positionId | String? | nullable, FK → String |
+| positionRef | Position? | nullable, FK → Position |
 | startDate | DateTime |  |
 | endDate | DateTime? | nullable |
 | reason | String? | nullable, FK → String |
@@ -520,6 +527,46 @@ Constraints/indexes: `@@index([stationId])`, `@@index([departmentId])`, `@@index
 | createdAt | DateTime | default now( |
 
 Constraints/indexes: `@@index([officerId, startDate])`
+
+### Position
+
+Fonction (post/duty title) referential, e.g. Commissaire, Chef de service, Officier de police judiciaire.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| code | String | unique, FK → String |
+| name | String | FK → String |
+| description | String? | nullable, FK → String |
+| isActive | Boolean | default true |
+| assignments | OfficerAssignment[] | 1→N relation |
+| officers | Officer[] | 1→N relation |
+
+### Training
+
+Training / certification record of an officer.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| officerId | String | FK → String |
+| officer | Officer | FK → Officer |
+| title | String | FK → String |
+| provider | String? | nullable, FK → String |
+| category | String? | nullable, FK → String |
+| startDate | DateTime |  |
+| endDate | DateTime? | nullable |
+| status | TrainingStatus | enum, default PLANNED |
+| result | String? | nullable, FK → String |
+| certificateNo | String? | nullable, FK → String |
+| expiresAt | DateTime? | nullable |
+| notes | String? | nullable, FK → String |
+| recordedById | String? | nullable, FK → String |
+| recordedBy | User? | nullable, FK → User |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+
+Constraints/indexes: `@@index([officerId, startDate])`, `@@index([status])`
 
 
 ## 3. PERSONS
@@ -545,6 +592,8 @@ Constraints/indexes: `@@index([officerId, startDate])`
 | city | String? | nullable, FK → String |
 | regionId | String? | nullable, FK → String |
 | region | Region? | nullable, FK → Region |
+| stationId | String? | nullable, FK → String |
+| station | Station? | nullable, FK → Station |
 | physicalDescription | String? | nullable, FK → String |
 | distinguishingMarks | String? | nullable, FK → String |
 | notes | String? | nullable, FK → String |
@@ -572,7 +621,7 @@ Constraints/indexes: `@@index([officerId, startDate])`
 | wanted | WantedPerson[] | 1→N relation |
 | incidentPersons | IncidentPerson[] | 1→N relation |
 
-Constraints/indexes: `@@index([lastName, firstName])`, `@@index([phone])`, `@@index([dateOfBirth])`, `@@index([regionId])`
+Constraints/indexes: `@@index([lastName, firstName])`, `@@index([phone])`, `@@index([dateOfBirth])`, `@@index([regionId])`, `@@index([stationId])`
 
 ### PersonIdentifier
 
@@ -1655,6 +1704,7 @@ Constraints/indexes: `@@index([at])`, `@@index([actorId, at])`, `@@index([entity
 - **RankCategory**: COMMISSIONER, OFFICER, INSPECTOR, NON_COMMISSIONED, CONSTABLE, CIVILIAN
 - **Gender**: MALE, FEMALE, OTHER, UNKNOWN
 - **DutyStatus**: ON_DUTY, OFF_DUTY, ON_LEAVE, TRAINING, SUSPENDED, RETIRED, DECEASED
+- **TrainingStatus**: PLANNED, IN_PROGRESS, COMPLETED, FAILED, CANCELLED
 - **MaritalStatus**: SINGLE, MARRIED, DIVORCED, WIDOWED, UNKNOWN
 - **IdentifierType**: NATIONAL_ID, PASSPORT, DRIVER_LICENSE, VOTER_CARD, RESIDENCE_PERMIT, BIRTH_CERTIFICATE, OTHER
 - **RelationshipType**: SPOUSE, PARENT, CHILD, SIBLING, RELATIVE, ASSOCIATE, EMPLOYER, EMPLOYEE, NEIGHBOUR, OTHER

@@ -4,14 +4,16 @@ import { notFound } from "next/navigation";
 import { requirePermission } from "@/server/auth/dal";
 import { getOfficer } from "@/server/org/service";
 import { officerAssignments, orgReferences } from "@/server/org/queries";
+import { listPositions, listTrainings } from "@/server/org/personnel";
 import { NotFoundError } from "@/server/errors";
 import { Alert, Badge, Card, DL, EmptyState, PageHeader, Table } from "@/components/ui";
 import { ActionButton } from "@/components/forms";
 import { deactivateOfficerAction, reactivateOfficerAction } from "@/server/org/actions";
-import { DUTY_STATUS, GENDER, labelOf } from "@/lib/labels";
+import { DUTY_STATUS, GENDER, TRAINING_STATUS, labelOf } from "@/lib/labels";
 import { fmtDate, fmtDateTime, toInputDate } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
 import { AssignmentForm, DutyStatusForm, OfficerForm } from "../officer-forms";
+import { OfficerPositionForm, TrainingForm, TrainingStatusForm } from "../personnel-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -29,7 +31,7 @@ export default async function OfficerPage({ params, searchParams }: PageProps<"/
     throw e;
   }
   const canManage = actor.permissions.has("officers:manage");
-  const [history, refs] = await Promise.all([officerAssignments(id), canManage ? orgReferences(actor) : Promise.resolve(null)]);
+  const [history, refs, positions, trainings] = await Promise.all([officerAssignments(id), canManage ? orgReferences(actor) : Promise.resolve(null), canManage ? listPositions() : Promise.resolve([]), listTrainings(id)]);
   const ds = labelOf(DUTY_STATUS, o.dutyStatus, locale);
   return (
     <div>
@@ -124,7 +126,12 @@ export default async function OfficerPage({ params, searchParams }: PageProps<"/
         </div>
         <div className="space-y-4">
           <Card title={t("officer.posting")}>
-            <DL cols={1} items={[{ label: t("officer.station"), value: <Link href={`/admin/organization/stations/${o.station.id}`} className="text-blue hover:underline">{o.station.name}</Link> }, { label: t("officer.department"), value: o.department?.name ?? "—" }, { label: t("officer.rank"), value: `${o.rank.name} (${o.rank.code})` }, { label: t("officer.dutyStatus"), value: <Badge tone={ds.tone}>{ds.label}</Badge> }]} />
+            <DL cols={1} items={[{ label: t("officer.station"), value: <Link href={`/admin/organization/stations/${o.station.id}`} className="text-blue hover:underline">{o.station.name}</Link> }, { label: t("officer.department"), value: o.department?.name ?? "—" }, { label: t("officer.rank"), value: `${o.rank.name} (${o.rank.code})` }, { label: t("officer.position"), value: o.position?.name ?? "—" }, { label: t("officer.dutyStatus"), value: <Badge tone={ds.tone}>{ds.label}</Badge> }]} />
+            {canManage && o.isActive ? (
+              <div className="mt-3 border-t border-line pt-3">
+                <OfficerPositionForm officerId={o.id} positions={positions.filter((p) => p.isActive).map((p) => ({ id: p.id, label: p.name }))} current={o.positionId} />
+              </div>
+            ) : null}
             {canManage && refs && o.isActive ? (
               <details className="mt-4">
                 <summary className="cursor-pointer text-sm font-semibold text-blue">{t("officer.newAssignment")}</summary>
@@ -150,6 +157,44 @@ export default async function OfficerPage({ params, searchParams }: PageProps<"/
               </div>
             </Card>
           ) : null}
+          <Card title={t("training.title")} padded={false}>
+            {trainings.length === 0 ? (
+              <div className="p-5">
+                <EmptyState>{t("training.none")}</EmptyState>
+              </div>
+            ) : (
+              <ul className="divide-y divide-line text-sm">
+                {trainings.map((tr) => {
+                  const ts = labelOf(TRAINING_STATUS, tr.status, locale);
+                  return (
+                    <li key={tr.id} className="px-4 py-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-semibold text-ink">{tr.title}</span>
+                        <Badge tone={ts.tone}>{ts.label}</Badge>
+                      </div>
+                      <p className="text-xs text-slate">
+                        {[tr.provider, tr.category, fmtDate(tr.startDate, locale) + (tr.endDate ? ` → ${fmtDate(tr.endDate, locale)}` : ""), tr.certificateNo ? `n° ${tr.certificateNo}` : null, tr.expiresAt ? `${t("training.expires")} ${fmtDate(tr.expiresAt, locale)}` : null].filter(Boolean).join(" · ")}
+                      </p>
+                      {tr.result ? <p className="text-xs text-success">{tr.result}</p> : null}
+                      {canManage && tr.status !== "COMPLETED" && tr.status !== "CANCELLED" ? (
+                        <div className="mt-1">
+                          <TrainingStatusForm trainingId={tr.id} current={tr.status} />
+                        </div>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {canManage && o.isActive ? (
+              <details className="border-t border-line p-4">
+                <summary className="cursor-pointer text-xs font-bold uppercase tracking-wide text-navy">{t("training.new")}</summary>
+                <div className="mt-3">
+                  <TrainingForm officerId={o.id} />
+                </div>
+              </details>
+            ) : null}
+          </Card>
           <Card title={t("officer.account")}>
             {o.user ? (
               <p className="text-sm">

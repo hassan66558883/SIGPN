@@ -178,6 +178,7 @@ model User {
   settingsUpdated        SystemSetting[]
   backups                BackupRecord[]
   officerAssignments     OfficerAssignment[]
+  trainingsRecorded      Training[]
   maintenanceRecorded    MaintenanceRecord[]
   fuelLogs               FuelLog[]
 
@@ -444,6 +445,7 @@ model Station {
   storageLocations   StorageLocation[]
   officerAssignments OfficerAssignment[]
   documents          Document[]
+  persons            Person[]
 
   @@index([regionId])
   @@index([adminDepartmentId])
@@ -538,6 +540,8 @@ model Officer {
   departmentId String?
   department   Department? @relation(fields: [departmentId], references: [id])
   dutyStatus   DutyStatus  @default(ON_DUTY)
+  positionId   String?
+  position     Position?   @relation(fields: [positionId], references: [id])
   hiredAt      DateTime?
   specialties  String?
   notes        String?
@@ -560,6 +564,7 @@ model Officer {
   teamMembers         OperationMember[]
   vehicleAssignments  VehicleAssignment[]
   fuelLogs            FuelLog[]
+  trainings           Training[]
 
   @@index([stationId])
   @@index([departmentId])
@@ -577,6 +582,8 @@ model OfficerAssignment {
   rankId       String?
   rank         Rank?       @relation(fields: [rankId], references: [id])
   position     String?
+  positionId   String?
+  positionRef  Position?   @relation(fields: [positionId], references: [id])
   startDate    DateTime
   endDate      DateTime?
   reason       String?
@@ -585,6 +592,49 @@ model OfficerAssignment {
   createdAt    DateTime    @default(now())
 
   @@index([officerId, startDate])
+}
+
+/// Fonction (post/duty title) referential, e.g. Commissaire, Chef de service, Officier de police judiciaire.
+model Position {
+  id          String              @id @default(cuid())
+  code        String              @unique
+  name        String
+  description String?
+  isActive    Boolean             @default(true)
+  assignments OfficerAssignment[]
+  officers    Officer[]
+}
+
+enum TrainingStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+/// Training / certification record of an officer.
+model Training {
+  id            String         @id @default(cuid())
+  officerId     String
+  officer       Officer        @relation(fields: [officerId], references: [id])
+  title         String
+  provider      String?
+  category      String?
+  startDate     DateTime
+  endDate       DateTime?
+  status        TrainingStatus @default(PLANNED)
+  result        String?
+  certificateNo String?
+  expiresAt     DateTime?
+  notes         String?
+  recordedById  String?
+  recordedBy    User?          @relation(fields: [recordedById], references: [id])
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([officerId, startDate])
+  @@index([status])
 }
 
 // ------------------------------------------------------------
@@ -617,6 +667,8 @@ model Person {
   city                String?
   regionId            String?
   region              Region?       @relation(fields: [regionId], references: [id])
+  stationId           String?
+  station             Station?      @relation(fields: [stationId], references: [id])
   physicalDescription String?
   distinguishingMarks String?
   notes               String?
@@ -649,6 +701,7 @@ model Person {
   @@index([phone])
   @@index([dateOfBirth])
   @@index([regionId])
+  @@index([stationId])
 }
 
 enum IdentifierType {

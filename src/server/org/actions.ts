@@ -1,11 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import type { DutyStatus } from "@/generated/prisma/client";
+import type { DutyStatus, TrainingStatus } from "@/generated/prisma/client";
 import { getRequestContext } from "@/server/request-context";
 import { fail, formEntries, revalidateAll } from "@/server/action-utils";
 import { requirePermissionForAction } from "@/server/auth/dal";
 import * as svc from "@/server/org/service";
+import * as personnel from "@/server/org/personnel";
 import { adminDepartmentSchema, assignmentSchema, communeSchema, departmentSchema, dutyStatusSchema, localitySchema, officerSchema, organizationSchema, rankSchema, regionSchema, stationSchema } from "@/server/org/schemas";
 import type { FormState } from "@/components/forms";
 
@@ -238,5 +239,64 @@ export async function reactivateOfficerAction(_p: FormState, fd: FormData): Prom
     return { ok: true, message: "Officer reactivated." };
   } catch (e) {
     return fail(e, "Could not reactivate the officer.", "officers");
+  }
+}
+
+// ---------------- Personnel: positions & trainings ----------------
+
+export async function createPositionAction(_p: FormState, fd: FormData): Promise<FormState> {
+  try {
+    const actor = await requirePermissionForAction("org:manage");
+    await personnel.createPosition(actor, personnel.positionSchema.parse(formEntries(fd)), await getRequestContext());
+    revalidateAll();
+    return { ok: true, message: "Position created." };
+  } catch (e) {
+    return fail(e, "Could not create the position.", "org");
+  }
+}
+
+export async function updatePositionAction(_p: FormState, fd: FormData): Promise<FormState> {
+  try {
+    const actor = await requirePermissionForAction("org:manage");
+    await personnel.updatePosition(actor, id(fd), personnel.positionSchema.parse(formEntries(fd)), await getRequestContext());
+    revalidateAll();
+    return { ok: true, message: "Position updated." };
+  } catch (e) {
+    return fail(e, "Could not update the position.", "org");
+  }
+}
+
+export async function setOfficerPositionAction(_p: FormState, fd: FormData): Promise<FormState> {
+  try {
+    const actor = await requirePermissionForAction("officers:manage");
+    await personnel.setOfficerPosition(actor, id(fd, "officerId"), String(fd.get("positionId") ?? "") || null, await getRequestContext());
+    revalidateAll();
+    return { ok: true, message: "Position updated." };
+  } catch (e) {
+    return fail(e, "Could not update the position.", "officers");
+  }
+}
+
+export async function createTrainingAction(_p: FormState, fd: FormData): Promise<FormState> {
+  try {
+    const actor = await requirePermissionForAction("officers:manage");
+    await personnel.createTraining(actor, personnel.trainingSchema.parse(formEntries(fd)), await getRequestContext());
+    revalidateAll();
+    return { ok: true, message: "Training recorded." };
+  } catch (e) {
+    return fail(e, "Could not record the training.", "officers");
+  }
+}
+
+export async function updateTrainingStatusAction(_p: FormState, fd: FormData): Promise<FormState> {
+  try {
+    const actor = await requirePermissionForAction("officers:manage");
+    const status = String(fd.get("status") ?? "") as TrainingStatus;
+    if (!["PLANNED", "IN_PROGRESS", "COMPLETED", "FAILED", "CANCELLED"].includes(status)) return { error: "Invalid status." };
+    await personnel.updateTrainingStatus(actor, id(fd), status, String(fd.get("result") ?? "") || undefined, await getRequestContext());
+    revalidateAll();
+    return { ok: true, message: "Training updated." };
+  } catch (e) {
+    return fail(e, "Could not update the training.", "officers");
   }
 }

@@ -2,10 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/server/auth/dal";
 import { organizationOverview } from "@/server/org/queries";
+import { listPositions } from "@/server/org/personnel";
 import { Badge, Card, EmptyState, PageHeader, StatCard, Table, DL } from "@/components/ui";
 import { RANK_CATEGORY, labelOf } from "@/lib/labels";
 import { getLocale, getT } from "@/server/i18n";
 import { OrganizationForm, RankForm, RegionForm } from "./forms";
+import { PositionForm } from "../../officers/personnel-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -14,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function OrganizationPage() {
   const actor = await requirePermission("org:view");
-  const [o, t, locale] = await Promise.all([organizationOverview(actor), getT(), getLocale()]);
+  const [o, t, locale, positions] = await Promise.all([organizationOverview(actor), getT(), getLocale(), listPositions()]);
   const canManage = actor.permissions.has("org:manage");
   const national = actor.scopeLevel === "NATIONAL";
   return (
@@ -142,6 +144,56 @@ export default async function OrganizationPage() {
           <div className="border-t border-line p-4">
             <p className="mb-2 text-xs font-bold uppercase tracking-wide text-navy">{t("org.newRank")}</p>
             <RankForm />
+          </div>
+        ) : null}
+      </Card>
+      <Card className="mt-4" title={t("pos.title")} padded={false}>
+        {positions.length === 0 ? (
+          <div className="p-5">
+            <EmptyState>{t("pos.none")}</EmptyState>
+          </div>
+        ) : (
+          <Table>
+            <thead>
+              <tr>
+                <th>{t("pos.col.position")}</th>
+                <th>{t("pos.description")}</th>
+                <th>{t("pos.col.holders")}</th>
+                <th>{t("org.col.state")}</th>
+                {canManage && national ? <th></th> : null}
+              </tr>
+            </thead>
+            <tbody>
+              {positions.map((p) => (
+                <tr key={p.id}>
+                  <td data-label={t("pos.col.position")}>
+                    <span className="font-semibold text-ink">{p.name}</span>
+                    <span className="block font-mono text-[11px] text-slate">{p.code}</span>
+                  </td>
+                  <td data-label={t("pos.description")} className="text-xs">
+                    {p.description ?? "—"}
+                  </td>
+                  <td data-label={t("pos.col.holders")}>{p._count.officers}</td>
+                  <td data-label={t("org.col.state")}>{p.isActive ? <Badge tone="success">{t("common.active")}</Badge> : <Badge>{t("common.inactive")}</Badge>}</td>
+                  {canManage && national ? (
+                    <td data-label="">
+                      <details>
+                        <summary className="cursor-pointer text-xs font-semibold text-blue">{t("org.edit")}</summary>
+                        <div className="mt-2 rounded-md border border-line bg-mist p-3">
+                          <PositionForm position={p} />
+                        </div>
+                      </details>
+                    </td>
+                  ) : null}
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        )}
+        {canManage && national ? (
+          <div className="border-t border-line p-4">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-navy">{t("pos.new")}</p>
+            <PositionForm />
           </div>
         ) : null}
       </Card>

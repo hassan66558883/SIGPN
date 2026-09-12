@@ -323,6 +323,8 @@ const officerSelect = {
   phone: true,
   email: true,
   dutyStatus: true,
+  positionId: true,
+  position: { select: { id: true, code: true, name: true } },
   hiredAt: true,
   specialties: true,
   notes: true,
