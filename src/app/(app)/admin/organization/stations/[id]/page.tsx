@@ -44,9 +44,9 @@ export default async function StationPage({ params, searchParams }: PageProps<"/
     { key: "station.res.officers", value: station._count.officers, href: `/officers?stationId=${station.id}` },
     { key: "station.res.users", value: station._count.users, href: actor.permissions.has("users:view") ? `/admin/users?stationId=${station.id}` : undefined },
     { key: "station.res.vehicles", value: station._count.vehicles, soon: true },
-    { key: "station.res.complaints", value: station._count.complaints, soon: true },
-    { key: "station.res.cases", value: station._count.cases, soon: true },
-    { key: "station.res.incidents", value: station._count.incidents, soon: true },
+    { key: "station.res.complaints", value: station._count.complaints, href: actor.permissions.has("complaints:view") ? `/complaints?stationId=${station.id}` : undefined },
+    { key: "station.res.cases", value: station._count.cases, href: actor.permissions.has("cases:view") ? `/cases?stationId=${station.id}` : undefined },
+    { key: "station.res.incidents", value: station._count.incidents, href: actor.permissions.has("incidents:view") ? `/incidents?stationId=${station.id}` : undefined },
   ];
   return (
     <div>

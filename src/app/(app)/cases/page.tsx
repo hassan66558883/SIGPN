@@ -18,7 +18,7 @@ const str = (v: unknown) => (typeof v === "string" && v !== "" ? v : undefined);
 export default async function CasesPage({ searchParams }: PageProps<"/cases">) {
   const actor = await requirePermission("cases:view");
   const [p, t, locale] = await Promise.all([searchParams, getT(), getLocale()]);
-  const filter = { q: str(p.q), status: str(p.status) as CaseStatus | undefined, category: str(p.category) as OffenseCategory | undefined, priority: str(p.priority) as Priority | undefined, mine: p.mine === "1", page: Number(p.page ?? 1) || 1 };
+  const filter = { q: str(p.q), status: str(p.status) as CaseStatus | undefined, category: str(p.category) as OffenseCategory | undefined, priority: str(p.priority) as Priority | undefined, stationId: str(p.stationId), mine: p.mine === "1", page: Number(p.page ?? 1) || 1 };
   const [{ items, total, page, pageSize }, counts] = await Promise.all([listCases(actor, filter), caseCounts(actor)]);
   const qs = (n: number) => {
     const s = new URLSearchParams();
@@ -42,6 +42,7 @@ export default async function CasesPage({ searchParams }: PageProps<"/cases">) {
           <Select name="status" defaultValue={filter.status ?? ""} placeholder={t("cases.allStatuses")} options={optionsOf(CASE_STATUS, locale)} aria-label={t("case.status")} />
           <Select name="category" defaultValue={filter.category ?? ""} placeholder={t("complaints.allCategories")} options={optionsOf(OFFENSE_CATEGORY, locale)} aria-label={t("case.category")} />
           <Select name="priority" defaultValue={filter.priority ?? ""} placeholder={t("complaints.allPriorities")} options={optionsOf(PRIORITY, locale)} aria-label={t("case.priority")} />
+          {filter.stationId ? <input type="hidden" name="stationId" value={filter.stationId} /> : null}
           <div className="flex items-center gap-3">
             <label className="flex items-center gap-1 text-xs text-slate">
               <input type="checkbox" name="mine" value="1" defaultChecked={filter.mine} /> {t("cases.mine")}

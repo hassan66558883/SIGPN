@@ -252,6 +252,63 @@ export const TASK_STATUS: LabelMap = {
   CANCELLED: def("Annulée", "Cancelled", "neutral"),
 };
 
+export const INCIDENT_TYPE: LabelMap = {
+  DISTURBANCE: def("Trouble / rixe", "Disturbance", "warning"),
+  TRAFFIC_ACCIDENT: def("Accident de la circulation", "Traffic accident", "warning"),
+  ASSAULT: def("Agression", "Assault", "danger"),
+  THEFT: def("Vol", "Theft", "warning"),
+  FIRE: def("Incendie", "Fire", "danger"),
+  MEDICAL: def("Urgence médicale", "Medical emergency", "info"),
+  SUSPICIOUS_ACTIVITY: def("Activité suspecte", "Suspicious activity", "info"),
+  PUBLIC_ORDER: def("Ordre public", "Public order", "warning"),
+  DOMESTIC: def("Violence domestique", "Domestic incident", "danger"),
+  NOISE: def("Nuisance sonore", "Noise", "neutral"),
+  MISSING_PERSON: def("Personne disparue", "Missing person", "violet"),
+  OTHER: def("Autre", "Other", "neutral"),
+};
+
+export const INCIDENT_STATUS: LabelMap = {
+  REPORTED: def("Signalé", "Reported", "info"),
+  RESPONDING: def("Intervention en route", "Responding", "warning"),
+  ON_SCENE: def("Sur les lieux", "On scene", "violet"),
+  RESOLVED: def("Résolu", "Resolved", "success"),
+  ESCALATED: def("Transmis en affaire", "Escalated to case", "danger"),
+  CLOSED: def("Clos", "Closed", "neutral"),
+};
+
+export const PATROL_STATUS: LabelMap = {
+  PLANNED: def("Planifiée", "Planned", "info"),
+  ACTIVE: def("En cours", "Active", "success"),
+  COMPLETED: def("Terminée", "Completed", "neutral"),
+  CANCELLED: def("Annulée", "Cancelled", "danger"),
+};
+
+export const SHIFT: LabelMap = {
+  MORNING: def("Matin (06h–14h)", "Morning (06:00–14:00)", "info"),
+  AFTERNOON: def("Après-midi (14h–22h)", "Afternoon (14:00–22:00)", "warning"),
+  NIGHT: def("Nuit (22h–06h)", "Night (22:00–06:00)", "violet"),
+  CUSTOM: def("Horaire spécifique", "Custom hours", "neutral"),
+};
+
+export const VEHICLE_STATUS: LabelMap = {
+  AVAILABLE: def("Disponible", "Available", "success"),
+  IN_USE: def("En service", "In use", "info"),
+  MAINTENANCE: def("En maintenance", "Maintenance", "warning"),
+  OUT_OF_SERVICE: def("Hors service", "Out of service", "danger"),
+  DECOMMISSIONED: def("Réformé", "Decommissioned", "neutral"),
+};
+
+export const VEHICLE_TYPE: LabelMap = {
+  PATROL_CAR: def("Véhicule de patrouille", "Patrol car", "info"),
+  MOTORCYCLE: def("Moto", "Motorcycle", "info"),
+  VAN: def("Fourgon", "Van", "neutral"),
+  PICKUP: def("Pick-up", "Pickup", "neutral"),
+  TRUCK: def("Camion", "Truck", "neutral"),
+  BUS: def("Bus", "Bus", "neutral"),
+  UNMARKED: def("Banalisé", "Unmarked", "violet"),
+  OTHER: def("Autre", "Other", "neutral"),
+};
+
 export function labelOf(map: LabelMap, key: string | null | undefined, locale: Locale): LabelDef {
   if (!key) return { label: "—", tone: "neutral" };
   const d = map[key];

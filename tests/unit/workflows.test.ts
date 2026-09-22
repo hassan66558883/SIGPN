@@ -7,9 +7,10 @@ import assert from "node:assert/strict";
 import { complaintSchema } from "../../src/server/complaints/schemas";
 import { caseSchema, partySchema } from "../../src/server/cases/schemas";
 import { personSchema } from "../../src/server/persons/schemas";
+import { incidentSchema, patrolSchema, zoneSchema } from "../../src/server/ops/schemas";
 import { fr } from "../../src/lib/i18n/fr";
 import { en } from "../../src/lib/i18n/en";
-import { COMPLAINT_STATUS, CASE_STATUS, PARTY_ROLE, PARTY_STATUS, OFFENSE_CATEGORY } from "../../src/lib/labels";
+import { COMPLAINT_STATUS, CASE_STATUS, PARTY_ROLE, PARTY_STATUS, OFFENSE_CATEGORY, INCIDENT_TYPE, INCIDENT_STATUS, PATROL_STATUS, SHIFT } from "../../src/lib/labels";
 
 test("complaint schema: title/description minimums, defaults, future incident accepted by schema (business rule elsewhere)", () => {
   const bad = complaintSchema.safeParse({ title: "abc", description: "short" });
@@ -58,4 +59,35 @@ test("every workflow status and offence category has bilingual labels", () => {
 test("dictionaries stay in sync after the persons/complaints/cases additions", () => {
   assert.deepEqual(Object.keys(en).sort(), Object.keys(fr).sort());
   for (const k of ["persons.title", "complaints.title", "cases.title", "case.tab.timeline", "person.presumption", "training.title", "pos.title"]) assert.ok(k in fr && k in en, k);
+});
+
+test("incident schema: coordinates optional and bounded, location required, defaults", () => {
+  const ok = incidentSchema.safeParse({ title: "Accident léger", description: "Description suffisante.", occurredAt: "2026-09-12T10:00", locationText: "Rond-point", latitude: "", longitude: "15.05" });
+  assert.equal(ok.success, true, JSON.stringify(ok.error));
+  if (ok.success) {
+    assert.equal(ok.data.latitude, undefined);
+    assert.equal(ok.data.longitude, 15.05);
+    assert.equal(ok.data.type, "OTHER");
+    assert.equal(ok.data.severity, "MEDIUM");
+  }
+  assert.equal(incidentSchema.safeParse({ title: "Accident léger", description: "Description suffisante.", occurredAt: "2026-09-12T10:00", locationText: "Rond-point", latitude: "95" }).success, false);
+  assert.equal(incidentSchema.safeParse({ title: "Accident léger", description: "Description suffisante.", occurredAt: "2026-09-12T10:00", locationText: "" }).success, false);
+});
+
+test("patrol and zone schemas: supervisor required, zone isActive defaults true and accepts form values", () => {
+  assert.equal(patrolSchema.safeParse({ mission: "Mission de test", plannedStart: "2026-09-12T06:00", plannedEnd: "2026-09-12T14:00" }).success, false);
+  assert.equal(patrolSchema.safeParse({ mission: "Mission de test", plannedStart: "2026-09-12T06:00", plannedEnd: "2026-09-12T14:00", supervisorId: "o1" }).success, true);
+  const z = zoneSchema.safeParse({ stationId: "s", code: "Z1", name: "Zone" });
+  assert.equal(z.success && z.data.isActive, true);
+  const off = zoneSchema.safeParse({ stationId: "s", code: "Z1", name: "Zone", isActive: "0" });
+  assert.equal(off.success && off.data.isActive, false);
+  assert.equal(zoneSchema.safeParse({ stationId: "s", code: "Z 1", name: "Zone" }).success, false);
+});
+
+test("operations enumerations have bilingual labels", () => {
+  for (const s of ["DISTURBANCE", "TRAFFIC_ACCIDENT", "ASSAULT", "THEFT", "FIRE", "MEDICAL", "SUSPICIOUS_ACTIVITY", "PUBLIC_ORDER", "DOMESTIC", "NOISE", "MISSING_PERSON", "OTHER"]) assert.ok(INCIDENT_TYPE[s]?.fr && INCIDENT_TYPE[s]?.en, s);
+  for (const s of ["REPORTED", "RESPONDING", "ON_SCENE", "RESOLVED", "ESCALATED", "CLOSED"]) assert.ok(INCIDENT_STATUS[s]?.fr, s);
+  for (const s of ["PLANNED", "ACTIVE", "COMPLETED", "CANCELLED"]) assert.ok(PATROL_STATUS[s]?.fr, s);
+  for (const s of ["MORNING", "AFTERNOON", "NIGHT", "CUSTOM"]) assert.ok(SHIFT[s]?.fr && SHIFT[s]?.en, s);
+  for (const k of ["incidents.title", "incident.escalate", "patrols.title", "patrol.plan", "zone.save"]) assert.ok(k in fr && k in en, k);
 });

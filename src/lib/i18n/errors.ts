@@ -239,7 +239,12 @@ const PATTERNS: [RegExp, (m: RegExpMatchArray) => string][] = [
   [/^A complaint in status (\w+) cannot be converted \(review it first\)\.$/, (m) => `Une plainte au statut ${m[1]} ne peut pas être convertie (examinez-la d'abord).`],
   [/^Cannot move a case from (\w+) to (\w+)\.$/, (m) => `Impossible de faire passer une affaire de ${m[1]} à ${m[2]}.`],
   [/^Case (.+) is (\w+) and read-only\.$/, (m) => `L'affaire ${m[1]} est ${m[2] === "closed" ? "clôturée" : "archivée"} et en lecture seule.`],
-  [/^(\w+) not found or outside your scope\.$/, (m) => `${m[1] === "User" ? "Utilisateur" : m[1] === "Role" ? "Rôle" : m[1] === "Person" ? "Personne" : m[1] === "Complaint" ? "Plainte" : m[1] === "Case" ? "Affaire" : m[1] === "Officer" ? "Agent" : m[1]} introuvable ou hors de votre périmètre.`],
+  [/^Cannot move an incident from (\w+) to (\w+)\.$/, (m) => `Impossible de faire passer un incident de ${m[1]} à ${m[2]}.`],
+  [/^Cannot move a patrol from (\w+) to (\w+)\.$/, (m) => `Impossible de faire passer une patrouille de ${m[1]} à ${m[2]}.`],
+  [/^A patrol in status (\w+) can no longer be edited\.$/, (m) => `Une patrouille au statut ${m[1]} n'est plus modifiable.`],
+  [/^Vehicle is not available \(status (\w+)\)\.$/, (m) => `Le véhicule n'est pas disponible (statut ${m[1]}).`],
+  [/^Zone code (\w+) already exists for this station\.$/, (m) => `Le code de zone ${m[1]} existe déjà pour ce commissariat.`],
+  [/^(\w+) not found or outside your scope\.$/, (m) => `${m[1] === "User" ? "Utilisateur" : m[1] === "Role" ? "Rôle" : m[1] === "Person" ? "Personne" : m[1] === "Complaint" ? "Plainte" : m[1] === "Case" ? "Affaire" : m[1] === "Officer" ? "Agent" : m[1] === "Incident" ? "Incident" : m[1] === "Patrol" ? "Patrouille" : m[1] === "Zone" ? "Zone" : m[1]} introuvable ou hors de votre périmètre.`],
 ];
 
 export function translateMessage(message: string, locale: Locale): string {

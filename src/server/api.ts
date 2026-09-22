@@ -33,9 +33,14 @@ export function withApi<P = Record<string, string>>(opts: { permission?: Permiss
     const ctx = contextFromHeaders(req.headers);
     const params = (routeCtx ? await routeCtx.params : ({} as P)) as P;
     try {
-      enforceRateLimit(MUTATING.has(req.method) ? "apiWrite" : "api", ctx.ip);
-      if (opts.public) return await handler({ actor: null as unknown as Actor, ctx, params, req });
+      const bucket = MUTATING.has(req.method) ? "apiWrite" : "api";
+      if (opts.public) {
+        enforceRateLimit(bucket, ctx.ip);
+        return await handler({ actor: null as unknown as Actor, ctx, params, req });
+      }
       const actor = await resolveApiActor(req);
+      // Authenticated traffic is limited per account (the socket IP is constant without a trusted proxy); anonymous traffic per IP.
+      enforceRateLimit(bucket, actor ? `user:${actor.id}` : ctx.ip);
       if (!actor) return apiError(401, "UNAUTHENTICATED", "Authentication required.");
       if (actor.authMethod === "session") {
         if (MUTATING.has(req.method) && req.headers.get("x-requested-with") !== "PMS") return apiError(403, "CSRF", "Missing X-Requested-With: PMS header.");
