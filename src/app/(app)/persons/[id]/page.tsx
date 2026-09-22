@@ -5,11 +5,12 @@ import { requirePermission } from "@/server/auth/dal";
 import { getPerson } from "@/server/persons/service";
 import { prisma } from "@/server/db";
 import { personBiometricSummary } from "@/server/biometric/queries";
+import { personWantedSummary } from "@/server/wanted/queries";
 import { NotFoundError } from "@/server/errors";
 import { Alert, Badge, ButtonLink, Card, DL, EmptyState, PageHeader, Table } from "@/components/ui";
 import { ActionButton } from "@/components/forms";
 import { removeIdentifierAction } from "@/server/persons/actions";
-import { CASE_STATUS, COMPLAINT_STATUS, GENDER, IDENTIFIER_TYPE, MARITAL_STATUS, PARTY_ROLE, PARTY_STATUS, RELATIONSHIP_TYPE, labelOf } from "@/lib/labels";
+import { CASE_STATUS, COMPLAINT_STATUS, DANGER_LEVEL, GENDER, IDENTIFIER_TYPE, MARITAL_STATUS, PARTY_ROLE, PARTY_STATUS, RELATIONSHIP_TYPE, WANTED_STATUS, labelOf } from "@/lib/labels";
 import { fmtDate, fmtDateTime, toInputDate } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
 import { AliasForm, IdentifierForm, MergeForm, PersonEditForm, RelationshipForm } from "../person-forms";
@@ -32,6 +33,8 @@ export default async function PersonPage({ params, searchParams }: PageProps<"/p
   const canEdit = actor.permissions.has("persons:update") && !p.mergedIntoId;
   const canViewBiometric = actor.permissions.has("biometric:history_view");
   const biometric = canViewBiometric ? await personBiometricSummary(p.id) : null;
+  const canViewWanted = actor.permissions.has("wanted:view");
+  const wanted = canViewWanted ? await personWantedSummary(p.id) : [];
   const regions = canEdit ? await prisma.region.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : [];
   const mergedInto = p.mergedIntoId ? await prisma.person.findUnique({ where: { id: p.mergedIntoId }, select: { id: true, number: true, firstName: true, lastName: true } }) : null;
   // Only involvements the actor may see (territorial scope; sensitive cases only with the permission).
@@ -262,6 +265,28 @@ export default async function PersonPage({ params, searchParams }: PageProps<"/p
                 </div>
               ) : null}
               <p className="mt-3 text-xs text-slate">{t("person.biometricSearchAppearances", { n: biometric.searchAppearances })}</p>
+            </Card>
+          ) : null}
+          {wanted.length > 0 ? (
+            <Card title={t("wanted.title")} actions={<Badge tone="danger">{wanted.length}</Badge>}>
+              <ul className="divide-y divide-line text-sm">
+                {wanted.map((w) => {
+                  const st = labelOf(WANTED_STATUS, w.status, locale);
+                  const dl = labelOf(DANGER_LEVEL, w.dangerLevel, locale);
+                  return (
+                    <li key={w.id} className="py-1.5">
+                      <Link href={`/wanted/${w.id}`} className="font-semibold text-blue hover:underline">
+                        {w.number}
+                      </Link>
+                      <span className="block text-xs text-slate">{w.offense}</span>
+                      <span className="mt-1 flex gap-1">
+                        <Badge tone={st.tone}>{st.label}</Badge>
+                        <Badge tone={dl.tone}>{dl.label}</Badge>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
             </Card>
           ) : null}
           {actor.permissions.has("persons:merge") && !p.mergedIntoId ? (

@@ -169,6 +169,8 @@ model User {
   detentionLogs          DetentionLog[]
   wantedIssued           WantedPerson[]          @relation("WantedIssuedBy")
   wantedApproved         WantedPerson[]          @relation("WantedApprovedBy")
+  wantedSightingsLogged  WantedSighting[]
+  wantedVehiclesAdded    WantedVehicle[]
   incidentsReported      Incident[]
   patrolsCreated         Patrol[]
   operationsCreated      Operation[]
@@ -317,6 +319,7 @@ model Region {
   cases            Case[]
   incidents        Incident[]
   operations       Operation[]
+  wantedPersons    WantedPerson[]
 }
 
 /// Administrative department (département) of a province.
@@ -452,6 +455,7 @@ model Station {
   officerAssignments OfficerAssignment[]
   documents          Document[]
   persons            Person[]
+  wantedPersons      WantedPerson[]
 
   @@index([regionId])
   @@index([adminDepartmentId])
@@ -794,32 +798,84 @@ enum WantedStatus {
 }
 
 model WantedPerson {
-  id               String       @id @default(cuid())
-  number           String       @unique
-  personId         String
-  person           Person       @relation(fields: [personId], references: [id])
-  caseId           String?
-  case             Case?        @relation(fields: [caseId], references: [id])
-  offense          String
-  reason           String
-  dangerLevel      DangerLevel  @default(MEDIUM)
-  status           WantedStatus @default(DRAFT)
-  lastSeenLocation String?
-  lastSeenAt       DateTime?
-  issuedById       String
-  issuedBy         User         @relation("WantedIssuedBy", fields: [issuedById], references: [id])
-  approvedById     String?
-  approvedBy       User?        @relation("WantedApprovedBy", fields: [approvedById], references: [id])
-  approvedAt       DateTime?
-  issuedAt         DateTime     @default(now())
-  expiresAt        DateTime?
-  closedAt         DateTime?
-  closureNotes     String?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  id                  String       @id @default(cuid())
+  number              String       @unique
+  personId            String
+  person              Person       @relation(fields: [personId], references: [id])
+  caseId              String?
+  case                Case?        @relation(fields: [caseId], references: [id])
+  regionId            String
+  region              Region       @relation(fields: [regionId], references: [id])
+  stationId           String
+  station             Station      @relation(fields: [stationId], references: [id])
+  offense             String
+  reason              String
+  dangerLevel         DangerLevel  @default(MEDIUM)
+  status              WantedStatus @default(DRAFT)
+  lastSeenLocation    String?
+  lastSeenAt          DateTime?
+  warrantId           String?
+  warrant             Warrant?     @relation(fields: [warrantId], references: [id])
+  mainPhotoDocumentId String?      @unique
+  mainPhoto           Document?    @relation("WantedMainPhoto", fields: [mainPhotoDocumentId], references: [id])
+  issuedById          String
+  issuedBy            User         @relation("WantedIssuedBy", fields: [issuedById], references: [id])
+  approvedById        String?
+  approvedBy          User?        @relation("WantedApprovedBy", fields: [approvedById], references: [id])
+  approvedAt          DateTime?
+  issuedAt            DateTime     @default(now())
+  expiresAt           DateTime?
+  closedAt            DateTime?
+  closureNotes        String?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  sightings WantedSighting[]
+  vehicles  WantedVehicle[]
+  photos    Document[]       @relation("WantedPersonAttachment")
 
   @@index([status])
   @@index([personId])
+  @@index([caseId])
+  @@index([warrantId])
+  @@index([stationId, status])
+  @@index([regionId])
+}
+
+/// Location-sighting log (spec: location + date/time + source + officer + notes, latest cached on
+/// WantedPerson.lastSeenLocation/lastSeenAt for quick display).
+model WantedSighting {
+  id             String       @id @default(cuid())
+  wantedPersonId String
+  wantedPerson   WantedPerson @relation(fields: [wantedPersonId], references: [id])
+  location       String
+  occurredAt     DateTime
+  source         String?
+  officerId      String
+  officer        User         @relation(fields: [officerId], references: [id])
+  notes          String?
+  createdAt      DateTime     @default(now())
+
+  @@index([wantedPersonId, occurredAt])
+}
+
+/// A vehicle associated with a wanted person. Deliberately not the fleet Vehicle model (that is the
+/// police's own fleet) and not the ANPR LicensePlateDetection table (out of scope for this feature).
+model WantedVehicle {
+  id             String       @id @default(cuid())
+  wantedPersonId String
+  wantedPerson   WantedPerson @relation(fields: [wantedPersonId], references: [id])
+  plateNumber    String?
+  make           String?
+  model          String?
+  color          String?
+  year           Int?
+  notes          String?
+  addedById      String
+  addedBy        User         @relation(fields: [addedById], references: [id])
+  createdAt      DateTime     @default(now())
+
+  @@index([wantedPersonId])
 }
 
 // ------------------------------------------------------------
@@ -1494,8 +1550,9 @@ model Warrant {
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 
-  arrests   Arrest[]
-  documents Document[]
+  arrests       Arrest[]
+  documents     Document[]
+  wantedPersons WantedPerson[]
 
   @@index([status])
   @@index([expiresAt])
@@ -2032,6 +2089,7 @@ enum DocumentEntity {
   INTERVIEW
   INVESTIGATION
   REPORT
+  WANTED_PERSON
   GENERAL
 }
 
@@ -2081,14 +2139,17 @@ model Document {
   operation      Operation?       @relation(fields: [operationId], references: [id])
   vehicleId      String?
   vehicle        Vehicle?         @relation(fields: [vehicleId], references: [id])
+  wantedPersonId String?
+  wantedPerson   WantedPerson?    @relation("WantedPersonAttachment", fields: [wantedPersonId], references: [id])
   isArchived     Boolean          @default(false)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   deletedAt      DateTime?
 
-  versions   DocumentVersion[]
-  transcript Transcript?
-  generated  GeneratedReport?
+  versions          DocumentVersion[]
+  transcript        Transcript?
+  generated         GeneratedReport?
+  mainPhotoOfWanted WantedPerson?     @relation("WantedMainPhoto")
 
   @@index([entityType, entityId])
   @@index([caseId])

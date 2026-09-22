@@ -39,6 +39,9 @@ export const PERMISSION_CATALOG = [
   ["wanted:create", "Create wanted notices"],
   ["wanted:approve", "Approve/cancel wanted notices"],
   ["wanted:update", "Update wanted notices"],
+  ["wanted:status", "Change the status of a wanted notice (located, apprehended, etc.)"],
+  ["wanted:publish", "Generate the public wanted notice"],
+  ["wanted:export", "Export/print the public wanted notice"],
   // complaints
   ["complaints:view", "View complaints"],
   ["complaints:create", "Register complaints"],

@@ -406,6 +406,23 @@ export const LPR_STATUS: LabelMap = {
   DISMISSED: def("Classée sans suite", "Dismissed", "neutral"),
 };
 
+export const WANTED_STATUS: LabelMap = {
+  DRAFT: def("Brouillon", "Draft", "neutral"),
+  PENDING_APPROVAL: def("En attente d'approbation", "Pending approval", "info"),
+  ACTIVE: def("Actif", "Active", "danger"),
+  LOCATED: def("Localisé", "Located", "warning"),
+  ARRESTED: def("Appréhendé", "Apprehended", "success"),
+  CANCELLED: def("Annulé", "Cancelled", "neutral"),
+  EXPIRED: def("Expiré", "Expired", "neutral"),
+};
+
+export const DANGER_LEVEL: LabelMap = {
+  LOW: def("Standard", "Standard", "neutral"),
+  MEDIUM: def("Prioritaire", "Priority", "info"),
+  HIGH: def("Haute priorité", "High priority", "warning"),
+  EXTREME: def("Critique", "Critical", "danger"),
+};
+
 export function labelOf(map: LabelMap, key: string | null | undefined, locale: Locale): LabelDef {
   if (!key) return { label: "—", tone: "neutral" };
   const d = map[key];

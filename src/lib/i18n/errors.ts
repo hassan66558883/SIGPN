@@ -213,6 +213,13 @@ const EXACT: Record<string, string> = {
   "Upload a voice sample.": "Téléversez un échantillon vocal.",
   "Upload an audio recording to search with.": "Téléversez un enregistrement audio pour la recherche.",
   "Upload a vehicle/plate image.": "Téléversez une image du véhicule ou de la plaque.",
+  // wanted persons
+  "Select the station in charge of the wanted notice.": "Sélectionnez le commissariat en charge de l'avis de recherche.",
+  "You can only record wanted notices for a station inside your scope.": "Vous ne pouvez créer un avis de recherche que pour un commissariat de votre périmètre.",
+  "Selected case is invalid or outside your scope.": "L'affaire sélectionnée est invalide ou hors de votre périmètre.",
+  "This wanted notice is already linked to a warrant.": "Cet avis de recherche est déjà lié à un mandat.",
+  "The wanted notice was modified concurrently. Reload and retry.": "L'avis de recherche a été modifié simultanément. Rechargez et réessayez.",
+  "A photo file is required.": "Un fichier photo est requis.",
 };
 
 // Password-policy fragments (joined with "; " inside the composite message)
@@ -269,6 +276,9 @@ const PATTERNS: [RegExp, (m: RegExpMatchArray) => string][] = [
   [/^Face recognition provider "(.+)" is not integrated yet\.$/, (m) => `Le fournisseur de reconnaissance faciale « ${m[1]} » n'est pas encore intégré.`],
   [/^Voice recognition provider "(.+)" is not integrated yet\.$/, (m) => `Le fournisseur de reconnaissance vocale « ${m[1]} » n'est pas encore intégré.`],
   [/^ANPR provider "(.+)" is not integrated yet\.$/, (m) => `Le fournisseur LAPI/ANPR « ${m[1]} » n'est pas encore intégré.`],
+  [/^Cannot move a wanted notice from (\w+) to (\w+)\.$/, (m) => `Impossible de faire passer un avis de recherche de ${m[1]} à ${m[2]}.`],
+  [/^Cannot move a warrant from (\w+) to (\w+)\.$/, (m) => `Impossible de faire passer un mandat de ${m[1]} à ${m[2]}.`],
+  [/^A wanted notice in status (\w+) can no longer be edited\.$/, (m) => `Un avis de recherche au statut ${m[1]} n'est plus modifiable.`],
 ];
 
 export function translateMessage(message: string, locale: Locale): string {

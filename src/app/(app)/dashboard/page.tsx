@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { requirePermission } from "@/server/auth/dal";
 import { prisma } from "@/server/db";
 import { biometricDashboardStats } from "@/server/biometric/queries";
+import { wantedDashboardStats } from "@/server/wanted/queries";
 import { Card, PageHeader, StatCard, EmptyState } from "@/components/ui";
 import { fmtDateTime } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
@@ -15,7 +16,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function DashboardPage() {
   const actor = await requirePermission("dashboard:view");
   const canViewBiometric = actor.permissions.has("biometric:history_view");
-  const [t, locale, users, activeSessions, recentAudit, notifications, biometric] = await Promise.all([
+  const canViewWanted = actor.permissions.has("wanted:view");
+  const [t, locale, users, activeSessions, recentAudit, notifications, biometric, wanted] = await Promise.all([
     getT(),
     getLocale(),
     prisma.user.count({ where: { deletedAt: null, status: "ACTIVE" } }),
@@ -23,6 +25,7 @@ export default async function DashboardPage() {
     actor.permissions.has("audit:view") ? prisma.auditLog.findMany({ orderBy: { at: "desc" }, take: 8 }) : Promise.resolve([]),
     prisma.notification.findMany({ where: { userId: actor.id, readAt: null }, orderBy: { createdAt: "desc" }, take: 5 }),
     canViewBiometric ? biometricDashboardStats(actor) : Promise.resolve(null),
+    canViewWanted ? wantedDashboardStats(actor) : Promise.resolve(null),
   ]);
   return (
     <div>
@@ -44,6 +47,20 @@ export default async function DashboardPage() {
               <StatCard label={t("biometric.stat.potential")} value={biometric.potentialMatches} tone="warning" href="/biometric?tab=history" />
               <StatCard label={t("biometric.stat.verified")} value={biometric.verifiedMatches} tone="success" href="/biometric?tab=history" />
               <StatCard label={t("biometric.stat.pending")} value={biometric.pendingVerification} tone="danger" href="/biometric?tab=history" />
+            </div>
+          </Card>
+        </div>
+      ) : null}
+      {wanted ? (
+        <div className="mt-6">
+          <Card title={t("wanted.title")}>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <StatCard label={t("wanted.stat.active")} value={wanted.active} tone="danger" href="/wanted?status=ACTIVE" />
+              <StatCard label={t("wanted.stat.highPriority")} value={wanted.highPriority} tone="warning" href="/wanted?dangerLevel=HIGH" />
+              <StatCard label={t("wanted.stat.recentlyAdded")} value={wanted.recentlyAdded} tone="info" href="/wanted" />
+              <StatCard label={t("wanted.stat.located")} value={wanted.located} tone="warning" href="/wanted?status=LOCATED" />
+              <StatCard label={t("wanted.stat.apprehended")} value={wanted.apprehended} tone="success" href="/wanted?status=ARRESTED" />
+              <StatCard label={t("wanted.stat.cancelled")} value={wanted.cancelled} tone="neutral" href="/wanted?status=CANCELLED" />
             </div>
           </Card>
         </div>
