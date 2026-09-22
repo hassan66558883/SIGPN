@@ -6,7 +6,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createWarrantSchema, sightingSchema, wantedPersonSchema, wantedStatusSchema, wantedVehicleSchema } from "../../src/server/wanted/schemas";
 import { fr } from "../../src/lib/i18n/fr";
-import { en } from "../../src/lib/i18n/en";
+import { ar } from "../../src/lib/i18n/ar";
 import { DANGER_LEVEL, WANTED_STATUS } from "../../src/lib/labels";
 
 test("wanted person schema requires a person, an offense and a substantial reason; defaults priority to MEDIUM", () => {
@@ -40,15 +40,15 @@ test("warrant creation schema requires an issuing authority and grounds", () => 
   if (ok.success) assert.equal(ok.data.type, "ARREST");
 });
 
-test("every WantedStatus and DangerLevel key has a bilingual label, and en.ts stays in sync with fr.ts for wanted.*", () => {
+test("every WantedStatus and DangerLevel key has a bilingual label, and ar.ts stays in sync with fr.ts for wanted.*", () => {
   for (const map of [WANTED_STATUS, DANGER_LEVEL]) {
     for (const [key, def] of Object.entries(map)) {
       assert.ok(def.fr.length > 0, `${key} missing a French label`);
-      assert.ok(def.en.length > 0, `${key} missing an English label`);
+      assert.ok(def.ar.length > 0, `${key} missing an Arabic label`);
     }
   }
   const frKeys = Object.keys(fr).filter((k) => k.startsWith("wanted."));
-  const enKeys = Object.keys(en).filter((k) => k.startsWith("wanted."));
-  assert.deepEqual(new Set(frKeys), new Set(enKeys));
+  const arKeys = Object.keys(ar).filter((k) => k.startsWith("wanted."));
+  assert.deepEqual(new Set(frKeys), new Set(arKeys));
   assert.ok(frKeys.length > 50, "expected a substantial number of wanted.* i18n keys");
 });

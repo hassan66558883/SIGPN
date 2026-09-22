@@ -1,20 +1,24 @@
 /**
  * Lightweight internationalization. French is the default and reference language;
- * English is the second language. Keys are flat dotted strings, values may contain
- * `{placeholders}`.
+ * Arabic is the second language (RTL — see `dir` handling in the root layout). Keys are
+ * flat dotted strings, values may contain `{placeholders}`.
  */
 import { fr } from "./fr";
-import { en } from "./en";
+import { ar } from "./ar";
 
-export const LOCALES = ["fr", "en"] as const;
+export const LOCALES = ["fr", "ar"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "fr";
 export const LOCALE_COOKIE = "pms_lang";
+export const RTL_LOCALES: readonly Locale[] = ["ar"];
+export function isRtl(locale: Locale): boolean {
+  return RTL_LOCALES.includes(locale);
+}
 
 export type MessageKey = keyof typeof fr;
 export type Messages = Record<MessageKey, string>;
 
-const DICTS: Record<Locale, Messages> = { fr, en };
+const DICTS: Record<Locale, Messages> = { fr, ar };
 
 export function isLocale(v: unknown): v is Locale {
   return typeof v === "string" && (LOCALES as readonly string[]).includes(v);
@@ -43,4 +47,4 @@ export function makeT(locale: Locale): TFunction {
   return (key, vars) => translate(locale, key, vars);
 }
 
-export const LOCALE_NAMES: Record<Locale, string> = { fr: "Français", en: "English" };
+export const LOCALE_NAMES: Record<Locale, string> = { fr: "Français", ar: "العربية" };

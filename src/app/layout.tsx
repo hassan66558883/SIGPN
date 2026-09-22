@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { getLocale } from "@/server/i18n";
-import { getMessages } from "@/lib/i18n";
+import { getMessages, isRtl } from "@/lib/i18n";
 import { I18nProvider } from "@/components/i18n-provider";
 
 export const metadata: Metadata = {
@@ -16,7 +16,7 @@ export const viewport: Viewport = { themeColor: "#0f2a4a", width: "device-width"
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const locale = await getLocale();
   return (
-    <html lang={locale} className="h-full">
+    <html lang={locale} dir={isRtl(locale) ? "rtl" : "ltr"} className="h-full">
       <body className="flex min-h-full flex-col">
         <I18nProvider locale={locale} messages={getMessages(locale)}>
           {children}

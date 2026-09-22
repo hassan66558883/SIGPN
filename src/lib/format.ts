@@ -1,6 +1,7 @@
 import type { Locale } from "@/lib/i18n";
 
-const INTL: Record<Locale, string> = { fr: "fr-FR", en: "en-GB" };
+// Gregorian calendar + Western (Latin) digits: standard for Chadian government systems even in Arabic.
+const INTL: Record<Locale, string> = { fr: "fr-FR", ar: "ar-TD-u-ca-gregory-nu-latn" };
 const cache = new Map<string, Intl.DateTimeFormat>();
 
 function dtf(locale: Locale, opts: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {

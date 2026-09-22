@@ -98,7 +98,7 @@ export async function setRoleActive(actor: Actor, id: string, isActive: boolean,
   await logAudit({ actor, action: isActive ? "ROLE_ACTIVATED" : "ROLE_DEACTIVATED", module: "roles", entityType: "Role", entityId: id, entityLabel: r.code, summary: `${r.code} ${isActive ? "activated" : "deactivated"}`, context: ctx });
 }
 
-export function permissionCatalogGrouped(locale: Locale = "en") {
+export function permissionCatalogGrouped(locale: Locale = "fr") {
   const groups = new Map<string, { code: string; description: string }[]>();
   for (const [code, description] of PERMISSION_CATALOG) {
     const mod = code.split(":")[0];

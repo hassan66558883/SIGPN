@@ -1,11 +1,11 @@
 /**
  * Translation of messages produced by the service layer (BusinessError, FormState.message).
  * Services speak English; the UI translates on display. Exact matches first, then patterns.
- * Unknown strings pass through unchanged.
+ * Unknown strings pass through unchanged (English) if no translation exists for the locale.
  */
 import type { Locale } from "@/lib/i18n";
 
-const EXACT: Record<string, string> = {
+const EXACT_FR: Record<string, string> = {
   // action-utils
   "Your role does not allow this action. The attempt has been recorded.": "Votre rôle ne permet pas cette action. La tentative a été enregistrée.",
   "You must change your password before continuing.": "Vous devez changer votre mot de passe avant de continuer.",
@@ -222,8 +222,225 @@ const EXACT: Record<string, string> = {
   "A photo file is required.": "Un fichier photo est requis.",
 };
 
-// Password-policy fragments (joined with "; " inside the composite message)
-const POLICY_FRAGMENTS: [RegExp, (m: RegExpMatchArray) => string][] = [
+const EXACT_AR: Record<string, string> = {
+  // action-utils
+  "Your role does not allow this action. The attempt has been recorded.": "دورك لا يسمح بهذا الإجراء. تم تسجيل هذه المحاولة.",
+  "You must change your password before continuing.": "يجب عليك تغيير كلمة المرور قبل المتابعة.",
+  "Multi-factor authentication is required before continuing.": "المصادقة الثنائية مطلوبة قبل المتابعة.",
+  "Your session has expired. Please sign in again.": "انتهت جلستك. يرجى تسجيل الدخول من جديد.",
+  "Please correct the highlighted fields.": "يرجى تصحيح الحقول المميزة.",
+  "The operation failed.": "فشلت العملية.",
+  "Too many requests. Please try again later.": "طلبات كثيرة جدًا. يرجى إعادة المحاولة لاحقًا.",
+  // auth actions
+  "Enter your username and password.": "أدخل اسم المستخدم وكلمة المرور.",
+  "Sign-in failed.": "فشل تسجيل الدخول.",
+  "Enter the 6-digit code from your authenticator or a recovery code.": "أدخل الرمز المكوّن من 6 أرقام من تطبيقك أو رمز استرداد.",
+  "Verification failed.": "فشل التحقق.",
+  "All three fields are required.": "الحقول الثلاثة جميعها مطلوبة.",
+  "The new passwords do not match.": "كلمتا المرور الجديدتان غير متطابقتين.",
+  "does not match": "غير متطابقة",
+  "Password changed. Your other sessions were signed out.": "تم تغيير كلمة المرور. تم تسجيل خروج جلساتك الأخرى.",
+  "Password change failed.": "فشل تغيير كلمة المرور.",
+  "Enter your username or e-mail.": "أدخل اسم المستخدم أو البريد الإلكتروني.",
+  "Request failed.": "فشل الطلب.",
+  "If the account exists, an administrator has been notified and will provide you with a reset link.": "إذا كان الحساب موجودًا، فقد تم إخطار أحد المسؤولين وسيزوّدك برابط إعادة تعيين.",
+  "Invalid request.": "طلب غير صالح.",
+  "The passwords do not match.": "كلمتا المرور غير متطابقتين.",
+  "Reset failed.": "فشلت إعادة التعيين.",
+  "Could not start enrolment.": "تعذّر بدء التسجيل.",
+  "Enter the 6-digit code.": "أدخل الرمز المكوّن من 6 أرقام.",
+  "Multi-factor authentication is now enabled.": "المصادقة الثنائية مفعّلة الآن.",
+  "Enrolment failed.": "فشل التسجيل.",
+  "Multi-factor authentication disabled.": "تم تعطيل المصادقة الثنائية.",
+  "Could not disable MFA.": "تعذّر تعطيل المصادقة الثنائية.",
+  "New recovery codes generated. The old ones no longer work.": "تم توليد رموز استرداد جديدة. لم تعد القديمة تعمل.",
+  "Could not regenerate codes.": "تعذّرت إعادة توليد الرموز.",
+  "Session revoked.": "تم إلغاء الجلسة.",
+  "Could not revoke session.": "تعذّر إلغاء الجلسة.",
+  "API key created. Copy it now — it will not be shown again.": "تم إنشاء مفتاح API. انسخه الآن — لن يُعرض مرة أخرى.",
+  "Could not create API key.": "تعذّر إنشاء مفتاح API.",
+  "API key revoked.": "تم إلغاء مفتاح API.",
+  "Could not revoke API key.": "تعذّر إلغاء مفتاح API.",
+  // login service
+  "Invalid username or password.": "اسم المستخدم أو كلمة المرور غير صحيحة.",
+  "This account is not active. Contact your administrator.": "هذا الحساب غير نشط. اتصل بمسؤولك.",
+  "Your sign-in session expired. Please sign in again.": "انتهت جلسة تسجيل دخولك. يرجى تسجيل الدخول من جديد.",
+  "Too many incorrect codes. Please sign in again.": "عدد كبير جدًا من الرموز غير الصحيحة. يرجى تسجيل الدخول من جديد.",
+  "This account cannot complete sign-in. Contact your administrator.": "لا يمكن لهذا الحساب إكمال تسجيل الدخول. اتصل بمسؤولك.",
+  "Incorrect verification code.": "رمز التحقق غير صحيح.",
+  "Current password is incorrect.": "كلمة المرور الحالية غير صحيحة.",
+  "User not found.": "المستخدم غير موجود.",
+  "This reset link is invalid or has expired.": "رابط إعادة التعيين هذا غير صالح أو منتهي الصلاحية.",
+  "This account is disabled.": "هذا الحساب معطَّل.",
+  "Start the enrolment first.": "ابدأ التسجيل أولاً.",
+  "The code is incorrect. Check the time on your device and try again.": "الرمز غير صحيح. تحقق من الوقت على جهازك وأعد المحاولة.",
+  "Your role requires multi-factor authentication; it cannot be disabled.": "دورك يتطلب المصادقة الثنائية؛ لا يمكن تعطيلها.",
+  "Password is incorrect.": "كلمة المرور غير صحيحة.",
+  "MFA is not enabled.": "المصادقة الثنائية غير مفعّلة.",
+  "The code is incorrect.": "الرمز غير صحيح.",
+  "Session not found.": "الجلسة غير موجودة.",
+  "You already have 5 active API keys. Revoke one first.": "لديك بالفعل 5 مفاتيح API نشطة. ألغِ أحدها أولاً.",
+  "API key not found.": "مفتاح API غير موجود.",
+  // admin actions / services
+  "Could not create the user.": "تعذّر إنشاء المستخدم.",
+  "Could not update the user.": "تعذّر تحديث المستخدم.",
+  "User updated.": "تم تحديث المستخدم.",
+  "Invalid status.": "حالة غير صالحة.",
+  "Could not change the status.": "تعذّر تغيير الحالة.",
+  "One-time reset link issued. Hand it to the user through a secure channel; it is shown only once.": "تم إصدار رابط إعادة تعيين لمرة واحدة. سلّمه للمستخدم عبر قناة آمنة؛ يُعرض مرة واحدة فقط.",
+  "Could not issue a reset link.": "تعذّر إصدار رابط إعادة تعيين.",
+  "Could not revoke sessions.": "تعذّر إلغاء الجلسات.",
+  "MFA reset. The user must enrol again.": "تمت إعادة تعيين المصادقة الثنائية. يجب على المستخدم التسجيل من جديد.",
+  "Could not reset MFA.": "تعذّرت إعادة تعيين المصادقة الثنائية.",
+  "Could not create the role.": "تعذّر إنشاء الدور.",
+  "Role updated.": "تم تحديث الدور.",
+  "Could not update the role.": "تعذّر تحديث الدور.",
+  "Permissions saved. Users whose permissions were reduced must sign in again.": "تم حفظ الصلاحيات. يجب على المستخدمين الذين قُلِّصت صلاحياتهم تسجيل الدخول من جديد.",
+  "Could not save permissions.": "تعذّر حفظ الصلاحيات.",
+  "Selected role is invalid or inactive.": "الدور المحدد غير صالح أو غير نشط.",
+  "Only national-scope administrators can grant national roles.": "فقط المسؤولون ذوو النطاق الوطني يمكنهم منح أدوار وطنية.",
+  "You can only manage users inside your own region/station.": "لا يمكنك إدارة إلا مستخدمي إقليمك/مركز شرطتك.",
+  "Selected station is invalid.": "مركز الشرطة المحدد غير صالح.",
+  "Selected region is invalid.": "الإقليم المحدد غير صالح.",
+  "A regional role requires a region.": "الدور الإقليمي يتطلب إقليمًا.",
+  "A station-scoped role requires a station.": "دور مركز الشرطة يتطلب مركز شرطة.",
+  "This username is already taken.": "اسم المستخدم هذا مُستخدَم بالفعل.",
+  "This e-mail is already registered.": "هذا البريد الإلكتروني مسجَّل بالفعل.",
+  "Selected officer does not exist.": "الضابط المحدد غير موجود.",
+  "This officer already has a user account.": "لدى هذا الضابط بالفعل حساب مستخدم.",
+  "You cannot change your own role.": "لا يمكنك تغيير دورك الخاص.",
+  "Cannot demote the last active system administrator.": "لا يمكن تنزيل رتبة آخر مسؤول نظام نشط.",
+  "You cannot change your own account status.": "لا يمكنك تغيير حالة حسابك الخاص.",
+  "Cannot deactivate the last active system administrator.": "لا يمكن تعطيل آخر مسؤول نظام نشط.",
+  "The account was modified concurrently. Reload and retry.": "تم تعديل الحساب في نفس الوقت. أعد التحميل وحاول من جديد.",
+  "Only national administrators can create national-scope roles.": "فقط المسؤولون الوطنيون يمكنهم إنشاء أدوار ذات نطاق وطني.",
+  "A role with this code already exists.": "يوجد بالفعل دور بهذا الرمز.",
+  "The SUPER_ADMIN role is locked.": "دور SUPER_ADMIN مقفل.",
+  "Only national administrators can edit national-scope roles.": "فقط المسؤولون الوطنيون يمكنهم تعديل الأدوار ذات النطاق الوطني.",
+  "The SUPER_ADMIN role always holds every permission and cannot be edited.": "يملك دور SUPER_ADMIN دائمًا جميع الصلاحيات ولا يمكن تعديله.",
+  "System roles cannot be deactivated.": "لا يمكن تعطيل الأدوار النظامية.",
+  "Could not update the notification.": "تعذّر تحديث الإشعار.",
+  "Could not update notifications.": "تعذّر تحديث الإشعارات.",
+  // persons / complaints / cases services
+  "Person not found or outside your scope.": "الشخص غير موجود أو خارج نطاقك.",
+  "Possible duplicate(s) found. Review them below, or confirm the creation.": "تم العثور على نسخ مكررة محتملة. راجعها أدناه، أو أكّد الإنشاء.",
+  "Could not register the person.": "تعذّر تسجيل الشخص.",
+  "Person updated.": "تم تحديث الشخص.",
+  "Could not update the person.": "تعذّر تحديث الشخص.",
+  "Identifier added.": "تمت إضافة الوثيقة.",
+  "Could not add the identifier.": "تعذّرت إضافة الوثيقة.",
+  "Identifier removed.": "تمت إزالة الوثيقة.",
+  "Could not remove the identifier.": "تعذّرت إزالة الوثيقة.",
+  "Alias added.": "تمت إضافة الاسم المستعار.",
+  "Could not add the alias.": "تعذّرت إضافة الاسم المستعار.",
+  "Relationship added.": "تمت إضافة العلاقة.",
+  "Could not add the relationship.": "تعذّرت إضافة العلاقة.",
+  "Could not merge the persons.": "تعذّر دمج الملفات.",
+  "This record was merged into another person and is read-only.": "تم دمج هذا الملف في شخص آخر وهو للقراءة فقط.",
+  "This identifier is already recorded for this person.": "هذه الوثيقة مسجَّلة بالفعل لهذا الشخص.",
+  "This alias is already recorded.": "هذا الاسم المستعار مسجَّل بالفعل.",
+  "A person cannot be related to themselves.": "لا يمكن ربط شخص بنفسه.",
+  "This relationship is already recorded.": "هذه العلاقة مسجَّلة بالفعل.",
+  "Choose two different persons.": "اختر شخصين مختلفين.",
+  "One of the records was already merged.": "أحد الملفين تم دمجه بالفعل.",
+  "This person record was merged; use the surviving record.": "تم دمج ملف هذا الشخص؛ استخدم الملف المتبقي.",
+  "Could not register the complaint.": "تعذّر تسجيل الشكوى.",
+  "Complaint updated.": "تم تحديث الشكوى.",
+  "Could not update the complaint.": "تعذّر تحديث الشكوى.",
+  "Complaint registered.": "تم تسجيل الشكوى.",
+  "Complaint is now under review.": "الشكوى الآن قيد الفحص.",
+  "Could not review the complaint.": "تعذّر أخذ الشكوى في الفحص.",
+  "Complaint assigned. The investigator has been notified.": "تم إسناد الشكوى. تم إخطار المحقق.",
+  "Could not assign the complaint.": "تعذّر إسناد الشكوى.",
+  "Complaint closed.": "تم إغلاق الشكوى.",
+  "Complaint rejected.": "تم رفض الشكوى.",
+  "Could not close the complaint.": "تعذّر إغلاق الشكوى.",
+  "Could not convert the complaint.": "تعذّر تحويل الشكوى.",
+  "Select the station receiving the complaint.": "اختر مركز الشرطة المستقبِل.",
+  "Selected station is invalid or inactive.": "مركز الشرطة المحدد غير صالح أو غير نشط.",
+  "You can only register complaints for a station inside your scope.": "لا يمكنك تسجيل شكوى إلا لمركز شرطة ضمن نطاقك.",
+  "Select the complainant or mark the complaint as anonymous.": "اختر الشاكي أو علِّم الشكوى كمجهولة.",
+  "The incident date cannot be in the future.": "لا يمكن أن يكون تاريخ الوقائع في المستقبل.",
+  "Complaint not found or outside your scope.": "الشكوى غير موجودة أو خارج نطاقك.",
+  "Selected investigator is invalid.": "المحقق المحدد غير صالح.",
+  "The selected user cannot handle complaints or cases.": "لا يمكن للمستخدم المحدد معالجة الشكاوى أو القضايا.",
+  "The investigator must be inside your scope.": "يجب أن يكون المحقق ضمن نطاقك.",
+  "The investigator must belong to the station handling the complaint.": "يجب أن ينتمي المحقق إلى مركز الشرطة المسؤول عن الشكوى.",
+  "Selected lead investigator is invalid.": "المحقق الرئيسي المحدد غير صالح.",
+  "The complaint was modified concurrently. Reload and retry.": "تم تعديل الشكوى في نفس الوقت. أعد التحميل وحاول من جديد.",
+  "Could not open the case.": "تعذّر فتح القضية.",
+  "Assignment recorded. The user has been notified.": "تم تسجيل الإسناد. تم إخطار المستخدم.",
+  "Could not assign the case.": "تعذّر إسناد القضية.",
+  "Person added to the case.": "تمت إضافة الشخص إلى القضية.",
+  "Could not add the person.": "تعذّرت إضافة الشخص.",
+  "Involvement status updated.": "تم تحديث حالة الضلوع.",
+  "Note added.": "تمت إضافة الملاحظة.",
+  "Could not add the note.": "تعذّرت إضافة الملاحظة.",
+  "Task created.": "تم إنشاء المهمة.",
+  "Could not create the task.": "تعذّر إنشاء المهمة.",
+  "Task updated.": "تم تحديث المهمة.",
+  "Could not update the task.": "تعذّر تحديث المهمة.",
+  "Case status updated.": "تم تحديث حالة القضية.",
+  "Could not change the case status.": "تعذّر تغيير حالة القضية.",
+  "Case not found or outside your scope.": "القضية غير موجودة أو خارج نطاقك.",
+  "Select the station in charge of the case.": "اختر مركز الشرطة المسؤول عن القضية.",
+  "You can only open cases for a station inside your scope.": "لا يمكنك فتح قضية إلا لمركز شرطة ضمن نطاقك.",
+  "The department must belong to the selected station.": "يجب أن ينتمي القسم إلى مركز الشرطة المحدد.",
+  "Only users allowed to view sensitive cases can flag a case as sensitive.": "فقط المستخدمون المخوَّلون بعرض القضايا الحساسة يمكنهم تعليم قضية كحساسة.",
+  "Closed cases cannot be reassigned.": "لا يمكن إعادة إسناد القضايا المغلقة.",
+  "Selected user is invalid.": "المستخدم المحدد غير صالح.",
+  "The user must be inside your scope.": "يجب أن يكون المستخدم ضمن نطاقك.",
+  "Only the case team or a supervisor can modify this case.": "فقط فريق التحقيق أو أحد المشرفين يمكنه تعديل هذه القضية.",
+  "This person already has this role in the case.": "هذا الشخص لديه بالفعل هذا الدور في القضية.",
+  "Only a supervisor can mark a person as charged or referred.": "فقط أحد المشرفين يمكنه تعليم شخص كمتَّهم أو مُحال.",
+  "Selected assignee is invalid.": "المكلَّف المحدد غير صالح.",
+  "Only a supervisor can close or refer a case.": "فقط أحد المشرفين يمكنه إغلاق أو إحالة قضية.",
+  "A disposition is required to close a case.": "يلزم قرار لإغلاق قضية.",
+  "You are not allowed to archive cases.": "غير مسموح لك بأرشفة القضايا.",
+  "Only the case team can change the investigation status.": "فقط فريق التحقيق يمكنه تغيير حالة التحقيق.",
+  "The case was modified concurrently. Reload and retry.": "تم تعديل القضية في نفس الوقت. أعد التحميل وحاول من جديد.",
+  "Position created.": "تم إنشاء الوظيفة.",
+  "Position updated.": "تم تحديث الوظيفة.",
+  "Could not create the position.": "تعذّر إنشاء الوظيفة.",
+  "Could not update the position.": "تعذّر تحديث الوظيفة.",
+  "Only national administrators can manage positions.": "فقط المسؤولون الوطنيون يمكنهم إدارة الوظائف.",
+  "A position with this code already exists.": "توجد بالفعل وظيفة بهذا الرمز.",
+  "Selected position is invalid or inactive.": "الوظيفة المحددة غير صالحة أو غير نشطة.",
+  "Training recorded.": "تم تسجيل التدريب.",
+  "Could not record the training.": "تعذّر تسجيل التدريب.",
+  "Training updated.": "تم تحديث التدريب.",
+  "Could not update the training.": "تعذّر تحديث التدريب.",
+  "End date cannot precede the start date.": "لا يمكن أن يسبق تاريخ الانتهاء تاريخ البدء.",
+  "Officer not found or outside your scope.": "الضابط غير موجود أو خارج نطاقك.",
+  "Station not found or outside your scope.": "الهيكل غير موجود أو خارج نطاقك.",
+  "All notifications marked as read.": "تم تعليم جميع الإشعارات كمقروءة.",
+  "Request body must be valid JSON.": "يجب أن يكون محتوى الطلب بصيغة JSON صالحة.",
+  "Validation failed.": "فشل التحقق من الصحة.",
+  // evidence & chain of custody
+  "The uploaded file is empty.": "الملف المرفوع فارغ.",
+  "You can only manage storage locations inside your scope.": "لا يمكنك إدارة أماكن التخزين إلا ضمن نطاقك.",
+  "A file is required.": "الملف مطلوب.",
+  // biometric
+  "Selected person is invalid.": "الشخص المحدد غير صالح.",
+  "Select the person to verify against.": "اختر الشخص المراد التحقق مقابله.",
+  "Upload a fingerprint scan.": "ارفع مسح بصمة.",
+  "Upload a fingerprint scan to search with.": "ارفع مسح بصمة لاستخدامه في البحث.",
+  "Upload a face photograph.": "ارفع صورة للوجه.",
+  "Upload a photograph to search with.": "ارفع صورة لاستخدامها في البحث.",
+  "Upload a voice sample.": "ارفع عينة صوتية.",
+  "Upload an audio recording to search with.": "ارفع تسجيلاً صوتيًا لاستخدامه في البحث.",
+  "Upload a vehicle/plate image.": "ارفع صورة للمركبة/اللوحة.",
+  // wanted persons
+  "Select the station in charge of the wanted notice.": "اختر مركز الشرطة المسؤول عن إعلان البحث.",
+  "You can only record wanted notices for a station inside your scope.": "لا يمكنك إنشاء إعلان بحث إلا لمركز شرطة ضمن نطاقك.",
+  "Selected case is invalid or outside your scope.": "القضية المحددة غير صالحة أو خارج نطاقك.",
+  "This wanted notice is already linked to a warrant.": "إعلان البحث هذا مرتبط بالفعل بأمر قضائي.",
+  "The wanted notice was modified concurrently. Reload and retry.": "تم تعديل إعلان البحث في نفس الوقت. أعد التحميل وحاول من جديد.",
+  "A photo file is required.": "ملف الصورة مطلوب.",
+};
+
+// Password-policy fragments (joined inside the composite message)
+const POLICY_FRAGMENTS_FR: [RegExp, (m: RegExpMatchArray) => string][] = [
   [/^at least (\d+) characters$/, (m) => `au moins ${m[1]} caractères`],
   [/^at most 128 characters$/, () => "au plus 128 caractères"],
   [/^at least three of: lowercase, uppercase, digit, symbol$/, () => "au moins trois catégories parmi : minuscule, majuscule, chiffre, symbole"],
@@ -233,18 +450,28 @@ const POLICY_FRAGMENTS: [RegExp, (m: RegExpMatchArray) => string][] = [
   [/^must not repeat a single character$/, () => "ne doit pas répéter un seul caractère"],
 ];
 
-function translateFragment(f: string): string {
-  for (const [re, fn] of POLICY_FRAGMENTS) {
+const POLICY_FRAGMENTS_AR: [RegExp, (m: RegExpMatchArray) => string][] = [
+  [/^at least (\d+) characters$/, (m) => `${m[1]} أحرف على الأقل`],
+  [/^at most 128 characters$/, () => "128 حرفًا على الأكثر"],
+  [/^at least three of: lowercase, uppercase, digit, symbol$/, () => "ثلاث فئات على الأقل من: أحرف صغيرة، أحرف كبيرة، أرقام، رموز"],
+  [/^not a commonly used password$/, () => "ليست كلمة مرور شائعة الاستخدام"],
+  [/^must not contain your username$/, () => "يجب ألا تحتوي على اسم المستخدم"],
+  [/^must not contain your e-mail name$/, () => "يجب ألا تحتوي على اسم بريدك الإلكتروني"],
+  [/^must not repeat a single character$/, () => "يجب ألا تكرر حرفًا واحدًا فقط"],
+];
+
+function translateFragment(f: string, fragments: [RegExp, (m: RegExpMatchArray) => string][]): string {
+  for (const [re, fn] of fragments) {
     const m = f.match(re);
     if (m) return fn(m);
   }
   return f;
 }
 
-const PATTERNS: [RegExp, (m: RegExpMatchArray) => string][] = [
+const PATTERNS_FR: [RegExp, (m: RegExpMatchArray) => string][] = [
   [/^Account temporarily locked\. Try again in (\d+) minutes or contact an administrator\.$/, (m) => `Compte temporairement verrouillé. Réessayez dans ${m[1]} minutes ou contactez un administrateur.`],
-  [/^Password does not meet the policy: (.+)\.$/, (m) => `Le mot de passe ne respecte pas la politique : ${m[1].split("; ").map(translateFragment).join(" ; ")}.`],
-  [/^Temporary password does not meet the policy: (.+)\.$/, (m) => `Le mot de passe temporaire ne respecte pas la politique : ${m[1].split("; ").map(translateFragment).join(" ; ")}.`],
+  [/^Password does not meet the policy: (.+)\.$/, (m) => `Le mot de passe ne respecte pas la politique : ${m[1].split("; ").map((f) => translateFragment(f, POLICY_FRAGMENTS_FR)).join(" ; ")}.`],
+  [/^Temporary password does not meet the policy: (.+)\.$/, (m) => `Le mot de passe temporaire ne respecte pas la politique : ${m[1].split("; ").map((f) => translateFragment(f, POLICY_FRAGMENTS_FR)).join(" ; ")}.`],
   [/^You cannot reuse one of your last (\d+) passwords\.$/, (m) => `Vous ne pouvez pas réutiliser l'un de vos ${m[1]} derniers mots de passe.`],
   [/^Account is now (\w+)\.$/, (m) => `Le compte est maintenant ${m[1]}.`],
   [/^(\d+) session\(s\) revoked\.$/, (m) => `${m[1]} session(s) révoquée(s).`],
@@ -281,11 +508,52 @@ const PATTERNS: [RegExp, (m: RegExpMatchArray) => string][] = [
   [/^A wanted notice in status (\w+) can no longer be edited\.$/, (m) => `Un avis de recherche au statut ${m[1]} n'est plus modifiable.`],
 ];
 
+const PATTERNS_AR: [RegExp, (m: RegExpMatchArray) => string][] = [
+  [/^Account temporarily locked\. Try again in (\d+) minutes or contact an administrator\.$/, (m) => `الحساب مقفل مؤقتًا. أعد المحاولة خلال ${m[1]} دقيقة أو اتصل بمسؤول.`],
+  [/^Password does not meet the policy: (.+)\.$/, (m) => `كلمة المرور لا تلتزم بالسياسة: ${m[1].split("; ").map((f) => translateFragment(f, POLICY_FRAGMENTS_AR)).join("؛ ")}.`],
+  [/^Temporary password does not meet the policy: (.+)\.$/, (m) => `كلمة المرور المؤقتة لا تلتزم بالسياسة: ${m[1].split("; ").map((f) => translateFragment(f, POLICY_FRAGMENTS_AR)).join("؛ ")}.`],
+  [/^You cannot reuse one of your last (\d+) passwords\.$/, (m) => `لا يمكنك إعادة استخدام إحدى آخر ${m[1]} كلمات مرور.`],
+  [/^Account is now (\w+)\.$/, (m) => `الحساب أصبح الآن ${m[1]}.`],
+  [/^(\d+) session\(s\) revoked\.$/, (m) => `تم إلغاء ${m[1]} جلسة.`],
+  [/^Cannot move an account from (\w+) to (\w+)\.$/, (m) => `لا يمكن نقل حساب من ${m[1]} إلى ${m[2]}.`],
+  [/^You cannot grant the role "(.+)": it holds permissions you do not have \((.+)\)\.$/, (m) => `لا يمكنك منح الدور «${m[1]}»: فهو يملك صلاحيات لا تملكها (${m[2]}).`],
+  [/^You cannot grant permissions you do not hold: (.+)\.$/, (m) => `لا يمكنك منح صلاحيات لا تملكها: ${m[1]}.`],
+  [/^You cannot remove permissions you do not hold yourself: (.+)\.$/, (m) => `لا يمكنك إزالة صلاحيات لا تملكها أنت نفسك: ${m[1]}.`],
+  [/^MFA cannot be switched off for the system role (\w+)\.$/, (m) => `لا يمكن تعطيل المصادقة الثنائية للدور النظامي ${m[1]}.`],
+  [/^This role is still assigned to (\d+) user\(s\)\. Reassign them first\.$/, (m) => `لا يزال هذا الدور مسندًا إلى ${m[1]} مستخدم. أعد إسنادهم أولاً.`],
+  [/^This identifier already belongs to (.+) \((.+)\)\.$/, (m) => `هذه الوثيقة تخص بالفعل ${m[1]} (${m[2]}).`],
+  [/^A complaint in status (\w+) can no longer be edited\.$/, (m) => `شكوى بالحالة ${m[1]} لم تعد قابلة للتعديل.`],
+  [/^Cannot move a complaint from (\w+) to (\w+)\.$/, (m) => `لا يمكن نقل شكوى من ${m[1]} إلى ${m[2]}.`],
+  [/^A complaint in status (\w+) cannot be converted \(review it first\)\.$/, (m) => `شكوى بالحالة ${m[1]} لا يمكن تحويلها (افحصها أولاً).`],
+  [/^Cannot move a case from (\w+) to (\w+)\.$/, (m) => `لا يمكن نقل قضية من ${m[1]} إلى ${m[2]}.`],
+  [/^Case (.+) is (\w+) and read-only\.$/, (m) => `القضية ${m[1]} ${m[2] === "closed" ? "مغلقة" : "مؤرشفة"} وللقراءة فقط.`],
+  [/^Cannot move an incident from (\w+) to (\w+)\.$/, (m) => `لا يمكن نقل حادث من ${m[1]} إلى ${m[2]}.`],
+  [/^Cannot move a patrol from (\w+) to (\w+)\.$/, (m) => `لا يمكن نقل دورية من ${m[1]} إلى ${m[2]}.`],
+  [/^A patrol in status (\w+) can no longer be edited\.$/, (m) => `دورية بالحالة ${m[1]} لم تعد قابلة للتعديل.`],
+  [/^Vehicle is not available \(status (\w+)\)\.$/, (m) => `المركبة غير متاحة (الحالة ${m[1]}).`],
+  [/^Zone code (\w+) already exists for this station\.$/, (m) => `رمز المنطقة ${m[1]} موجود بالفعل لهذا المركز.`],
+  [/^(\w+) not found or outside your scope\.$/, (m) => `${m[1] === "User" ? "المستخدم" : m[1] === "Role" ? "الدور" : m[1] === "Person" ? "الشخص" : m[1] === "Complaint" ? "الشكوى" : m[1] === "Case" ? "القضية" : m[1] === "Officer" ? "الضابط" : m[1] === "Incident" ? "الحادث" : m[1] === "Patrol" ? "الدورية" : m[1] === "Zone" ? "المنطقة" : m[1]} غير موجود أو خارج نطاقك.`],
+  [/^The file exceeds the maximum upload size \((\d+) MB\)\.$/, (m) => `يتجاوز الملف الحجم الأقصى المسموح به (${m[1]} ميغابايت).`],
+  [/^Evidence in status (\w+) can no longer be transferred\.$/, (m) => `دليل بالحالة ${m[1]} لم يعد قابلاً للنقل.`],
+  [/^Storage location code (.+) already exists\.$/, (m) => `رمز مكان التخزين ${m[1]} موجود بالفعل.`],
+  [/^(.+) has no registered fingerprint to verify against\.$/, (m) => `لا توجد لدى ${m[1]} بصمة مسجَّلة للتحقق مقابلها.`],
+  [/^(.+) has no registered face template to verify against\.$/, (m) => `لا يوجد لدى ${m[1]} قالب وجه مسجَّل للتحقق مقابله.`],
+  [/^(.+) has no registered voice template to verify against\.$/, (m) => `لا يوجد لدى ${m[1]} قالب صوت مسجَّل للتحقق مقابله.`],
+  [/^Fingerprint provider "(.+)" is not integrated yet\.$/, (m) => `مزوّد البصمات «${m[1]}» غير مدمج بعد.`],
+  [/^Face recognition provider "(.+)" is not integrated yet\.$/, (m) => `مزوّد التعرّف على الوجه «${m[1]}» غير مدمج بعد.`],
+  [/^Voice recognition provider "(.+)" is not integrated yet\.$/, (m) => `مزوّد التعرّف الصوتي «${m[1]}» غير مدمج بعد.`],
+  [/^ANPR provider "(.+)" is not integrated yet\.$/, (m) => `مزوّد قراءة اللوحات «${m[1]}» غير مدمج بعد.`],
+  [/^Cannot move a wanted notice from (\w+) to (\w+)\.$/, (m) => `لا يمكن نقل إعلان بحث من ${m[1]} إلى ${m[2]}.`],
+  [/^Cannot move a warrant from (\w+) to (\w+)\.$/, (m) => `لا يمكن نقل أمر قضائي من ${m[1]} إلى ${m[2]}.`],
+  [/^A wanted notice in status (\w+) can no longer be edited\.$/, (m) => `إعلان بحث بالحالة ${m[1]} لم يعد قابلاً للتعديل.`],
+];
+
 export function translateMessage(message: string, locale: Locale): string {
-  if (locale === "en") return message;
-  const exact = EXACT[message];
-  if (exact) return exact;
-  for (const [re, fn] of PATTERNS) {
+  const [exact, patterns] = locale === "fr" ? [EXACT_FR, PATTERNS_FR] : locale === "ar" ? [EXACT_AR, PATTERNS_AR] : [null, null];
+  if (!exact || !patterns) return message;
+  const found = exact[message];
+  if (found) return found;
+  for (const [re, fn] of patterns) {
     const m = message.match(re);
     if (m) return fn(m);
   }

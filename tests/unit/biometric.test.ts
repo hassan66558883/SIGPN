@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { anprSearchSchema, enrollFingerprintSchema, fingerprintSearchSchema, recordActionSchema, searchGateSchema } from "../../src/server/biometric/schemas";
 import { custodyTransferSchema, evidenceSchema } from "../../src/server/evidence/schemas";
 import { fr } from "../../src/lib/i18n/fr";
-import { en } from "../../src/lib/i18n/en";
+import { ar } from "../../src/lib/i18n/ar";
 import { BIOMETRIC_ACTION, BIOMETRIC_SEARCH_MODE, BIOMETRIC_SEARCH_RESULT, BIOMETRIC_TYPE, EVIDENCE_CATEGORY, EVIDENCE_STATUS, FINGER_POSITION, LPR_STATUS } from "../../src/lib/labels";
 
 test("biometric search gate rejects an anonymous/case-less search and a too-short reason (spec §10)", () => {
@@ -58,15 +58,15 @@ test("custody transfer schema rejects the terminal COLLECTED/REGISTERED actions 
   assert.equal(custodyActions.safeParse("STORED").success, true);
 });
 
-test("every biometric and evidence enum has a bilingual label, and en.ts stays in sync with fr.ts", () => {
+test("every biometric and evidence enum has a bilingual label, and ar.ts stays in sync with fr.ts", () => {
   for (const map of [BIOMETRIC_TYPE, BIOMETRIC_SEARCH_MODE, BIOMETRIC_SEARCH_RESULT, BIOMETRIC_ACTION, FINGER_POSITION, LPR_STATUS, EVIDENCE_CATEGORY, EVIDENCE_STATUS]) {
     for (const [key, def] of Object.entries(map)) {
       assert.ok(def.fr.length > 0, `${key} missing a French label`);
-      assert.ok(def.en.length > 0, `${key} missing an English label`);
+      assert.ok(def.ar.length > 0, `${key} missing an Arabic label`);
     }
   }
   const frKeys = Object.keys(fr).filter((k) => k.startsWith("biometric.") || k.startsWith("evidence."));
-  const enKeys = Object.keys(en).filter((k) => k.startsWith("biometric.") || k.startsWith("evidence."));
-  assert.deepEqual(new Set(frKeys), new Set(enKeys));
+  const arKeys = Object.keys(ar).filter((k) => k.startsWith("biometric.") || k.startsWith("evidence."));
+  assert.deepEqual(new Set(frKeys), new Set(arKeys));
   assert.ok(frKeys.length > 50, "expected a substantial number of biometric/evidence i18n keys");
 });

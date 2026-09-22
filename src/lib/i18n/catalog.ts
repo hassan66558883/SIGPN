@@ -1,6 +1,6 @@
 /**
- * French labels for code-defined catalogs whose English text lives in the server layer:
- * system role names and permission descriptions. Custom roles fall back to their stored name.
+ * French and Arabic labels for code-defined catalogs whose English text lives in the server layer:
+ * system role names and permission descriptions. Custom roles fall back to their stored (English) name.
  */
 import type { Locale } from "@/lib/i18n";
 
@@ -23,6 +23,25 @@ export const ROLE_NAMES_FR: Record<string, string> = {
   PROSECUTOR: "Procureur",
 };
 
+export const ROLE_NAMES_AR: Record<string, string> = {
+  SUPER_ADMIN: "مسؤول النظام",
+  NATIONAL_COMMANDER: "القائد الوطني",
+  REGIONAL_COMMANDER: "المدير الإقليمي",
+  DEPARTMENTAL_COMMANDER: "القائد المحافظاتي",
+  STATION_COMMANDER: "مفوض المركز",
+  INVESTIGATOR: "المحقق",
+  DESK_OFFICER: "ضابط الاستقبال/المناوبة",
+  PATROL_OFFICER: "ضابط الدورية",
+  EVIDENCE_CUSTODIAN: "أمين الأدلة",
+  CUSTODY_OFFICER: "ضابط الحجز الاحتياطي",
+  FLEET_MANAGER: "مدير الأسطول",
+  ANALYST: "المحلل الجنائي",
+  AUDITOR: "المدقق",
+  BIOMETRIC_OFFICER: "ضابط القياسات الحيوية",
+  FORENSIC_OFFICER: "ضابط الأدلة الجنائية",
+  PROSECUTOR: "وكيل النيابة",
+};
+
 export const ROLE_DESCRIPTIONS_FR: Record<string, string> = {
   SUPER_ADMIN: "Accès complet à tous les modules, y compris la sécurité et l'administration système.",
   NATIONAL_COMMANDER: "Supervision nationale : lecture de tout, approbation des mandats, avis de recherche, opérations et rapports.",
@@ -42,12 +61,34 @@ export const ROLE_DESCRIPTIONS_FR: Record<string, string> = {
   PROSECUTOR: "Supervision judiciaire : lecture seule des affaires, pièces et activité biométrique, y compris les dossiers sensibles et confidentiels.",
 };
 
+export const ROLE_DESCRIPTIONS_AR: Record<string, string> = {
+  SUPER_ADMIN: "وصول كامل إلى جميع الوحدات، بما في ذلك الأمان وإدارة النظام.",
+  NATIONAL_COMMANDER: "إشراف وطني: قراءة كل شيء، الموافقة على الأوامر القضائية وإعلانات البحث والعمليات والتقارير.",
+  REGIONAL_COMMANDER: "يقود جميع الهياكل الشرطية في إقليم.",
+  DEPARTMENTAL_COMMANDER: "يقود الهياكل الشرطية في محافظة إدارية.",
+  STATION_COMMANDER: "يقود مركز شرطة: يفحص الشكاوى، يسند القضايا، يشرف على التحقيقات.",
+  INVESTIGATOR: "يقود التحقيقات في القضايا المسنَدة: الأشخاص، الإفادات، الاستجوابات، الأدلة، طلبات الأوامر القضائية، الاعتقالات.",
+  DESK_OFFICER: "الاستقبال: يسجل الشكاوى والأشخاص والحوادث.",
+  PATROL_OFFICER: "ضابط ميداني: الدوريات والإبلاغ عن الحوادث.",
+  EVIDENCE_CUSTODIAN: "يدير غرفة الأدلة وسلسلة الحيازة.",
+  CUSTODY_OFFICER: "يدير زنازين الحجز الاحتياطي وسجلات متابعة المحتجزين.",
+  FLEET_MANAGER: "يدير المركبات والصيانة والوقود لإقليم.",
+  ANALYST: "تحليل وتقارير وطنية للقراءة فقط.",
+  AUDITOR: "وصول للقراءة فقط إلى جميع الملفات وسجل التدقيق.",
+  BIOMETRIC_OFFICER: "يجري عمليات البحث بالبصمات والوجه والصوت واللوحات (ANPR) ويسجل تحقق المحقق.",
+  FORENSIC_OFFICER: "يدير الأدلة وسلسلة الحيازة؛ يسجل القوالب البيومترية ويجري عمليات البحث بالبصمات.",
+  PROSECUTOR: "إشراف قضائي: قراءة فقط للقضايا والأدلة والنشاط البيومتري، بما في ذلك الملفات الحساسة والسرية.",
+};
+
 export function roleName(code: string, stored: string, locale: Locale): string {
-  return locale === "fr" ? ROLE_NAMES_FR[code] ?? stored : stored;
+  if (locale === "fr") return ROLE_NAMES_FR[code] ?? stored;
+  if (locale === "ar") return ROLE_NAMES_AR[code] ?? stored;
+  return stored;
 }
 
 export function roleDescription(code: string, stored: string | null | undefined, locale: Locale): string | null {
   if (locale === "fr" && ROLE_DESCRIPTIONS_FR[code]) return ROLE_DESCRIPTIONS_FR[code];
+  if (locale === "ar" && ROLE_DESCRIPTIONS_AR[code]) return ROLE_DESCRIPTIONS_AR[code];
   return stored ?? null;
 }
 
@@ -156,6 +197,113 @@ export const PERMISSION_DESCRIPTIONS_FR: Record<string, string> = {
   "biometric:verify": "Enregistrer la vérification d'un enquêteur sur une correspondance biométrique",
 };
 
+export const PERMISSION_DESCRIPTIONS_AR: Record<string, string> = {
+  "dashboard:view": "الاطلاع على لوحة التحكم",
+  "statistics:view": "الاطلاع على الإحصائيات والتحليلات",
+  "users:view": "الاطلاع على حسابات المستخدمين",
+  "users:create": "إنشاء حسابات مستخدمين",
+  "users:update": "تعديل حسابات المستخدمين (الملف، الدور، النطاق)",
+  "users:manage_status": "تفعيل، تعليق، تعطيل، إلغاء قفل الحسابات",
+  "users:reset_password": "إصدار عمليات إعادة تعيين كلمة المرور",
+  "users:manage_sessions": "الاطلاع على جلسات مستخدمين آخرين وإلغاؤها",
+  "roles:view": "الاطلاع على الأدوار وصلاحياتها",
+  "roles:manage": "إنشاء أدوار وتعديل صلاحياتها",
+  "permissions:view": "الاطلاع على كتالوج الصلاحيات",
+  "security:view": "الاطلاع على مركز الأمان (المحاولات، الجلسات، حالات القفل)",
+  "security:manage": "إدارة إعدادات الأمان، إعادة تعيين المصادقة الثنائية، إلغاء مفاتيح API",
+  "audit:view": "الاطلاع على سجل التدقيق",
+  "audit:export": "تصدير سجل التدقيق",
+  "system:settings": "تعديل إعدادات النظام",
+  "system:backup": "تشغيل واستعادة النسخ الاحتياطية",
+  "system:demo": "تحميل بيانات تجريبية",
+  "org:view": "الاطلاع على المنظمات والأقاليم ومراكز الشرطة والأقسام والرتب",
+  "org:manage": "إدارة المنظمات والأقاليم ومراكز الشرطة والأقسام والرتب",
+  "officers:view": "الاطلاع على الضباط",
+  "officers:manage": "إنشاء/تعديل الضباط وتعييناتهم",
+  "persons:view": "الاطلاع على الأشخاص",
+  "persons:create": "تسجيل أشخاص",
+  "persons:update": "تعديل الأشخاص والوثائق والعلاقات",
+  "persons:merge": "دمج النسخ المكررة من الأشخاص",
+  "wanted:view": "الاطلاع على الأشخاص المطلوبين",
+  "wanted:create": "إنشاء إعلانات بحث",
+  "wanted:approve": "الموافقة على/إلغاء إعلانات البحث",
+  "wanted:update": "تعديل إعلانات البحث",
+  "wanted:status": "تغيير حالة إعلان بحث (تم تحديد موقعه، تم القبض عليه، إلخ)",
+  "wanted:publish": "إنشاء إعلان البحث العام",
+  "wanted:export": "تصدير/طباعة إعلان البحث العام",
+  "complaints:view": "الاطلاع على الشكاوى",
+  "complaints:create": "تسجيل شكاوى",
+  "complaints:update": "تعديل الشكاوى",
+  "complaints:review": "فحص الشكاوى",
+  "complaints:assign": "إسناد الشكاوى",
+  "complaints:convert": "تحويل الشكاوى إلى قضايا",
+  "complaints:close": "إغلاق أو رفض الشكاوى",
+  "cases:view": "الاطلاع على القضايا ضمن النطاق",
+  "cases:view_sensitive": "الاطلاع على القضايا المعلَّمة كحساسة",
+  "cases:create": "فتح قضايا",
+  "cases:update": "تعديل القضايا، إضافة أطراف وملاحظات ومهام",
+  "cases:assign": "إسناد المحققين والمشرفين",
+  "cases:close": "إغلاق القضايا بقرار",
+  "cases:archive": "أرشفة القضايا المغلقة",
+  "investigations:view": "الاطلاع على التحقيقات",
+  "investigations:manage": "فتح وإدارة التحقيقات والمهام والتقارير",
+  "investigations:review": "مراجعة إشرافية للتحقيقات والتقارير",
+  "statements:view": "الاطلاع على الإفادات",
+  "statements:create": "تسجيل إفادات",
+  "statements:finalize": "إنهاء أو سحب الإفادات",
+  "interviews:view": "الاطلاع على الاستجوابات",
+  "interviews:manage": "جدولة وإجراء الاستجوابات",
+  "transcripts:view": "الاطلاع على التفريغات",
+  "transcripts:review": "مراجعة/تصحيح التفريغات الآلية",
+  "transcripts:approve": "اعتماد التفريغات",
+  "evidence:view": "الاطلاع على الأدلة",
+  "evidence:create": "تسجيل أدلة",
+  "evidence:update": "تعديل وصف الأدلة",
+  "evidence:transfer": "نقل الحيازة / تسجيل الدخول-الخروج",
+  "evidence:release": "إعادة أو إفراج أو إتلاف أو أرشفة الأدلة",
+  "evidence:manage_locations": "إدارة أماكن التخزين",
+  "warrants:view": "الاطلاع على الأوامر القضائية",
+  "warrants:create": "طلب أوامر قضائية",
+  "warrants:approve": "الموافقة على أو رفض الأوامر القضائية",
+  "warrants:execute": "تنفيذ الأوامر القضائية",
+  "warrants:cancel": "إلغاء الأوامر القضائية",
+  "arrests:view": "الاطلاع على الاعتقالات",
+  "arrests:create": "تسجيل اعتقالات",
+  "arrests:update": "تعديل الاعتقالات",
+  "detention:view": "الاطلاع على سجلات الحجز الاحتياطي",
+  "detention:manage": "إدارة الحجز الاحتياطي وسجلاته",
+  "detention:extend": "تمديد الحجز الاحتياطي بعد المدة القانونية بتصريح",
+  "patrols:view": "الاطلاع على الدوريات",
+  "patrols:manage": "تخطيط وإدارة الدوريات",
+  "incidents:view": "الاطلاع على الحوادث",
+  "incidents:create": "الإبلاغ عن حوادث",
+  "incidents:update": "تعديل وإغلاق الحوادث",
+  "operations:view": "الاطلاع على العمليات",
+  "operations:manage": "تخطيط وتنفيذ العمليات",
+  "operations:approve": "الموافقة على العمليات",
+  "vehicles:view": "الاطلاع على المركبات",
+  "vehicles:manage": "إدارة المركبات والتعيينات والوقود",
+  "maintenance:view": "الاطلاع على الصيانة",
+  "maintenance:manage": "إدارة سجلات الصيانة",
+  "documents:view": "الاطلاع على الوثائق وتنزيلها",
+  "documents:view_confidential": "الاطلاع على الوثائق السرية/المقيَّدة",
+  "documents:upload": "رفع وثائق وإصدارات جديدة",
+  "documents:archive": "أرشفة الوثائق",
+  "reports:view": "الاطلاع على التقارير المُنشأة",
+  "reports:generate": "إنشاء تقارير",
+  "reports:export": "تصدير التقارير والبيانات",
+  "apikeys:manage_own": "إنشاء/إلغاء مفاتيح API الخاصة",
+  "biometric:search_fingerprint": "إجراء عمليات بحث/تحقق أو تعرّف بالبصمات",
+  "biometric:search_face": "إجراء عمليات بحث/تحقق أو تعرّف بالوجه",
+  "biometric:search_voice": "إجراء عمليات بحث/تحقق أو تعرّف صوتي",
+  "biometric:search_anpr": "إجراء عمليات بحث عن لوحات التسجيل (LAPI/ANPR)",
+  "biometric:manage": "تسجيل قوالب بيومترية (بصمة/وجه/صوت) لشخص",
+  "biometric:history_view": "الاطلاع على سجل عمليات البحث البيومترية",
+  "biometric:verify": "تسجيل تحقق المحقق من تطابق بيومتري",
+};
+
 export function permissionDescription(code: string, stored: string, locale: Locale): string {
-  return locale === "fr" ? PERMISSION_DESCRIPTIONS_FR[code] ?? stored : stored;
+  if (locale === "fr") return PERMISSION_DESCRIPTIONS_FR[code] ?? stored;
+  if (locale === "ar") return PERMISSION_DESCRIPTIONS_AR[code] ?? stored;
+  return stored;
 }

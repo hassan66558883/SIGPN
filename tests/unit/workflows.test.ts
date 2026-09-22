@@ -9,7 +9,7 @@ import { caseSchema, partySchema } from "../../src/server/cases/schemas";
 import { personSchema } from "../../src/server/persons/schemas";
 import { incidentSchema, patrolSchema, zoneSchema } from "../../src/server/ops/schemas";
 import { fr } from "../../src/lib/i18n/fr";
-import { en } from "../../src/lib/i18n/en";
+import { ar } from "../../src/lib/i18n/ar";
 import { COMPLAINT_STATUS, CASE_STATUS, PARTY_ROLE, PARTY_STATUS, OFFENSE_CATEGORY, INCIDENT_TYPE, INCIDENT_STATUS, PATROL_STATUS, SHIFT } from "../../src/lib/labels";
 
 test("complaint schema: title/description minimums, defaults, future incident accepted by schema (business rule elsewhere)", () => {
@@ -49,16 +49,16 @@ test("person schema: names required, optional identifier pair, forceCreate flag"
 });
 
 test("every workflow status and offence category has bilingual labels", () => {
-  for (const s of ["DRAFT", "REGISTERED", "UNDER_REVIEW", "ASSIGNED", "CONVERTED", "CLOSED", "REJECTED"]) assert.ok(COMPLAINT_STATUS[s]?.fr && COMPLAINT_STATUS[s]?.en, s);
-  for (const s of ["OPEN", "ASSIGNED", "UNDER_INVESTIGATION", "PENDING_REVIEW", "REFERRED", "CLOSED", "ARCHIVED"]) assert.ok(CASE_STATUS[s]?.fr && CASE_STATUS[s]?.en, s);
+  for (const s of ["DRAFT", "REGISTERED", "UNDER_REVIEW", "ASSIGNED", "CONVERTED", "CLOSED", "REJECTED"]) assert.ok(COMPLAINT_STATUS[s]?.fr && COMPLAINT_STATUS[s]?.ar, s);
+  for (const s of ["OPEN", "ASSIGNED", "UNDER_INVESTIGATION", "PENDING_REVIEW", "REFERRED", "CLOSED", "ARCHIVED"]) assert.ok(CASE_STATUS[s]?.fr && CASE_STATUS[s]?.ar, s);
   for (const r of ["COMPLAINANT", "VICTIM", "WITNESS", "SUSPECT", "PERSON_OF_INTEREST", "ACCUSED", "OTHER"]) assert.ok(PARTY_ROLE[r]?.fr, r);
   for (const r of ["ACTIVE", "UNDER_INVESTIGATION", "CLEARED", "CHARGED", "REFERRED", "WITHDRAWN"]) assert.ok(PARTY_STATUS[r]?.fr, r);
   assert.equal(Object.keys(OFFENSE_CATEGORY).length, 20);
 });
 
 test("dictionaries stay in sync after the persons/complaints/cases additions", () => {
-  assert.deepEqual(Object.keys(en).sort(), Object.keys(fr).sort());
-  for (const k of ["persons.title", "complaints.title", "cases.title", "case.tab.timeline", "person.presumption", "training.title", "pos.title"]) assert.ok(k in fr && k in en, k);
+  assert.deepEqual(Object.keys(ar).sort(), Object.keys(fr).sort());
+  for (const k of ["persons.title", "complaints.title", "cases.title", "case.tab.timeline", "person.presumption", "training.title", "pos.title"]) assert.ok(k in fr && k in ar, k);
 });
 
 test("incident schema: coordinates optional and bounded, location required, defaults", () => {
@@ -85,9 +85,9 @@ test("patrol and zone schemas: supervisor required, zone isActive defaults true 
 });
 
 test("operations enumerations have bilingual labels", () => {
-  for (const s of ["DISTURBANCE", "TRAFFIC_ACCIDENT", "ASSAULT", "THEFT", "FIRE", "MEDICAL", "SUSPICIOUS_ACTIVITY", "PUBLIC_ORDER", "DOMESTIC", "NOISE", "MISSING_PERSON", "OTHER"]) assert.ok(INCIDENT_TYPE[s]?.fr && INCIDENT_TYPE[s]?.en, s);
+  for (const s of ["DISTURBANCE", "TRAFFIC_ACCIDENT", "ASSAULT", "THEFT", "FIRE", "MEDICAL", "SUSPICIOUS_ACTIVITY", "PUBLIC_ORDER", "DOMESTIC", "NOISE", "MISSING_PERSON", "OTHER"]) assert.ok(INCIDENT_TYPE[s]?.fr && INCIDENT_TYPE[s]?.ar, s);
   for (const s of ["REPORTED", "RESPONDING", "ON_SCENE", "RESOLVED", "ESCALATED", "CLOSED"]) assert.ok(INCIDENT_STATUS[s]?.fr, s);
   for (const s of ["PLANNED", "ACTIVE", "COMPLETED", "CANCELLED"]) assert.ok(PATROL_STATUS[s]?.fr, s);
-  for (const s of ["MORNING", "AFTERNOON", "NIGHT", "CUSTOM"]) assert.ok(SHIFT[s]?.fr && SHIFT[s]?.en, s);
-  for (const k of ["incidents.title", "incident.escalate", "patrols.title", "patrol.plan", "zone.save"]) assert.ok(k in fr && k in en, k);
+  for (const s of ["MORNING", "AFTERNOON", "NIGHT", "CUSTOM"]) assert.ok(SHIFT[s]?.fr && SHIFT[s]?.ar, s);
+  for (const k of ["incidents.title", "incident.escalate", "patrols.title", "patrol.plan", "zone.save"]) assert.ok(k in fr && k in ar, k);
 });

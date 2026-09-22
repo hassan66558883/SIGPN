@@ -10,6 +10,7 @@ import { NotFoundError } from "@/server/errors";
 import { Alert, Badge, ButtonLink, Card, DL, EmptyState, PageHeader, Table, Tabs } from "@/components/ui";
 import { BIOMETRIC_ACTION, BIOMETRIC_SEARCH_RESULT, BIOMETRIC_TYPE, CASE_DISPOSITION, CASE_ROLE, CASE_STATUS, LPR_STATUS, OFFENSE_CATEGORY, PARTY_ROLE, PARTY_STATUS, PRIORITY, TASK_STATUS, labelOf } from "@/lib/labels";
 import { fmtDateTime } from "@/lib/format";
+import type { Locale } from "@/lib/i18n";
 import { getLocale, getT } from "@/server/i18n";
 import { AddPartyForm, AssignCaseForm, CaseStatusForm, NoteForm, PartyStatusForm, TaskForm, TaskStatusForm } from "../case-forms";
 
@@ -488,7 +489,7 @@ export default async function CasePage({ params, searchParams }: PageProps<"/cas
   );
 }
 
-function Timeline({ items, locale, t }: { items: { id: string; kind: string; title: string; description: string | null; occurredAt: Date; actor: { firstName: string; lastName: string } | null }[]; locale: "fr" | "en"; t: (k: "case.by") => string }) {
+function Timeline({ items, locale, t }: { items: { id: string; kind: string; title: string; description: string | null; occurredAt: Date; actor: { firstName: string; lastName: string } | null }[]; locale: Locale; t: (k: "case.by") => string }) {
   return (
     <ol className="relative ms-2 border-s border-line ps-5 text-sm">
       {items.map((e) => (

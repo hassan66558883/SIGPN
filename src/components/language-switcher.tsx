@@ -2,7 +2,7 @@ import { LOCALES, LOCALE_NAMES, type Locale } from "@/lib/i18n";
 import { setLocaleAction } from "@/server/i18n-actions";
 import { cx } from "@/components/ui";
 
-/** FR | EN toggle. French is the default; the choice is stored in a cookie. */
+/** FR | AR toggle. French is the default; the choice is stored in a cookie. */
 export function LanguageSwitcher({ current, dark, label }: { current: Locale; dark?: boolean; label: string }) {
   return (
     <form action={setLocaleAction} className="inline-flex items-center gap-1" aria-label={label}>
