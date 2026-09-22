@@ -1,7 +1,7 @@
 import type { Permission } from "@/server/rbac/permissions";
 import type { MessageKey } from "@/lib/i18n";
 
-export type NavItem = { href: string; labelKey: MessageKey; permission: Permission; icon: string };
+export type NavItem = { href: string; labelKey: MessageKey; permission: Permission; anyOf?: Permission[]; icon: string };
 export type NavSection = { titleKey: MessageKey | null; items: NavItem[] };
 
 /** Icons are simple glyphs to keep the bundle dependency-free. Labels are message keys. */
@@ -31,6 +31,7 @@ export const NAVIGATION: NavSection[] = [
       { href: "/evidence", labelKey: "nav.evidence", permission: "evidence:view", icon: "◈" },
       { href: "/statements", labelKey: "nav.statements", permission: "statements:view", icon: "✎" },
       { href: "/interviews", labelKey: "nav.interviews", permission: "interviews:view", icon: "♫" },
+      { href: "/biometric", labelKey: "nav.biometric", permission: "biometric:history_view", anyOf: ["biometric:search_fingerprint", "biometric:search_face", "biometric:search_voice", "biometric:search_anpr", "biometric:manage", "biometric:verify"], icon: "⚛" },
     ],
   },
   {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { requirePermission } from "@/server/auth/dal";
 import { prisma } from "@/server/db";
+import { biometricDashboardStats } from "@/server/biometric/queries";
 import { Card, PageHeader, StatCard, EmptyState } from "@/components/ui";
 import { fmtDateTime } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
@@ -13,13 +14,15 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function DashboardPage() {
   const actor = await requirePermission("dashboard:view");
-  const [t, locale, users, activeSessions, recentAudit, notifications] = await Promise.all([
+  const canViewBiometric = actor.permissions.has("biometric:history_view");
+  const [t, locale, users, activeSessions, recentAudit, notifications, biometric] = await Promise.all([
     getT(),
     getLocale(),
     prisma.user.count({ where: { deletedAt: null, status: "ACTIVE" } }),
     prisma.session.count({ where: { revokedAt: null, expiresAt: { gt: new Date() } } }),
     actor.permissions.has("audit:view") ? prisma.auditLog.findMany({ orderBy: { at: "desc" }, take: 8 }) : Promise.resolve([]),
     prisma.notification.findMany({ where: { userId: actor.id, readAt: null }, orderBy: { createdAt: "desc" }, take: 5 }),
+    canViewBiometric ? biometricDashboardStats(actor) : Promise.resolve(null),
   ]);
   return (
     <div>
@@ -30,6 +33,21 @@ export default async function DashboardPage() {
         <StatCard label={t("dash.unread")} value={notifications.length} tone={notifications.length ? "warning" : "neutral"} href="/notifications" />
         <StatCard label={t("dash.yourPermissions")} value={actor.permissions.size} tone="violet" href="/account" />
       </div>
+      {biometric ? (
+        <div className="mt-6">
+          <Card title={t("biometric.title")} description={t("biometric.subtitle")}>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard label={t("biometric.stat.fingerprint")} value={biometric.byType.FINGERPRINT} tone="info" href="/biometric?tab=fingerprint" />
+              <StatCard label={t("biometric.stat.face")} value={biometric.byType.FACE} tone="violet" href="/biometric?tab=face" />
+              <StatCard label={t("biometric.stat.voice")} value={biometric.byType.VOICE} tone="info" href="/biometric?tab=voice" />
+              <StatCard label={t("biometric.stat.anpr")} value={biometric.byType.ANPR} tone="neutral" href="/biometric?tab=anpr" />
+              <StatCard label={t("biometric.stat.potential")} value={biometric.potentialMatches} tone="warning" href="/biometric?tab=history" />
+              <StatCard label={t("biometric.stat.verified")} value={biometric.verifiedMatches} tone="success" href="/biometric?tab=history" />
+              <StatCard label={t("biometric.stat.pending")} value={biometric.pendingVerification} tone="danger" href="/biometric?tab=history" />
+            </div>
+          </Card>
+        </div>
+      ) : null}
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
         <Card title={t("dash.latestNotifications")}>
           {notifications.length === 0 ? (

@@ -18,6 +18,9 @@ export const ROLE_NAMES_FR: Record<string, string> = {
   FLEET_MANAGER: "Gestionnaire du parc",
   ANALYST: "Analyste criminel",
   AUDITOR: "Auditeur",
+  BIOMETRIC_OFFICER: "Agent biométrique",
+  FORENSIC_OFFICER: "Agent de police scientifique",
+  PROSECUTOR: "Procureur",
 };
 
 export const ROLE_DESCRIPTIONS_FR: Record<string, string> = {
@@ -34,6 +37,9 @@ export const ROLE_DESCRIPTIONS_FR: Record<string, string> = {
   FLEET_MANAGER: "Gère les véhicules, la maintenance et le carburant d'une région.",
   ANALYST: "Analyse et rapports nationaux en lecture seule.",
   AUDITOR: "Accès en lecture seule à tous les dossiers et au journal d'audit.",
+  BIOMETRIC_OFFICER: "Effectue les recherches d'empreintes, de visage, de voix et de plaques (ANPR) et enregistre la vérification par l'enquêteur.",
+  FORENSIC_OFFICER: "Gère les pièces à conviction et la chaîne de possession ; enregistre les gabarits biométriques et effectue des recherches d'empreintes.",
+  PROSECUTOR: "Supervision judiciaire : lecture seule des affaires, pièces et activité biométrique, y compris les dossiers sensibles et confidentiels.",
 };
 
 export function roleName(code: string, stored: string, locale: Locale): string {
@@ -138,6 +144,13 @@ export const PERMISSION_DESCRIPTIONS_FR: Record<string, string> = {
   "reports:generate": "Générer des rapports",
   "reports:export": "Exporter rapports et données",
   "apikeys:manage_own": "Créer/révoquer ses propres clés API",
+  "biometric:search_fingerprint": "Effectuer des recherches de vérification/identification d'empreintes",
+  "biometric:search_face": "Effectuer des recherches de vérification/identification faciale",
+  "biometric:search_voice": "Effectuer des recherches de vérification/identification vocale",
+  "biometric:search_anpr": "Effectuer des recherches de plaques d'immatriculation (LAPI/ANPR)",
+  "biometric:manage": "Enregistrer des gabarits biométriques (empreinte/visage/voix) pour une personne",
+  "biometric:history_view": "Consulter l'historique des recherches biométriques",
+  "biometric:verify": "Enregistrer la vérification d'un enquêteur sur une correspondance biométrique",
 };
 
 export function permissionDescription(code: string, stored: string, locale: Locale): string {

@@ -108,6 +108,14 @@ export const PERMISSION_CATALOG = [
   ["reports:view", "View generated reports"],
   ["reports:generate", "Generate reports"],
   ["reports:export", "Export reports and data"],
+  // biometric & forensic identification
+  ["biometric:search_fingerprint", "Perform fingerprint verification/identification searches"],
+  ["biometric:search_face", "Perform face verification/identification searches"],
+  ["biometric:search_voice", "Perform voice verification/identification searches"],
+  ["biometric:search_anpr", "Perform license-plate (ANPR) searches"],
+  ["biometric:manage", "Enroll biometric templates (fingerprint/face/voice) for persons"],
+  ["biometric:history_view", "View biometric search history"],
+  ["biometric:verify", "Record investigator verification action on a biometric match"],
   // self-service
   ["apikeys:manage_own", "Create/revoke own API keys"],
 ] as const;

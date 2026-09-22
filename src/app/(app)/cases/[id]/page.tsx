@@ -5,9 +5,10 @@ import { requirePermission } from "@/server/auth/dal";
 import { getCase } from "@/server/cases/service";
 import { caseAuditTrail, caseNotes, caseTasks, caseTimeline } from "@/server/cases/queries";
 import { assignableInvestigators } from "@/server/complaints/queries";
+import { caseBiometricActivity } from "@/server/biometric/queries";
 import { NotFoundError } from "@/server/errors";
-import { Alert, Badge, Card, DL, EmptyState, PageHeader, Table, Tabs } from "@/components/ui";
-import { CASE_DISPOSITION, CASE_ROLE, CASE_STATUS, OFFENSE_CATEGORY, PARTY_ROLE, PARTY_STATUS, PRIORITY, TASK_STATUS, labelOf } from "@/lib/labels";
+import { Alert, Badge, ButtonLink, Card, DL, EmptyState, PageHeader, Table, Tabs } from "@/components/ui";
+import { BIOMETRIC_ACTION, BIOMETRIC_SEARCH_RESULT, BIOMETRIC_TYPE, CASE_DISPOSITION, CASE_ROLE, CASE_STATUS, LPR_STATUS, OFFENSE_CATEGORY, PARTY_ROLE, PARTY_STATUS, PRIORITY, TASK_STATUS, labelOf } from "@/lib/labels";
 import { fmtDateTime } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
 import { AddPartyForm, AssignCaseForm, CaseStatusForm, NoteForm, PartyStatusForm, TaskForm, TaskStatusForm } from "../case-forms";
@@ -17,7 +18,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("cases.col.case") };
 }
 
-const TABS = ["overview", "persons", "tasks", "notes", "timeline", "audit"] as const;
+const TABS = ["overview", "persons", "biometric", "tasks", "notes", "timeline", "audit"] as const;
 type Tab = (typeof TABS)[number];
 
 export default async function CasePage({ params, searchParams }: PageProps<"/cases/[id]">) {
@@ -36,12 +37,14 @@ export default async function CasePage({ params, searchParams }: PageProps<"/cas
   const canWrite = actor.permissions.has("cases:update") && !readOnly && (isTeam || actor.permissions.has("cases:assign"));
   const canAssign = actor.permissions.has("cases:assign") && !readOnly;
   const canSeeConfidential = actor.permissions.has("cases:close") || k.supervisor?.id === actor.id;
-  const [users, tasks, notes, timeline, audit] = await Promise.all([
+  const canViewBiometric = actor.permissions.has("biometric:history_view");
+  const [users, tasks, notes, timeline, audit, biometric] = await Promise.all([
     canWrite || canAssign ? assignableInvestigators(actor, k.stationId) : Promise.resolve([]),
     tab === "tasks" || tab === "overview" ? caseTasks(k.id) : Promise.resolve([]),
     tab === "notes" ? caseNotes(actor, k.id, canSeeConfidential) : Promise.resolve([]),
     tab === "timeline" || tab === "overview" ? caseTimeline(k.id, tab === "overview" ? 8 : 200) : Promise.resolve([]),
     tab === "audit" && actor.permissions.has("audit:view") ? caseAuditTrail(k.id) : Promise.resolve([]),
+    tab === "biometric" && canViewBiometric ? caseBiometricActivity(k.id) : Promise.resolve(null),
   ]);
   const userOpts = users.map((u) => ({ id: u.id, label: `${u.firstName} ${u.lastName} (${u.role.code}${u.station ? ` · ${u.station.code}` : ""})` }));
   const st = labelOf(CASE_STATUS, k.status, locale);
@@ -51,6 +54,7 @@ export default async function CasePage({ params, searchParams }: PageProps<"/cas
   const tabs = [
     { href: href("overview"), label: t("case.tab.overview") },
     { href: href("persons"), label: t("case.tab.persons"), count: k.parties.length },
+    ...(canViewBiometric ? [{ href: href("biometric"), label: t("case.tab.biometric") }] : []),
     { href: href("tasks"), label: t("case.tab.tasks"), count: k._count.tasks },
     { href: href("notes"), label: t("case.tab.notes"), count: k._count.notes },
     { href: href("timeline"), label: t("case.tab.timeline"), count: k._count.events },
@@ -226,6 +230,131 @@ export default async function CasePage({ params, searchParams }: PageProps<"/cas
             </div>
           ) : null}
         </Card>
+      ) : null}
+
+      {tab === "biometric" ? (
+        <div className="space-y-4">
+          <Card
+            title={t("case.tab.biometric")}
+            actions={
+              actor.permissions.has("biometric:search_fingerprint") || actor.permissions.has("biometric:search_face") || actor.permissions.has("biometric:search_voice") || actor.permissions.has("biometric:search_anpr") ? (
+                <ButtonLink href={`/biometric?caseId=${k.id}`} size="sm">
+                  {t("biometric.newSearch")}
+                </ButtonLink>
+              ) : null
+            }
+            padded={false}
+          >
+            {!biometric || biometric.searches.length === 0 ? (
+              <div className="p-5">
+                <EmptyState>{t("biometric.noActivity")}</EmptyState>
+              </div>
+            ) : (
+              <Table>
+                <thead>
+                  <tr>
+                    <th>{t("biometric.col.search")}</th>
+                    <th>{t("biometric.col.type")}</th>
+                    <th>{t("case.tab.persons")}</th>
+                    <th>{t("biometric.col.result")}</th>
+                    <th>{t("biometric.col.when")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {biometric.searches.map((r) => {
+                    const type = labelOf(BIOMETRIC_TYPE, r.type, locale);
+                    const result = labelOf(BIOMETRIC_SEARCH_RESULT, r.result, locale);
+                    const action = labelOf(BIOMETRIC_ACTION, r.action, locale);
+                    return (
+                      <tr key={r.id}>
+                        <td data-label={t("biometric.col.search")}>
+                          <Link href={`/biometric/history/${r.id}`} className="font-semibold text-blue hover:underline">
+                            {r.number}
+                          </Link>
+                          {r.isDemo ? (
+                            <Badge tone="warning" className="ml-1">
+                              DEMO
+                            </Badge>
+                          ) : null}
+                        </td>
+                        <td data-label={t("biometric.col.type")}>
+                          <Badge tone={type.tone}>{type.label}</Badge>
+                        </td>
+                        <td data-label={t("case.tab.persons")} className="text-xs">
+                          {r.topMatchPerson ? (
+                            <Link href={`/persons/${r.topMatchPerson.id}`} className="text-blue hover:underline">
+                              {r.topMatchPerson.firstName} {r.topMatchPerson.lastName}
+                            </Link>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td data-label={t("biometric.col.result")}>
+                          <Badge tone={result.tone}>{result.label}</Badge>
+                          <span className="ml-1 block text-[11px] text-slate">{action.label}</span>
+                        </td>
+                        <td data-label={t("biometric.col.when")} className="text-xs">
+                          {fmtDateTime(r.createdAt, locale)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            )}
+          </Card>
+          {biometric && biometric.plates.length > 0 ? (
+            <Card title={t("biometric.tab.anpr")} padded={false}>
+              <Table>
+                <thead>
+                  <tr>
+                    <th>{t("biometric.plateNumber")}</th>
+                    <th>{t("case.tab.persons")}</th>
+                    <th>{t("evidence.location")}</th>
+                    <th>{t("evidence.status")}</th>
+                    <th>{t("biometric.col.when")}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {biometric.plates.map((p) => {
+                    const st2 = labelOf(LPR_STATUS, p.status, locale);
+                    return (
+                      <tr key={p.id}>
+                        <td data-label={t("biometric.plateNumber")} className="font-mono font-semibold">
+                          {p.plateNumber}
+                          {p.vehicleMake ? (
+                            <span className="block font-sans text-xs font-normal text-slate">
+                              {p.vehicleMake} {p.vehicleModel} {p.vehicleColor ? `· ${p.vehicleColor}` : ""}
+                            </span>
+                          ) : null}
+                        </td>
+                        <td data-label={t("case.tab.persons")} className="text-xs">
+                          {p.person ? (
+                            <Link href={`/persons/${p.person.id}`} className="text-blue hover:underline">
+                              {p.person.firstName} {p.person.lastName}
+                            </Link>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                        <td data-label={t("evidence.location")} className="text-xs">
+                          {p.locationText ?? "—"}
+                          {p.cameraId ? <span className="block text-slate">{p.cameraId}</span> : null}
+                        </td>
+                        <td data-label={t("evidence.status")}>
+                          <Badge tone={st2.tone}>{st2.label}</Badge>
+                        </td>
+                        <td data-label={t("biometric.col.when")} className="text-xs">
+                          {fmtDateTime(p.detectedAt, locale)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            </Card>
+          ) : null}
+        </div>
       ) : null}
 
       {tab === "tasks" ? (

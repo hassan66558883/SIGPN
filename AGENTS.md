@@ -10,3 +10,13 @@
 - **Territory & scope (TPMS)**: Province = table `Region` (kept for compatibility, UI says Province) → `AdminDepartment` → `Commune` → `Locality`; police structures `Station` with `parentId` (posts/units under a commissariat), `status`, `isDemo`. Scope levels NATIONAL / REGIONAL / DEPARTMENTAL / STATION / OWN; `Actor.stationIds` = own structure + descendants; use `scopeWhere(actor, { via: "station" })` for tables without a province column and `inScope(actor, rec)` for unitary reads (throw `NotFoundError`, never 403, outside scope). Official referential = 23 provinces + N'Djamena arrondissements only; everything else fictional must be `isDemo: true`.
 - **Permissions**: catalog in `src/server/rbac/permissions.ts`; roles are DB rows (seeded system roles in `src/server/rbac/roles.ts`) with a permission set; the effective permission set is loaded per request in `src/server/auth/dal.ts`.
 - **Tests**: `npm test` (unit, no DB), `npm run test:integration` (DB), `npm run test:security` (needs the dev server on 3300 + seed). Only tests that actually ran may be reported as PASS.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

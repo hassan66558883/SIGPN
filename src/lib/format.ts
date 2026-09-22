@@ -33,6 +33,19 @@ export function fmtNumber(v: number | null | undefined, locale: Locale = "fr"): 
   return v === null || v === undefined ? "—" : new Intl.NumberFormat(INTL[locale] ?? INTL.fr).format(v);
 }
 
+export function fmtBytes(v: number | null | undefined): string {
+  if (v === null || v === undefined) return "—";
+  if (v < 1024) return `${v} B`;
+  const units = ["KB", "MB", "GB"];
+  let n = v / 1024;
+  let i = 0;
+  while (n >= 1024 && i < units.length - 1) {
+    n /= 1024;
+    i++;
+  }
+  return `${n.toFixed(1)} ${units[i]}`;
+}
+
 export function fmtRelative(v: Date | string | null | undefined, locale: Locale = "fr"): string {
   const d = asDate(v);
   if (!d) return "—";

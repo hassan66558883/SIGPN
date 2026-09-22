@@ -20,4 +20,7 @@ export const DEMO_ACCOUNTS = [
   { username: "fleet.central", roleCode: "FLEET_MANAGER", roleName: "Fleet Manager", firstName: "Ibrahim", lastName: "Sanogo", hint: "Province de N'Djamena", province: "NDJ" },
   { username: "analyst", roleCode: "ANALYST", roleName: "Crime Analyst", firstName: "Ruth", lastName: "Nakamura", hint: "national" },
   { username: "auditor", roleCode: "AUDITOR", roleName: "Auditor", firstName: "Omar", lastName: "Haddad", hint: "national · MFA required" },
+  { username: "biometric.cs1", roleCode: "BIOMETRIC_OFFICER", roleName: "Biometric Officer", firstName: "Hassan", lastName: "Idriss", hint: "Commissariat Central N'Djamena · MFA required", station: "CS-01" },
+  { username: "forensic.cs1", roleCode: "FORENSIC_OFFICER", roleName: "Forensic Officer", firstName: "Zara", lastName: "Nadjita", hint: "Commissariat Central N'Djamena · MFA required", station: "CS-01" },
+  { username: "prosecutor.cs1", roleCode: "PROSECUTOR", roleName: "Prosecutor", firstName: "Youssouf", lastName: "Tahir", hint: "Commissariat Central N'Djamena · MFA required", station: "CS-01" },
 ] as const;

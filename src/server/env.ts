@@ -80,6 +80,20 @@ export const env = {
       return optional("STT_API_KEY");
     },
   },
+  biometric: {
+    get fingerprintProvider() {
+      return optional("FINGERPRINT_PROVIDER", "mock");
+    },
+    get faceProvider() {
+      return optional("FACE_PROVIDER", "mock");
+    },
+    get voiceProvider() {
+      return optional("VOICE_PROVIDER", "mock");
+    },
+    get anprProvider() {
+      return optional("ANPR_PROVIDER", "mock");
+    },
+  },
   get demoPassword() {
     return optional("DEMO_PASSWORD", "Demo-Pms-2026!");
   },

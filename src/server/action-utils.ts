@@ -55,3 +55,9 @@ export function formEntries(formData: FormData): Record<string, string> {
 export function formList(formData: FormData, key: string): string[] {
   return formData.getAll(key).filter((v): v is string => typeof v === "string" && v !== "");
 }
+
+/** Returns the uploaded File for `key`, or null if the field is empty/not a file. */
+export function formFile(formData: FormData, key: string): File | null {
+  const v = formData.get(key);
+  return v instanceof File && v.size > 0 ? v : null;
+}

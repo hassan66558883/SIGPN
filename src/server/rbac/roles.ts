@@ -36,7 +36,7 @@ const READ_OPERATIONAL: Permission[] = [
   "apikeys:manage_own",
 ];
 
-const READ_ALL: Permission[] = [...READ_OPERATIONAL, "statistics:view", "users:view", "roles:view", "permissions:view", "cases:view_sensitive", "documents:view_confidential"];
+const READ_ALL: Permission[] = [...READ_OPERATIONAL, "statistics:view", "users:view", "roles:view", "permissions:view", "cases:view_sensitive", "documents:view_confidential", "biometric:history_view"];
 
 const INVESTIGATIVE_WRITE: Permission[] = [
   "persons:create",
@@ -143,7 +143,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     description: "Leads investigations on assigned cases: persons, statements, interviews, evidence, warrants requests, arrests.",
     scopeLevel: "STATION",
     requiresMfa: false,
-    permissions: [...READ_OPERATIONAL, ...INVESTIGATIVE_WRITE, "warrants:execute"],
+    permissions: [...READ_OPERATIONAL, ...INVESTIGATIVE_WRITE, "warrants:execute", "biometric:search_fingerprint", "biometric:search_face", "biometric:search_voice", "biometric:search_anpr", "biometric:verify", "biometric:history_view"],
   },
   {
     code: "DESK_OFFICER",
@@ -159,7 +159,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     description: "Field officer: patrols and incident reporting.",
     scopeLevel: "STATION",
     requiresMfa: false,
-    permissions: [...READ_OPERATIONAL, "patrols:manage", "incidents:create", "incidents:update", "persons:create", "arrests:create", "documents:upload"],
+    permissions: [...READ_OPERATIONAL, "patrols:manage", "incidents:create", "incidents:update", "persons:create", "arrests:create", "documents:upload", "biometric:search_anpr", "biometric:history_view"],
   },
   {
     code: "EVIDENCE_CUSTODIAN",
@@ -200,6 +200,30 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     scopeLevel: "NATIONAL",
     requiresMfa: true,
     permissions: [...READ_ALL, "audit:view", "audit:export", "security:view"],
+  },
+  {
+    code: "BIOMETRIC_OFFICER",
+    name: "Biometric Officer",
+    description: "Runs fingerprint, face, voice and ANPR searches and records investigator verification of matches.",
+    scopeLevel: "STATION",
+    requiresMfa: true,
+    permissions: [...READ_OPERATIONAL, "biometric:search_fingerprint", "biometric:search_face", "biometric:search_voice", "biometric:search_anpr", "biometric:verify", "biometric:history_view"],
+  },
+  {
+    code: "FORENSIC_OFFICER",
+    name: "Forensic Officer",
+    description: "Manages forensic evidence and chain of custody; enrolls biometric templates and runs fingerprint searches.",
+    scopeLevel: "STATION",
+    requiresMfa: true,
+    permissions: [...READ_OPERATIONAL, "evidence:create", "evidence:update", "evidence:transfer", "evidence:manage_locations", "biometric:manage", "biometric:search_fingerprint", "biometric:history_view"],
+  },
+  {
+    code: "PROSECUTOR",
+    name: "Prosecutor",
+    description: "Legal oversight: read-only access to cases, evidence and biometric activity, including sensitive and confidential records.",
+    scopeLevel: "STATION",
+    requiresMfa: true,
+    permissions: [...READ_ALL],
   },
 ];
 

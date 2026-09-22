@@ -309,6 +309,103 @@ export const VEHICLE_TYPE: LabelMap = {
   OTHER: def("Autre", "Other", "neutral"),
 };
 
+export const EVIDENCE_CATEGORY: LabelMap = {
+  PHYSICAL: def("Physique", "Physical", "neutral"),
+  DOCUMENT: def("Document", "Document", "neutral"),
+  DIGITAL: def("Numérique", "Digital", "info"),
+  BIOLOGICAL: def("Biologique", "Biological", "violet"),
+  WEAPON: def("Arme", "Weapon", "danger"),
+  NARCOTICS: def("Stupéfiants", "Narcotics", "danger"),
+  VEHICLE: def("Véhicule", "Vehicle", "neutral"),
+  CURRENCY: def("Numéraire", "Currency", "neutral"),
+  AUDIO_VIDEO: def("Audio/Vidéo", "Audio/Video", "info"),
+  OTHER: def("Autre", "Other", "neutral"),
+};
+
+export const EVIDENCE_STATUS: LabelMap = {
+  COLLECTED: def("Collectée", "Collected", "info"),
+  REGISTERED: def("Enregistrée", "Registered", "info"),
+  STORED: def("Stockée", "Stored", "success"),
+  TRANSFERRED: def("Transférée", "Transferred", "warning"),
+  UNDER_EXAMINATION: def("En examen", "Under examination", "violet"),
+  RETURNED: def("Restituée", "Returned", "neutral"),
+  RELEASED: def("Libérée", "Released", "neutral"),
+  DESTROYED: def("Détruite", "Destroyed", "danger"),
+  ARCHIVED: def("Archivée", "Archived", "neutral"),
+};
+
+export const CUSTODY_ACTION: LabelMap = {
+  COLLECTED: def("Collecte", "Collected", "info"),
+  REGISTERED: def("Enregistrement", "Registered", "info"),
+  STORED: def("Stockage", "Stored", "success"),
+  TRANSFERRED: def("Transfert", "Transferred", "warning"),
+  CHECKED_OUT: def("Sortie", "Checked out", "warning"),
+  CHECKED_IN: def("Entrée", "Checked in", "success"),
+  EXAMINED: def("Examen", "Examined", "violet"),
+  RETURNED: def("Restitution", "Returned", "neutral"),
+  RELEASED: def("Libération", "Released", "neutral"),
+  DESTROYED: def("Destruction", "Destroyed", "danger"),
+  ARCHIVED: def("Archivage", "Archived", "neutral"),
+};
+
+export const STORAGE_LOCATION_TYPE: LabelMap = {
+  EVIDENCE_ROOM: def("Salle des pièces", "Evidence room", "neutral"),
+  SAFE: def("Coffre-fort", "Safe", "violet"),
+  REFRIGERATED: def("Chambre froide", "Refrigerated", "info"),
+  VEHICLE_LOT: def("Fourrière", "Vehicle lot", "neutral"),
+  LABORATORY: def("Laboratoire", "Laboratory", "info"),
+  ARMORY: def("Armurerie", "Armory", "danger"),
+  EXTERNAL: def("Externe", "External", "neutral"),
+};
+
+export const BIOMETRIC_TYPE: LabelMap = {
+  FINGERPRINT: def("Empreinte digitale", "Fingerprint", "info"),
+  FACE: def("Reconnaissance faciale", "Face", "violet"),
+  VOICE: def("Reconnaissance vocale", "Voice", "info"),
+  ANPR: def("Plaque d'immatriculation (LAPI)", "License plate (ANPR)", "neutral"),
+};
+
+export const BIOMETRIC_SEARCH_MODE: LabelMap = {
+  VERIFY_1_1: def("Vérification 1:1", "1:1 verification", "neutral"),
+  IDENTIFY_1_N: def("Identification 1:N", "1:N identification", "neutral"),
+};
+
+export const BIOMETRIC_SEARCH_RESULT: LabelMap = {
+  NO_MATCH: def("Aucune correspondance", "No match", "neutral"),
+  POTENTIAL_MATCH: def("Correspondance potentielle", "Potential match", "warning"),
+  VERIFIED_MATCH: def("Correspondance vérifiée", "Verified match", "success"),
+  ERROR: def("Erreur", "Error", "danger"),
+};
+
+export const BIOMETRIC_ACTION: LabelMap = {
+  NONE: def("Aucune action", "No action", "neutral"),
+  SENT_FOR_VERIFICATION: def("Transmis pour vérification", "Sent for verification", "info"),
+  VERIFIED_BY_INVESTIGATOR: def("Vérifié par l'enquêteur", "Verified by investigator", "success"),
+  REJECTED: def("Rejeté", "Rejected", "danger"),
+  LINKED_TO_CASE: def("Rattaché à l'affaire", "Linked to case", "violet"),
+};
+
+export const FINGER_POSITION: LabelMap = {
+  RIGHT_THUMB: def("Pouce droit", "Right thumb"),
+  RIGHT_INDEX: def("Index droit", "Right index"),
+  RIGHT_MIDDLE: def("Majeur droit", "Right middle"),
+  RIGHT_RING: def("Annulaire droit", "Right ring"),
+  RIGHT_LITTLE: def("Auriculaire droit", "Right little"),
+  LEFT_THUMB: def("Pouce gauche", "Left thumb"),
+  LEFT_INDEX: def("Index gauche", "Left index"),
+  LEFT_MIDDLE: def("Majeur gauche", "Left middle"),
+  LEFT_RING: def("Annulaire gauche", "Left ring"),
+  LEFT_LITTLE: def("Auriculaire gauche", "Left little"),
+  UNKNOWN: def("Non précisé", "Unspecified"),
+};
+
+export const LPR_STATUS: LabelMap = {
+  NEW: def("Nouvelle", "New", "info"),
+  REVIEWED: def("Examinée", "Reviewed", "warning"),
+  LINKED_TO_CASE: def("Rattachée à l'affaire", "Linked to case", "violet"),
+  DISMISSED: def("Classée sans suite", "Dismissed", "neutral"),
+};
+
 export function labelOf(map: LabelMap, key: string | null | undefined, locale: Locale): LabelDef {
   if (!key) return { label: "—", tone: "neutral" };
   const d = map[key];

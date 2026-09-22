@@ -1,4 +1,4 @@
-import { can, requireActor } from "@/server/auth/dal";
+import { can, canAny, requireActor } from "@/server/auth/dal";
 import { unreadCount } from "@/server/admin/queries";
 import { NAVIGATION } from "@/lib/navigation";
 import { Sidebar } from "@/components/app-shell/sidebar";
@@ -10,7 +10,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const [unread, t] = await Promise.all([unreadCount(actor), getT()]);
   const sections = NAVIGATION.map((s) => ({
     title: s.titleKey ? t(s.titleKey) : null,
-    items: s.items.filter((i) => can(actor, i.permission)).map(({ href, labelKey, icon }) => ({ href, label: t(labelKey), icon })),
+    items: s.items.filter((i) => can(actor, i.permission) || (i.anyOf && canAny(actor, i.anyOf))).map(({ href, labelKey, icon }) => ({ href, label: t(labelKey), icon })),
   })).filter((s) => s.items.length > 0);
   return (
     <div className="flex min-h-screen flex-1">

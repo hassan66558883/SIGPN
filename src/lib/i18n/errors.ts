@@ -199,6 +199,20 @@ const EXACT: Record<string, string> = {
   "All notifications marked as read.": "Toutes les notifications ont été marquées comme lues.",
   "Request body must be valid JSON.": "Le corps de la requête doit être un JSON valide.",
   "Validation failed.": "Échec de la validation.",
+  // evidence & chain of custody
+  "The uploaded file is empty.": "Le fichier téléversé est vide.",
+  "You can only manage storage locations inside your scope.": "Vous ne pouvez gérer les lieux de stockage que dans votre périmètre.",
+  "A file is required.": "Un fichier est requis.",
+  // biometric
+  "Selected person is invalid.": "La personne sélectionnée est invalide.",
+  "Select the person to verify against.": "Sélectionnez la personne à vérifier.",
+  "Upload a fingerprint scan.": "Téléversez un scan d'empreinte.",
+  "Upload a fingerprint scan to search with.": "Téléversez un scan d'empreinte pour la recherche.",
+  "Upload a face photograph.": "Téléversez une photographie du visage.",
+  "Upload a photograph to search with.": "Téléversez une photographie pour la recherche.",
+  "Upload a voice sample.": "Téléversez un échantillon vocal.",
+  "Upload an audio recording to search with.": "Téléversez un enregistrement audio pour la recherche.",
+  "Upload a vehicle/plate image.": "Téléversez une image du véhicule ou de la plaque.",
 };
 
 // Password-policy fragments (joined with "; " inside the composite message)
@@ -245,6 +259,16 @@ const PATTERNS: [RegExp, (m: RegExpMatchArray) => string][] = [
   [/^Vehicle is not available \(status (\w+)\)\.$/, (m) => `Le véhicule n'est pas disponible (statut ${m[1]}).`],
   [/^Zone code (\w+) already exists for this station\.$/, (m) => `Le code de zone ${m[1]} existe déjà pour ce commissariat.`],
   [/^(\w+) not found or outside your scope\.$/, (m) => `${m[1] === "User" ? "Utilisateur" : m[1] === "Role" ? "Rôle" : m[1] === "Person" ? "Personne" : m[1] === "Complaint" ? "Plainte" : m[1] === "Case" ? "Affaire" : m[1] === "Officer" ? "Agent" : m[1] === "Incident" ? "Incident" : m[1] === "Patrol" ? "Patrouille" : m[1] === "Zone" ? "Zone" : m[1]} introuvable ou hors de votre périmètre.`],
+  [/^The file exceeds the maximum upload size \((\d+) MB\)\.$/, (m) => `Le fichier dépasse la taille maximale autorisée (${m[1]} Mo).`],
+  [/^Evidence in status (\w+) can no longer be transferred\.$/, (m) => `Une pièce au statut ${m[1]} ne peut plus être transférée.`],
+  [/^Storage location code (.+) already exists\.$/, (m) => `Le code de lieu de stockage ${m[1]} existe déjà.`],
+  [/^(.+) has no registered fingerprint to verify against\.$/, (m) => `${m[1]} n'a pas d'empreinte enregistrée pour la vérification.`],
+  [/^(.+) has no registered face template to verify against\.$/, (m) => `${m[1]} n'a pas de gabarit facial enregistré pour la vérification.`],
+  [/^(.+) has no registered voice template to verify against\.$/, (m) => `${m[1]} n'a pas de gabarit vocal enregistré pour la vérification.`],
+  [/^Fingerprint provider "(.+)" is not integrated yet\.$/, (m) => `Le fournisseur d'empreintes « ${m[1]} » n'est pas encore intégré.`],
+  [/^Face recognition provider "(.+)" is not integrated yet\.$/, (m) => `Le fournisseur de reconnaissance faciale « ${m[1]} » n'est pas encore intégré.`],
+  [/^Voice recognition provider "(.+)" is not integrated yet\.$/, (m) => `Le fournisseur de reconnaissance vocale « ${m[1]} » n'est pas encore intégré.`],
+  [/^ANPR provider "(.+)" is not integrated yet\.$/, (m) => `Le fournisseur LAPI/ANPR « ${m[1]} » n'est pas encore intégré.`],
 ];
 
 export function translateMessage(message: string, locale: Locale): string {

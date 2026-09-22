@@ -17,6 +17,11 @@ export const SEQUENCES = {
   PATROL: { prefix: "PTL", width: 5 },
   OPERATION: { prefix: "OPS", width: 5 },
   GENERATED: { prefix: "GEN", width: 5 },
+  BIOMETRIC: { prefix: "BIO", width: 6 },
+  FINGERPRINT: { prefix: "FPR", width: 5 },
+  FACE: { prefix: "FCR", width: 5 },
+  VOICE: { prefix: "VCR", width: 5 },
+  LPR: { prefix: "LPD", width: 5 },
 } as const;
 export type SequenceKey = keyof typeof SEQUENCES;
 

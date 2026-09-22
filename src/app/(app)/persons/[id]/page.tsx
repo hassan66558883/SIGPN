@@ -4,8 +4,9 @@ import { notFound } from "next/navigation";
 import { requirePermission } from "@/server/auth/dal";
 import { getPerson } from "@/server/persons/service";
 import { prisma } from "@/server/db";
+import { personBiometricSummary } from "@/server/biometric/queries";
 import { NotFoundError } from "@/server/errors";
-import { Alert, Badge, Card, DL, EmptyState, PageHeader, Table } from "@/components/ui";
+import { Alert, Badge, ButtonLink, Card, DL, EmptyState, PageHeader, Table } from "@/components/ui";
 import { ActionButton } from "@/components/forms";
 import { removeIdentifierAction } from "@/server/persons/actions";
 import { CASE_STATUS, COMPLAINT_STATUS, GENDER, IDENTIFIER_TYPE, MARITAL_STATUS, PARTY_ROLE, PARTY_STATUS, RELATIONSHIP_TYPE, labelOf } from "@/lib/labels";
@@ -29,6 +30,8 @@ export default async function PersonPage({ params, searchParams }: PageProps<"/p
     throw e;
   }
   const canEdit = actor.permissions.has("persons:update") && !p.mergedIntoId;
+  const canViewBiometric = actor.permissions.has("biometric:history_view");
+  const biometric = canViewBiometric ? await personBiometricSummary(p.id) : null;
   const regions = canEdit ? await prisma.region.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : [];
   const mergedInto = p.mergedIntoId ? await prisma.person.findUnique({ where: { id: p.mergedIntoId }, select: { id: true, number: true, firstName: true, lastName: true } }) : null;
   // Only involvements the actor may see (territorial scope; sensitive cases only with the permission).
@@ -239,6 +242,28 @@ export default async function PersonPage({ params, searchParams }: PageProps<"/p
               </details>
             ) : null}
           </Card>
+          {biometric ? (
+            <Card title={t("person.biometric")} actions={<ButtonLink href={`/biometric?tab=history&personId=${p.id}`} size="xs" variant="ghost">{t("person.biometricHistory")}</ButtonLink>}>
+              <div className="flex flex-wrap gap-1.5">
+                <Badge tone={biometric.fingerprintRegistered ? "success" : "neutral"}>{t("biometric.tab.fingerprint")}: {biometric.fingerprintRegistered ? t("person.registered") : t("person.notRegistered")}</Badge>
+                <Badge tone={biometric.faceRegistered ? "success" : "neutral"}>{t("biometric.tab.face")}: {biometric.faceRegistered ? t("person.registered") : t("person.notRegistered")}</Badge>
+                <Badge tone={biometric.voiceRegistered ? "success" : "neutral"}>{t("biometric.tab.voice")}: {biometric.voiceRegistered ? t("person.registered") : t("person.notRegistered")}</Badge>
+              </div>
+              {biometric.vehicles.length ? (
+                <div className="mt-3">
+                  <p className="text-xs font-bold uppercase tracking-wide text-navy">{t("person.associatedVehicles")}</p>
+                  <ul className="mt-1 text-xs text-slate">
+                    {biometric.vehicles.map((v) => (
+                      <li key={v.id} className="font-mono">
+                        {v.plateNumber} {v.vehicleMake ? `· ${v.vehicleMake} ${v.vehicleModel ?? ""}` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              <p className="mt-3 text-xs text-slate">{t("person.biometricSearchAppearances", { n: biometric.searchAppearances })}</p>
+            </Card>
+          ) : null}
           {actor.permissions.has("persons:merge") && !p.mergedIntoId ? (
             <Card title={t("person.merge")}>
               <p className="mb-2 text-xs text-slate">
