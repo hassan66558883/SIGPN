@@ -22,6 +22,11 @@ export const SEQUENCES = {
   FACE: { prefix: "FCR", width: 5 },
   VOICE: { prefix: "VCR", width: 5 },
   LPR: { prefix: "LPD", width: 5 },
+  TRAFFIC_CONTROL: { prefix: "CTL", width: 5 },
+  TRAFFIC_TICKET: { prefix: "PV", width: 6 },
+  TRAFFIC_FINE: { prefix: "AMD", width: 6 },
+  TRAFFIC_PAYMENT: { prefix: "PAY", width: 6 },
+  TRAFFIC_RECEIPT: { prefix: "REC", width: 6 },
 } as const;
 export type SequenceKey = keyof typeof SEQUENCES;
 

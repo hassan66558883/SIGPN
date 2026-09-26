@@ -13,6 +13,7 @@ import { seedOperations } from "@/server/demo/seed-operations";
 import { seedFieldOps } from "@/server/demo/seed-field-ops";
 import { seedBiometric } from "@/server/demo/seed-biometric";
 import { seedWanted } from "@/server/demo/seed-wanted";
+import { syncTrafficCatalog } from "@/server/traffic/catalog";
 
 export async function syncPermissionCatalog() {
   for (const [code, description] of PERMISSION_CATALOG) {
@@ -79,6 +80,7 @@ export async function seedDemoAccounts() {
 export async function seedFoundation() {
   const permissions = await syncPermissionCatalog();
   const roles = await syncSystemRoles();
+  const trafficCatalog = await syncTrafficCatalog();
   await seedOrganization();
   const territory = await seedTerritory();
   const users = await seedDemoAccounts();
@@ -86,6 +88,6 @@ export async function seedFoundation() {
   const field = await seedFieldOps();
   const biometric = await seedBiometric();
   const wanted = await seedWanted();
-  await prisma.auditLog.create({ data: { actorLabel: "system", action: "SEED_FOUNDATION", module: "system", summary: `Seed: ${permissions} permissions, ${roles} roles, ${territory.provinces} provinces, ${territory.stations} demo structures, ${territory.officers} new demo officers, ${users} new demo users, ${ops.persons} persons, ${ops.complaints} complaints, ${ops.cases} cases, ${field.zones} zones, ${field.vehicles} vehicles, ${field.patrols} patrols, ${field.incidents} incidents, ${biometric.fingerprintEnrolled} fingerprints, ${biometric.faceEnrolled} face templates, ${biometric.searches} biometric searches, ${biometric.plates} plate detections, ${wanted.created} wanted notices, ${wanted.warrants} warrants` } });
-  return { permissions, roles, users, territory, ops, field, biometric, wanted };
+  await prisma.auditLog.create({ data: { actorLabel: "system", action: "SEED_FOUNDATION", module: "system", summary: `Seed: ${permissions} permissions, ${roles} roles, ${territory.provinces} provinces, ${territory.stations} demo structures, ${territory.officers} new demo officers, ${users} new demo users, ${ops.persons} persons, ${ops.complaints} complaints, ${ops.cases} cases, ${field.zones} zones, ${field.vehicles} vehicles, ${field.patrols} patrols, ${field.incidents} incidents, ${biometric.fingerprintEnrolled} fingerprints, ${biometric.faceEnrolled} face templates, ${biometric.searches} biometric searches, ${biometric.plates} plate detections, ${wanted.created} wanted notices, ${wanted.warrants} warrants, ${trafficCatalog.violations} traffic offences imported` } });
+  return { permissions, roles, users, territory, ops, field, biometric, wanted, trafficCatalog };
 }
