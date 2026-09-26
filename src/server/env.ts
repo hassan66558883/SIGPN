@@ -19,7 +19,7 @@ export const env = {
     return process.env.NODE_ENV === "production";
   },
   get appName() {
-    return optional("APP_NAME", "Police Management System");
+    return optional("APP_NAME", "SIGPN-T");
   },
   get appUrl() {
     return optional("APP_URL", "http://localhost:3300").replace(/\/+$/, "");

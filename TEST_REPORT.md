@@ -1,4 +1,4 @@
-# TEST REPORT — Police Management System
+# TEST REPORT — SIGPN-T — Système Intégré de Gestion Numérique de la Police Nationale du Tchad
 
 _Cumulative. Only tests that were actually executed are recorded. Per-phase detail lives in `docs/phases/PHASE_XX_REPORT.md`._
 

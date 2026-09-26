@@ -30,7 +30,7 @@ services:
         condition: service_healthy
     environment:
       NODE_ENV: production
-      APP_NAME: ${APP_NAME:-Police Management System}
+      APP_NAME: ${APP_NAME:-SIGPN-T}
       APP_URL: ${APP_URL:?set APP_URL}
       DATABASE_URL: postgresql://${POSTGRES_USER:-pms_app}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-pms}?schema=public
       AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET}

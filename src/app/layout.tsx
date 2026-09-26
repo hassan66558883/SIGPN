@@ -5,8 +5,8 @@ import { getMessages, isRtl } from "@/lib/i18n";
 import { I18nProvider } from "@/components/i18n-provider";
 
 export const metadata: Metadata = {
-  title: { default: "TPMS", template: "%s · TPMS" },
-  description: "Police Management System — integrated complaints, cases, investigations, evidence, arrests, warrants, operations, personnel and fleet management.",
+  title: { default: "SIGPN-T", template: "%s · SIGPN-T" },
+  description: "SIGPN-T — Système Intégré de Gestion Numérique de la Police Nationale du Tchad : plaintes, affaires, enquêtes, pièces à conviction, arrestations, mandats, opérations, personnel, parc et infractions routières.",
   robots: { index: false, follow: false },
   icons: { icon: "/icon.svg" },
 };

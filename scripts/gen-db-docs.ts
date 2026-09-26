@@ -84,7 +84,7 @@ function describe(f: Field): string {
 
 const migrations = readdirSync(path.resolve("prisma/migrations")).filter((d) => /^\d{14}_/.test(d));
 
-let out = `# Police Management System — Database Documentation\n\n`;
+let out = `# SIGPN-T — Documentation de la base de données\n\n`;
 out += `_Generated from \`prisma/schema.prisma\` on ${new Date().toISOString().slice(0, 10)} by \`scripts/gen-db-docs.ts\`. Do not edit by hand._\n\n`;
 out += `- Engine: PostgreSQL 18 · ORM: Prisma 7 (pg adapter)\n- Tables: **${models.length}** · Enums: **${enums.length}**\n- Migrations: ${migrations.map((m) => `\`${m}\``).join(", ")}\n\n`;
 out += `## Integrity rules\n\n- All ids are \`cuid\` strings; business numbers (\`CASE-2026-00001\`) are unique and generated atomically from \`DocumentSequence\`.\n- Critical records use soft delete (\`deletedAt\`) or status transitions; no hard deletes.\n- \`AuditLog\` and \`CustodyEvent\` are append-only (PostgreSQL trigger \`pms_forbid_mutation\`).\n- \`CustodyEvent.hash\` = SHA-256(prevHash + canonical row) — the chain is verifiable.\n- Required relations use RESTRICT on delete (Prisma default); only per-user security rows cascade.\n\n`;

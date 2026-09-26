@@ -2,7 +2,7 @@
   "name": "police-management-system",
   "version": "0.1.0",
   "private": true,
-  "description": "Police Management System (PMS) — integrated, secure enterprise application for complaints, cases, investigations, evidence, arrests, warrants, operations, personnel and fleet.",
+  "description": "SIGPN-T — Système Intégré de Gestion Numérique de la Police Nationale du Tchad : application intégrée et sécurisée (plaintes, affaires, enquêtes, pièces à conviction, arrestations, mandats, opérations, personnel, parc, infractions routières et amendes).",
   "scripts": {
     "dev": "next dev -p 3300",
     "build": "next build",

@@ -42,7 +42,7 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
 }
 
 export async function seedOrganization() {
-  return prisma.organization.upsert({ where: { code: "NPS" }, update: {}, create: { code: "NPS", name: "Police Nationale du Tchad", shortName: "PNT", description: "Organisation nationale (démonstration TPMS)." } });
+  return prisma.organization.upsert({ where: { code: "NPS" }, update: {}, create: { code: "NPS", name: "Police Nationale du Tchad", shortName: "PNT", description: "Organisation nationale (démonstration SIGPN-T)." } });
 }
 
 /** Creates missing demo accounts and (re)places every demo account in the territorial hierarchy. */

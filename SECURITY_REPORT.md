@@ -1,4 +1,4 @@
-# SECURITY REPORT — Police Management System
+# SECURITY REPORT — SIGPN-T — Système Intégré de Gestion Numérique de la Police Nationale du Tchad
 
 _Cumulative security posture and test results. Critical/high findings block phases until fixed._
 

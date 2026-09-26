@@ -1,4 +1,4 @@
-# API DOCUMENTATION — Police Management System
+# API DOCUMENTATION — SIGPN-T — Système Intégré de Gestion Numérique de la Police Nationale du Tchad
 
 Base URL: `/api/v1` · Format: JSON · Auth: session cookie **or** `Authorization: Bearer pms_<key>`.
 

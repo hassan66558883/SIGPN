@@ -1,4 +1,4 @@
-# PROJECT STATUS — TPMS (Tchad Police Management System)
+# PROJECT STATUS — SIGPN-T — Système Intégré de Gestion Numérique de la Police Nationale du Tchad (formerly TPMS)
 
 _Last updated: 2026-09-12 (end of Phase 3)_
 

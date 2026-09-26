@@ -3,10 +3,10 @@ import type { fr } from "./fr";
 /** Arabic — second language (RTL). Must declare exactly the keys of the French reference dictionary. */
 export const ar: Record<keyof typeof fr, string> = {
   // ---- application / common ----
-  "app.name": "نظام إدارة الشرطة التشادية",
-  "app.short": "TPMS",
+  "app.name": "النظام المتكامل للإدارة الرقمية للشرطة الوطنية التشادية",
+  "app.short": "SIGPN-T",
   "app.tagline": "الشرطة الوطنية التشادية",
-  "app.footer": "TPMS · نظام إدارة الشرطة التشادية · v0.2.0",
+  "app.footer": "SIGPN-T · النظام المتكامل للإدارة الرقمية للشرطة الوطنية التشادية · v0.3.0",
   "app.sidebarFooter": "بيانات تجريبية وهمية · v0.1",
   "common.save": "حفظ",
   "common.saving": "جارٍ الحفظ…",
@@ -109,7 +109,7 @@ export const ar: Record<keyof typeof fr, string> = {
 
   // ---- login ----
   "login.title": "تسجيل الدخول",
-  "login.subtitle": "استخدم بيانات اعتماد TPMS الخاصة بك. تُسجَّل كل محاولة اتصال.",
+  "login.subtitle": "استخدم بيانات اعتماد SIGPN-T الخاصة بك. تُسجَّل كل محاولة اتصال.",
   "login.loggedOut": "تم تسجيل خروجك.",
   "login.resetDone": "تمت إعادة تعيين كلمة المرور. سجّل الدخول بكلمة المرور الجديدة.",
   "login.mfaAgain": "تتطلب جلستك عامل تحقق ثانٍ صالح. يرجى تسجيل الدخول من جديد.",

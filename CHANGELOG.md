@@ -1,6 +1,6 @@
 # CHANGELOG
 
-All notable changes to the Police Management System. Dates are ISO (UTC+1, N'Djamena).
+All notable changes to SIGPN-T (Système Intégré de Gestion Numérique de la Police Nationale du Tchad, formerly TPMS). Dates are ISO (UTC+1, N'Djamena).
 
 ## [0.4.0] — 2026-09-12 — Phase 3: Personnel (positions, trainings), Persons, Complaints, Cases
 

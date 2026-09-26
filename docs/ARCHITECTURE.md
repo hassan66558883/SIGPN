@@ -1,4 +1,4 @@
-# Police Management System — Architecture
+# SIGPN-T — Système Intégré de Gestion Numérique de la Police Nationale du Tchad — Architecture
 
 Version 0.1 · Phase 0 deliverable · 2026-09-11
 
@@ -237,7 +237,7 @@ Environments: **Development** (Windows/macOS/Linux, embedded PostgreSQL, `npm ru
 
 See `.env.example`. Required in production: `DATABASE_URL`, `AUTH_SECRET`, `DATA_ENCRYPTION_KEY`, `APP_URL`. Optional tuning: session, lockout, password policy, upload limits, backup dir, STT provider. `TRUST_PROXY=1` makes the app trust `X-Forwarded-For` from Nginx.
 
-## 12b. Territorial hierarchy (TPMS)
+## 12b. Territorial hierarchy (SIGPN-T)
 
 ```text
 Tchad (Organization)

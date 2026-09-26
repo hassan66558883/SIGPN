@@ -11,8 +11,9 @@ export default async function AuthLayout({ children }: LayoutProps<"/">) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/icon.svg" alt="" className="h-12 w-12" />
             <div>
-              <p className="text-lg font-bold leading-tight">{t("app.name")}</p>
-              <p className="text-xs uppercase tracking-widest text-gold">{t("auth.platform")}</p>
+              <p className="text-xl font-bold leading-tight">{t("app.short")}</p>
+              <p className="max-w-xs text-[11px] font-semibold uppercase leading-snug tracking-wide text-white/85">{t("app.name")}</p>
+              <p className="mt-1 text-[10px] uppercase tracking-widest text-gold">{t("auth.platform")}</p>
             </div>
           </div>
           <LanguageSwitcher current={locale} dark label={t("common.language")} />

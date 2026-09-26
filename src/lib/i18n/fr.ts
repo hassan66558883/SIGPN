@@ -4,10 +4,10 @@
  */
 export const fr = {
   // ---- application / common ----
-  "app.name": "Tchad Police Management System",
-  "app.short": "TPMS",
+  "app.name": "Système Intégré de Gestion Numérique de la Police Nationale du Tchad",
+  "app.short": "SIGPN-T",
   "app.tagline": "Police nationale du Tchad",
-  "app.footer": "TPMS · Tchad Police Management System · v0.2.0",
+  "app.footer": "SIGPN-T · Système Intégré de Gestion Numérique de la Police Nationale du Tchad · v0.3.0",
   "app.sidebarFooter": "Données fictives de démonstration · v0.1",
   "common.save": "Enregistrer",
   "common.saving": "Enregistrement…",
@@ -110,7 +110,7 @@ export const fr = {
 
   // ---- login ----
   "login.title": "Connexion",
-  "login.subtitle": "Utilisez vos identifiants TPMS. Chaque tentative de connexion est enregistrée.",
+  "login.subtitle": "Utilisez vos identifiants SIGPN-T. Chaque tentative de connexion est enregistrée.",
   "login.loggedOut": "Vous avez été déconnecté.",
   "login.resetDone": "Votre mot de passe a été réinitialisé. Connectez-vous avec le nouveau mot de passe.",
   "login.mfaAgain": "Votre session exige un second facteur validé. Veuillez vous reconnecter.",

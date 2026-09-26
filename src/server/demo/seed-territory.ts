@@ -120,7 +120,7 @@ function rng(seed: number) {
 export async function seedTerritory() {
   const org = await prisma.organization.findFirst({ where: { isActive: true }, orderBy: { createdAt: "asc" } });
   if (!org) throw new Error("organization missing (run foundation seed first)");
-  await prisma.organization.update({ where: { id: org.id }, data: { name: "Police Nationale du Tchad", shortName: "PNT", description: "Organisation nationale (démonstration TPMS). Le référentiel des provinces est officiel ; les structures policières sont fictives." } });
+  await prisma.organization.update({ where: { id: org.id }, data: { name: "Police Nationale du Tchad", shortName: "PNT", description: "Organisation nationale (démonstration SIGPN-T). Le référentiel des provinces est officiel ; les structures policières sont fictives." } });
 
   // Legacy fictional regions from the Phase 1 seed become real provinces (ids preserved so users stay attached).
   const legacy: Record<string, string> = { CEN: "NDJ", NOR: "LOC" };

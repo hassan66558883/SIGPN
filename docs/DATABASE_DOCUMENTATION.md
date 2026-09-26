@@ -1,4 +1,4 @@
-# Police Management System — Database Documentation
+# SIGPN-T — Documentation de la base de données
 
 _Generated from `prisma/schema.prisma` on 2026-09-12 by `scripts/gen-db-docs.ts`. Do not edit by hand._
 
