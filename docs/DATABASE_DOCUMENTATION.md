@@ -1,10 +1,10 @@
 # SIGPN-T — Documentation de la base de données
 
-_Generated from `prisma/schema.prisma` on 2026-09-12 by `scripts/gen-db-docs.ts`. Do not edit by hand._
+_Generated from `prisma/schema.prisma` on 2026-09-26 by `scripts/gen-db-docs.ts`. Do not edit by hand._
 
 - Engine: PostgreSQL 18 · ORM: Prisma 7 (pg adapter)
-- Tables: **69** · Enums: **61**
-- Migrations: `20260911165632_init`, `20260911165825_immutability_triggers`, `20260912102414_national_territory`, `20260912161408_personnel_positions_trainings_person_station`
+- Tables: **90** · Enums: **77**
+- Migrations: `20260911165632_init`, `20260911165825_immutability_triggers`, `20260912102414_national_territory`, `20260912161408_personnel_positions_trainings_person_station`, `20260922124549_biometric_forensic_identification`, `20260922150000_wanted_persons`, `20260922150500_wanted_persons_station_scope`, `20260926140000_traffic_offences_fines`, `20260926150000_traffic_control_links`
 
 ## Integrity rules
 
@@ -155,6 +155,8 @@ Constraints/indexes: `@@id([roleId, permissionId])`
 | detentionLogs | DetentionLog[] | 1→N relation |
 | wantedIssued | WantedPerson[] | 1→N relation |
 | wantedApproved | WantedPerson[] | 1→N relation |
+| wantedSightingsLogged | WantedSighting[] | 1→N relation |
+| wantedVehiclesAdded | WantedVehicle[] | 1→N relation |
 | incidentsReported | Incident[] | 1→N relation |
 | patrolsCreated | Patrol[] | 1→N relation |
 | operationsCreated | Operation[] | 1→N relation |
@@ -167,6 +169,22 @@ Constraints/indexes: `@@id([roleId, permissionId])`
 | trainingsRecorded | Training[] | 1→N relation |
 | maintenanceRecorded | MaintenanceRecord[] | 1→N relation |
 | fuelLogs | FuelLog[] | 1→N relation |
+| fingerprintsCaptured | FingerprintRecord[] | 1→N relation |
+| facesCaptured | FaceRecord[] | 1→N relation |
+| voicesCaptured | VoiceRecord[] | 1→N relation |
+| plateDetectionsLogged | LicensePlateDetection[] | 1→N relation |
+| biometricSearchesRun | BiometricSearch[] | 1→N relation |
+| biometricActionsTaken | BiometricSearch[] | 1→N relation |
+| trafficDriversCreated | TrafficDriver[] | 1→N relation |
+| trafficVehiclesCreated | TrafficVehicle[] | 1→N relation |
+| trafficControlsRecorded | TrafficControl[] | 1→N relation |
+| trafficTicketsIssued | TrafficTicket[] | 1→N relation |
+| trafficTicketsCancelled | TrafficTicket[] | 1→N relation |
+| trafficFinesIssued | TrafficFine[] | 1→N relation |
+| trafficPaymentsReceived | TrafficPayment[] | 1→N relation |
+| trafficPaymentsVoided | TrafficPayment[] | 1→N relation |
+| trafficReceiptsIssued | TrafficReceipt[] | 1→N relation |
+| trafficEvidenceUploaded | TrafficEvidence[] | 1→N relation |
 
 Constraints/indexes: `@@index([roleId])`, `@@index([stationId])`, `@@index([regionId])`, `@@index([status])`, `@@index([lastName, firstName])`
 
@@ -306,6 +324,10 @@ Province (kept as table "Region" for backward compatibility; presented as "Provi
 | cases | Case[] | 1→N relation |
 | incidents | Incident[] | 1→N relation |
 | operations | Operation[] | 1→N relation |
+| wantedPersons | WantedPerson[] | 1→N relation |
+| trafficControls | TrafficControl[] | 1→N relation |
+| trafficTickets | TrafficTicket[] | 1→N relation |
+| trafficFines | TrafficFine[] | 1→N relation |
 
 ### AdminDepartment
 
@@ -420,6 +442,11 @@ Police structure: commissariat, poste, unité, brigade, direction. Posts and uni
 | officerAssignments | OfficerAssignment[] | 1→N relation |
 | documents | Document[] | 1→N relation |
 | persons | Person[] | 1→N relation |
+| wantedPersons | WantedPerson[] | 1→N relation |
+| trafficControls | TrafficControl[] | 1→N relation |
+| trafficTickets | TrafficTicket[] | 1→N relation |
+| trafficFines | TrafficFine[] | 1→N relation |
+| trafficPayments | TrafficPayment[] | 1→N relation |
 
 Constraints/indexes: `@@index([regionId])`, `@@index([adminDepartmentId])`, `@@index([communeId])`, `@@index([parentId])`, `@@index([status])`
 
@@ -620,6 +647,17 @@ Constraints/indexes: `@@index([officerId, startDate])`, `@@index([status])`
 | detentions | Detention[] | 1→N relation |
 | wanted | WantedPerson[] | 1→N relation |
 | incidentPersons | IncidentPerson[] | 1→N relation |
+| fingerprintRecords | FingerprintRecord[] | 1→N relation |
+| faceRecords | FaceRecord[] | 1→N relation |
+| voiceRecords | VoiceRecord[] | 1→N relation |
+| plateDetections | LicensePlateDetection[] | 1→N relation |
+| biometricMatches | BiometricMatch[] | 1→N relation |
+| biometricTopMatches | BiometricSearch[] | 1→N relation |
+| trafficDriver | TrafficDriver? | nullable, FK → TrafficDriver |
+| trafficVehiclesOwned | TrafficVehicle[] | 1→N relation |
+| trafficControlsAsDriver | TrafficControl[] | 1→N relation |
+| trafficTicketsAsDriver | TrafficTicket[] | 1→N relation |
+| trafficFinesAsDriver | TrafficFine[] | 1→N relation |
 
 Constraints/indexes: `@@index([lastName, firstName])`, `@@index([phone])`, `@@index([dateOfBirth])`, `@@index([regionId])`, `@@index([stationId])`
 
@@ -675,12 +713,20 @@ Constraints/indexes: `@@unique([fromPersonId, toPersonId, type])`
 | person | Person | FK → Person |
 | caseId | String? | nullable, FK → String |
 | case | Case? | nullable, FK → Case |
+| regionId | String | FK → String |
+| region | Region | FK → Region |
+| stationId | String | FK → String |
+| station | Station | FK → Station |
 | offense | String | FK → String |
 | reason | String | FK → String |
 | dangerLevel | DangerLevel | enum, default MEDIUM |
 | status | WantedStatus | enum, default DRAFT |
 | lastSeenLocation | String? | nullable, FK → String |
 | lastSeenAt | DateTime? | nullable |
+| warrantId | String? | nullable, FK → String |
+| warrant | Warrant? | nullable, FK → Warrant |
+| mainPhotoDocumentId | String? | unique, nullable, FK → String |
+| mainPhoto | Document? | nullable, FK → Document |
 | issuedById | String | FK → String |
 | issuedBy | User | FK → User |
 | approvedById | String? | nullable, FK → String |
@@ -692,8 +738,43 @@ Constraints/indexes: `@@unique([fromPersonId, toPersonId, type])`
 | closureNotes | String? | nullable, FK → String |
 | createdAt | DateTime | default now( |
 | updatedAt | DateTime | auto-updated |
+| sightings | WantedSighting[] | 1→N relation |
+| vehicles | WantedVehicle[] | 1→N relation |
+| photos | Document[] | 1→N relation |
 
-Constraints/indexes: `@@index([status])`, `@@index([personId])`
+Constraints/indexes: `@@index([status])`, `@@index([personId])`, `@@index([caseId])`, `@@index([warrantId])`, `@@index([stationId, status])`, `@@index([regionId])`
+
+### WantedSighting
+
+Location-sighting log (spec: location + date/time + source + officer + notes, latest cached on WantedPerson.lastSeenLocation/lastSeenAt for quick display).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| wantedPersonId | String | FK → String |
+| wantedPerson | WantedPerson | FK → WantedPerson |
+| location | String | FK → String |
+| occurredAt | DateTime |  |
+| source | String? | nullable, FK → String |
+| officerId | String | FK → String |
+| officer | User | FK → User |
+| notes | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+
+Constraints/indexes: `@@index([wantedPersonId, occurredAt])`
+
+### String?
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| color | String? | nullable, FK → String |
+| year | Int? | nullable |
+| notes | String? | nullable, FK → String |
+| addedById | String | FK → String |
+| addedBy | User | FK → User |
+| createdAt | DateTime | default now( |
+
+Constraints/indexes: `@@index([wantedPersonId])`
 
 
 ## 4. COMPLAINTS
@@ -791,6 +872,9 @@ Constraints/indexes: `@@index([status])`, `@@index([stationId, status])`, `@@ind
 | incidents | Incident[] | 1→N relation |
 | operations | Operation[] | 1→N relation |
 | documents | Document[] | 1→N relation |
+| biometricSearches | BiometricSearch[] | 1→N relation |
+| licensePlateDetections | LicensePlateDetection[] | 1→N relation |
+| trafficControls | TrafficControl[] | 1→N relation |
 
 Constraints/indexes: `@@index([status])`, `@@index([stationId, status])`, `@@index([regionId])`, `@@index([leadId])`, `@@index([category])`, `@@index([reportedAt])`
 
@@ -1083,6 +1167,10 @@ Constraints/indexes: `@@index([interviewId])`, `@@index([statementId])`
 | updatedAt | DateTime | auto-updated |
 | custody | CustodyEvent[] | 1→N relation |
 | documents | Document[] | 1→N relation |
+| fingerprintRecords | FingerprintRecord[] | 1→N relation |
+| faceRecords | FaceRecord[] | 1→N relation |
+| voiceRecords | VoiceRecord[] | 1→N relation |
+| licensePlateDetections | LicensePlateDetection[] | 1→N relation |
 
 Constraints/indexes: `@@index([caseId])`, `@@index([status])`, `@@index([currentCustodianId])`
 
@@ -1156,6 +1244,7 @@ Constraints/indexes: `@@unique([evidenceId, seq])`, `@@index([evidenceId, occurr
 | updatedAt | DateTime | auto-updated |
 | arrests | Arrest[] | 1→N relation |
 | documents | Document[] | 1→N relation |
+| wantedPersons | WantedPerson[] | 1→N relation |
 
 Constraints/indexes: `@@index([status])`, `@@index([expiresAt])`, `@@index([personId])`, `@@index([caseId])`
 
@@ -1335,6 +1424,7 @@ Constraints/indexes: `@@id([patrolId, officerId])`
 | officers | IncidentOfficer[] | 1→N relation |
 | persons | IncidentPerson[] | 1→N relation |
 | documents | Document[] | 1→N relation |
+| trafficControls | TrafficControl[] | 1→N relation |
 
 Constraints/indexes: `@@index([stationId, status])`, `@@index([occurredAt])`, `@@index([severity])`
 
@@ -1562,6 +1652,8 @@ Constraints/indexes: `@@index([vehicleId, filledAt])`
 | operation | Operation? | nullable, FK → Operation |
 | vehicleId | String? | nullable, FK → String |
 | vehicle | Vehicle? | nullable |
+| wantedPersonId | String? | nullable, FK → String |
+| wantedPerson | WantedPerson? | nullable, FK → WantedPerson |
 | isArchived | Boolean | default false |
 | createdAt | DateTime | default now( |
 | updatedAt | DateTime | auto-updated |
@@ -1569,6 +1661,10 @@ Constraints/indexes: `@@index([vehicleId, filledAt])`
 | versions | DocumentVersion[] | 1→N relation |
 | transcript | Transcript? | nullable, FK → Transcript |
 | generated | GeneratedReport? | nullable, FK → GeneratedReport |
+| mainPhotoOfWanted | WantedPerson? | nullable, FK → WantedPerson |
+| trafficDriverPhoto | TrafficDriver? | nullable, FK → TrafficDriver |
+| trafficEvidence | TrafficEvidence? | nullable, FK → TrafficEvidence |
+| trafficVehicleDocument | TrafficVehicleDocument? | nullable, FK → TrafficVehicleDocument |
 
 Constraints/indexes: `@@index([entityType, entityId])`, `@@index([caseId])`
 
@@ -1692,6 +1788,484 @@ Constraints/indexes: `@@index([at])`, `@@index([actorId, at])`, `@@index([entity
 | triggeredBy | User? | nullable, FK → User |
 
 
+## 13. BIOMETRIC & FORENSIC IDENTIFICATION
+
+### FingerprintRecord
+
+Encrypted biometric template (never a raw image). The optional source capture, if retained, is a normal Evidence row (hash, chain of custody) — biometric tables never hold file bytes themselves.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| personId | String | FK → String |
+| person | Person | FK → Person |
+| position | FingerPosition | enum, default UNKNOWN |
+| templateSecretEnc | String | FK → String |
+| quality | Int? | nullable |
+| device | String? | nullable, FK → String |
+| sourceEvidenceId | String? | nullable, FK → String |
+| sourceEvidence | Evidence? | nullable, FK → Evidence |
+| capturedById | String | FK → String |
+| capturedBy | User | FK → User |
+| capturedAt | DateTime | default now( |
+| isActive | Boolean | default true |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+
+Constraints/indexes: `@@index([personId])`
+
+### FaceRecord
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| personId | String | FK → String |
+| person | Person | FK → Person |
+| templateSecretEnc | String | FK → String |
+| quality | Int? | nullable |
+| device | String? | nullable, FK → String |
+| sourceEvidenceId | String? | nullable, FK → String |
+| sourceEvidence | Evidence? | nullable, FK → Evidence |
+| capturedById | String | FK → String |
+| capturedBy | User | FK → User |
+| capturedAt | DateTime | default now( |
+| isActive | Boolean | default true |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+
+Constraints/indexes: `@@index([personId])`
+
+### VoiceRecord
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| personId | String | FK → String |
+| person | Person | FK → Person |
+| templateSecretEnc | String | FK → String |
+| durationSeconds | Int? | nullable |
+| device | String? | nullable, FK → String |
+| sourceEvidenceId | String? | nullable, FK → String |
+| sourceEvidence | Evidence? | nullable, FK → Evidence |
+| capturedById | String | FK → String |
+| capturedBy | User | FK → User |
+| capturedAt | DateTime | default now( |
+| isActive | Boolean | default true |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+
+Constraints/indexes: `@@index([personId])`
+
+### LicensePlateDetection
+
+One row per plate-read event. A plate's "vehicle profile" is derived by querying all rows for the same plateNumber (most recent first) — deliberately not a master vehicle table (see Vehicle, which is the internal fleet, not a civilian/suspect vehicle registry).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| plateNumber | String | FK → String |
+| vehicleMake | String? | nullable, FK → String |
+| vehicleModel | String? | nullable, FK → String |
+| vehicleColor | String? | nullable, FK → String |
+| cameraId | String? | nullable, FK → String |
+| locationText | String? | nullable, FK → String |
+| latitude | Float? | nullable |
+| longitude | Float? | nullable |
+| detectedAt | DateTime |  |
+| caseId | String? | nullable, FK → String |
+| case | Case? | nullable, FK → Case |
+| personId | String? | nullable, FK → String |
+| person | Person? | nullable, FK → Person |
+| sourceEvidenceId | String? | nullable, FK → String |
+| sourceEvidence | Evidence? | nullable, FK → Evidence |
+| status | LprStatus | enum, default NEW |
+| recordedById | String | FK → String |
+| recordedBy | User | FK → User |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+
+Constraints/indexes: `@@index([plateNumber])`, `@@index([caseId])`, `@@index([detectedAt])`
+
+### BiometricSearch
+
+The mandatory audit/history record for every biometric search (spec: no anonymous search, case + reason + officer + type required). Core fields are write-once; only recordBiometricAction() may later touch action/actionNotes/actionById/actionAt. No delete path exists anywhere in the app.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| type | BiometricType | enum |
+| mode | BiometricSearchMode | enum |
+| caseId | String | FK → String |
+| case | Case | FK → Case |
+| reason | String | FK → String |
+| officerId | String | FK → String |
+| officer | User | FK → User |
+| device | String? | nullable, FK → String |
+| location | String? | nullable, FK → String |
+| parameters | Json? | nullable |
+| resultCount | Int | default 0 |
+| result | BiometricSearchResult | enum, default NO_MATCH |
+| topMatchScore | Decimal? | nullable |
+| topMatchPersonId | String? | nullable, FK → String |
+| topMatchPerson | Person? | nullable, FK → Person |
+| action | BiometricAction | enum, default NONE |
+| actionNotes | String? | nullable, FK → String |
+| actionById | String? | nullable, FK → String |
+| actionBy | User? | nullable, FK → User |
+| actionAt | DateTime? | nullable |
+| isDemo | Boolean | default true |
+| ipAddress | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+| matches | BiometricMatch[] | 1→N relation |
+
+Constraints/indexes: `@@index([caseId])`, `@@index([type])`, `@@index([officerId])`, `@@index([createdAt])`
+
+### BiometricMatch
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| searchId | String | FK → String |
+| search | BiometricSearch | FK → BiometricSearch |
+| personId | String? | nullable, FK → String |
+| person | Person? | nullable, FK → Person |
+| score | Decimal |  |
+| sourceLabel | String | FK → String |
+| rank | Int |  |
+| createdAt | DateTime | default now( |
+
+Constraints/indexes: `@@unique([searchId, rank])`, `@@index([searchId])`
+
+
+## 14. TRAFFIC OFFENCES AND FINES (Gestion des infractions routières et des amendes)
+
+### TrafficViolationCategory
+
+The three parts of the official offence table: A road offences, B cycles & motorcycles, C moto-taxis.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| code | String | unique, FK → String |
+| name | String | FK → String |
+| sourceHeading | String? | nullable, FK → String |
+| sortOrder | Int |  |
+| createdAt | DateTime | default now( |
+| violations | TrafficViolation[] | 1→N relation |
+
+### TrafficLegalReference
+
+Legal text of an offence, copied verbatim from the source table (several offences may share one).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| reference | String | unique, FK → String |
+| createdAt | DateTime | default now( |
+| violations | TrafficViolation[] | 1→N relation |
+
+### TrafficViolation
+
+Offence catalogue imported verbatim from the official table (name, class, legal text, flat fine). `fineAmountFcfa` is null for a « Délit » (the source states « Interdiction d'arbitrer » instead of an amount).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| code | String | unique, FK → String |
+| categoryId | String | FK → String |
+| category | TrafficViolationCategory | FK → TrafficViolationCategory |
+| legalReferenceId | String | FK → String |
+| legalReference | TrafficLegalReference | FK → TrafficLegalReference |
+| name | String | FK → String |
+| offenceClass | TrafficOffenceClass | enum |
+| classText | String | FK → String |
+| fineAmountFcfa | Int? | nullable |
+| fineAmountText | String | FK → String |
+| isFineEligible | Boolean |  |
+| sourcePage | Int |  |
+| sourceOrder | Int | unique |
+| sourceNote | String? | nullable, FK → String |
+| isActive | Boolean | default true |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+| ticketOffences | TrafficTicketOffence[] | 1→N relation |
+
+Constraints/indexes: `@@index([categoryId])`, `@@index([offenceClass])`, `@@index([name])`
+
+### TrafficDriver
+
+Driver profile of a Person (identity, phone and address stay on Person; the CNI is a PersonIdentifier).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| personId | String | unique, FK → String |
+| person | Person | FK → Person |
+| licenseNumber | String? | unique, nullable, FK → String |
+| licenseCategory | String? | nullable, FK → String |
+| licenseIssuedAt | DateTime? | nullable |
+| licenseExpiresAt | DateTime? | nullable |
+| licenseIssuedBy | String? | nullable, FK → String |
+| photoDocumentId | String? | unique, nullable, FK → String |
+| photo | Document? | nullable, FK → Document |
+| notes | String? | nullable, FK → String |
+| createdById | String | FK → String |
+| createdBy | User | FK → User |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+| controls | TrafficControl[] | 1→N relation |
+
+### String?
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| color | String? | nullable, FK → String |
+| vehicleType | TrafficVehicleType | enum, default CAR |
+| year | Int? | nullable |
+| ownerPersonId | String? | nullable, FK → String |
+| owner | Person? | nullable, FK → Person |
+| chassisNumber | String? | unique, nullable, FK → String |
+| insuranceCompany | String? | nullable, FK → String |
+| insurancePolicyNumber | String? | nullable, FK → String |
+| insuranceExpiresAt | DateTime? | nullable |
+| technicalInspectionExpiresAt | DateTime? | nullable |
+| status | TrafficVehicleStatus | enum, default ACTIVE |
+| notes | String? | nullable, FK → String |
+| createdById | String | FK → String |
+| createdBy | User | FK → User |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+| documents | TrafficVehicleDocument[] | 1→N relation |
+| controls | TrafficControl[] | 1→N relation |
+
+Constraints/indexes: `@@index([ownerPersonId])`
+
+### TrafficVehicleDocument
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| vehicleId | String | FK → String |
+| vehicle | TrafficVehicle |  |
+| type | TrafficVehicleDocType | enum |
+| number | String? | nullable, FK → String |
+| issuedAt | DateTime? | nullable |
+| expiresAt | DateTime? | nullable |
+| documentId | String? | unique, nullable, FK → String |
+| document | Document? | nullable, FK → Document |
+| notes | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+
+Constraints/indexes: `@@index([vehicleId, type])`
+
+### TrafficControl
+
+A roadside control by an officer. May end without offence (COMPLIANT) or lead to one PV (ticket).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| controlledAt | DateTime |  |
+| location | String | FK → String |
+| latitude | Float? | nullable |
+| longitude | Float? | nullable |
+| stationId | String | FK → String |
+| station | Station | FK → Station |
+| regionId | String | FK → String |
+| region | Region | FK → Region |
+| officerId | String | FK → String |
+| officer | User | FK → User |
+| driverPersonId | String? | nullable, FK → String |
+| driverPerson | Person? | nullable, FK → Person |
+| driverId | String? | nullable, FK → String |
+| driver | TrafficDriver? | nullable, FK → TrafficDriver |
+| licenseNumber | String? | nullable, FK → String |
+| vehicleId | String? | nullable, FK → String |
+| vehicle | TrafficVehicle? | nullable |
+| plateNumber | String? | nullable, FK → String |
+| vehicleType | TrafficVehicleType | enum, default CAR |
+| vehicleMake | String? | nullable, FK → String |
+| vehicleColor | String? | nullable, FK → String |
+| outcome | TrafficControlOutcome | enum, default COMPLIANT |
+| observations | String? | nullable, FK → String |
+| caseId | String? | nullable, FK → String |
+| case | Case? | nullable, FK → Case |
+| incidentId | String? | nullable, FK → String |
+| incident | Incident? | nullable, FK → Incident |
+| isDemo | Boolean | default false |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+| ticket | TrafficTicket? | nullable, FK → TrafficTicket |
+| evidence | TrafficEvidence[] | 1→N relation |
+
+Constraints/indexes: `@@index([stationId, controlledAt])`, `@@index([regionId, controlledAt])`, `@@index([officerId, controlledAt])`, `@@index([controlledAt])`, `@@index([plateNumber])`, `@@index([driverPersonId])`
+
+### TrafficTicket
+
+Procès-verbal électronique. Offence lines are snapshots of the catalogue at issue time; `contentHash`/`signature` seal the content (tamper evidence) and `verificationToken` feeds the public QR check.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| verificationToken | String | unique, FK → String |
+| controlId | String | unique, FK → String |
+| control | TrafficControl | FK → TrafficControl |
+| status | TrafficTicketStatus | enum, default ISSUED |
+| issuedAt | DateTime | default now( |
+| stationId | String | FK → String |
+| station | Station | FK → Station |
+| regionId | String | FK → String |
+| region | Region | FK → Region |
+| issuedById | String | FK → String |
+| issuedBy | User | FK → User |
+| driverPersonId | String? | nullable, FK → String |
+| driverPerson | Person? | nullable, FK → Person |
+| plateNumber | String? | nullable, FK → String |
+| totalFineFcfa | Int |  |
+| hasNonSettleableOffence | Boolean | default false |
+| observations | String? | nullable, FK → String |
+| contentHash | String | FK → String |
+| signature | String | FK → String |
+| signedAt | DateTime | default now( |
+| cancelledAt | DateTime? | nullable |
+| cancelledById | String? | nullable, FK → String |
+| cancelledBy | User? | nullable, FK → User |
+| cancellationReason | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+| offences | TrafficTicketOffence[] | 1→N relation |
+| fine | TrafficFine? | nullable, FK → TrafficFine |
+
+Constraints/indexes: `@@index([stationId, issuedAt])`, `@@index([regionId, issuedAt])`, `@@index([issuedById, issuedAt])`, `@@index([plateNumber])`, `@@index([driverPersonId])`
+
+### TrafficTicketOffence
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| ticketId | String | FK → String |
+| ticket | TrafficTicket | FK → TrafficTicket |
+| violationId | String | FK → String |
+| violation | TrafficViolation | FK → TrafficViolation |
+| code | String | FK → String |
+| name | String | FK → String |
+| classText | String | FK → String |
+| legalReference | String | FK → String |
+| amountFcfa | Int? | nullable |
+| amountText | String | FK → String |
+| createdAt | DateTime | default now( |
+
+Constraints/indexes: `@@unique([ticketId, violationId])`, `@@index([violationId])`
+
+### TrafficFine
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| ticketId | String | unique, FK → String |
+| ticket | TrafficTicket | FK → TrafficTicket |
+| status | TrafficFineStatus | enum, default TO_PAY |
+| amountFcfa | Int |  |
+| amountPaidFcfa | Int | default 0 |
+| issuedAt | DateTime | default now( |
+| dueDate | DateTime? | nullable |
+| paidAt | DateTime? | nullable |
+| driverPersonId | String? | nullable, FK → String |
+| driverPerson | Person? | nullable, FK → Person |
+| plateNumber | String? | nullable, FK → String |
+| officerId | String | FK → String |
+| officer | User | FK → User |
+| stationId | String | FK → String |
+| station | Station | FK → Station |
+| regionId | String | FK → String |
+| region | Region | FK → Region |
+| contestedAt | DateTime? | nullable |
+| contestReason | String? | nullable, FK → String |
+| statusNote | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+| payments | TrafficPayment[] | 1→N relation |
+| receipts | TrafficReceipt[] | 1→N relation |
+
+Constraints/indexes: `@@index([status])`, `@@index([stationId, issuedAt])`, `@@index([regionId, issuedAt])`, `@@index([driverPersonId])`, `@@index([plateNumber])`
+
+### TrafficPayment
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| fineId | String | FK → String |
+| fine | TrafficFine | FK → TrafficFine |
+| amountFcfa | Int |  |
+| method | TrafficPaymentMethod | enum |
+| provider | String? | nullable, FK → String |
+| transactionReference | String? | nullable, FK → String |
+| paidAt | DateTime |  |
+| receivedById | String | FK → String |
+| receivedBy | User | FK → User |
+| stationId | String? | nullable, FK → String |
+| station | Station? | nullable, FK → Station |
+| paymentPoint | String? | nullable, FK → String |
+| status | TrafficPaymentStatus | enum, default COMPLETED |
+| voidedAt | DateTime? | nullable |
+| voidedById | String? | nullable, FK → String |
+| voidedBy | User? | nullable, FK → User |
+| voidReason | String? | nullable, FK → String |
+| notes | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+| receipt | TrafficReceipt? | nullable, FK → TrafficReceipt |
+
+Constraints/indexes: `@@unique([method, transactionReference])`, `@@index([fineId])`, `@@index([paidAt])`
+
+### TrafficReceipt
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| verificationToken | String | unique, FK → String |
+| paymentId | String | unique, FK → String |
+| payment | TrafficPayment | FK → TrafficPayment |
+| fineId | String | FK → String |
+| fine | TrafficFine | FK → TrafficFine |
+| amountFcfa | Int |  |
+| issuedAt | DateTime | default now( |
+| issuedById | String | FK → String |
+| issuedBy | User | FK → User |
+
+Constraints/indexes: `@@index([fineId])`
+
+### TrafficEvidence
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| controlId | String | FK → String |
+| control | TrafficControl | FK → TrafficControl |
+| kind | TrafficEvidenceKind | enum, default PHOTO |
+| documentId | String | unique, FK → String |
+| document | Document | FK → Document |
+| caption | String? | nullable, FK → String |
+| latitude | Float? | nullable |
+| longitude | Float? | nullable |
+| capturedAt | DateTime? | nullable |
+| uploadedById | String | FK → String |
+| uploadedBy | User | FK → User |
+| createdAt | DateTime | default now( |
+
+Constraints/indexes: `@@index([controlId])`
+
+
 ## Enumerations
 
 - **UserStatus**: PENDING, ACTIVE, LOCKED, SUSPENDED, DISABLED
@@ -1748,10 +2322,26 @@ Constraints/indexes: `@@index([at])`, `@@index([actorId, at])`, `@@index([entity
 - **FuelType**: PETROL, DIESEL, ELECTRIC, HYBRID, OTHER
 - **MaintenanceType**: SERVICE, REPAIR, INSPECTION, TIRES, BODYWORK, OTHER
 - **MaintenanceStatus**: SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
-- **DocumentEntity**: CASE, COMPLAINT, EVIDENCE, PERSON, ARREST, WARRANT, INCIDENT, PATROL, OPERATION, VEHICLE, OFFICER, STATEMENT, INTERVIEW, INVESTIGATION, REPORT, GENERAL
+- **DocumentEntity**: CASE, COMPLAINT, EVIDENCE, PERSON, ARREST, WARRANT, INCIDENT, PATROL, OPERATION, VEHICLE, OFFICER, STATEMENT, INTERVIEW, INVESTIGATION, REPORT, WANTED_PERSON, TRAFFIC_CONTROL, TRAFFIC_TICKET, TRAFFIC_DRIVER, TRAFFIC_VEHICLE, GENERAL
 - **DocumentCategory**: PHOTO, SCAN, FORM, REPORT, AUDIO, VIDEO, IDENTITY, LEGAL, OTHER
 - **Classification**: INTERNAL, CONFIDENTIAL, RESTRICTED, SECRET
 - **ReportType**: CASE, INVESTIGATION, ARREST, EVIDENCE, INCIDENT, PATROL, STATION, STATISTICAL
 - **NotificationKind**: INFO, ASSIGNMENT, DEADLINE, APPROVAL, ALERT, SECURITY
 - **AuditOutcome**: SUCCESS, DENIED, FAILURE
 - **BackupStatus**: RUNNING, COMPLETED, FAILED, RESTORED
+- **BiometricType**: FINGERPRINT, FACE, VOICE, ANPR
+- **BiometricSearchMode**: VERIFY_1_1, IDENTIFY_1_N
+- **BiometricSearchResult**: NO_MATCH, POTENTIAL_MATCH, VERIFIED_MATCH, ERROR
+- **BiometricAction**: NONE, SENT_FOR_VERIFICATION, VERIFIED_BY_INVESTIGATOR, REJECTED, LINKED_TO_CASE
+- **FingerPosition**: RIGHT_THUMB, RIGHT_INDEX, RIGHT_MIDDLE, RIGHT_RING, RIGHT_LITTLE, LEFT_THUMB, LEFT_INDEX, LEFT_MIDDLE, LEFT_RING, LEFT_LITTLE, UNKNOWN
+- **LprStatus**: NEW, REVIEWED, LINKED_TO_CASE, DISMISSED
+- **TrafficOffenceClass**: CLASS_2, CLASS_3, CLASS_4, DELIT
+- **TrafficVehicleType**: CAR, PICKUP, MOTORCYCLE, MOTO_TAXI, TRICYCLE, CYCLE, MINIBUS, BUS, TRUCK, TRACTOR_TRAILER, OTHER
+- **TrafficVehicleStatus**: ACTIVE, SUSPENDED, SEIZED, STOLEN, SCRAPPED
+- **TrafficVehicleDocType**: REGISTRATION_CARD, INSURANCE, TECHNICAL_INSPECTION, BLUE_CARD, TRANSPORT_LICENSE, STICKER, OTHER
+- **TrafficControlOutcome**: COMPLIANT, INFRACTION
+- **TrafficTicketStatus**: ISSUED, CANCELLED
+- **TrafficFineStatus**: PENDING, TO_PAY, PARTIALLY_PAID, PAID, CONTESTED, CANCELLED
+- **TrafficPaymentMethod**: CASH, ELECTRONIC, MOBILE_MONEY, BANK_TRANSFER, OTHER
+- **TrafficPaymentStatus**: COMPLETED, VOIDED
+- **TrafficEvidenceKind**: PHOTO, VIDEO, DOCUMENT

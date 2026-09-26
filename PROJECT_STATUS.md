@@ -1,6 +1,10 @@
 # PROJECT STATUS — SIGPN-T — Système Intégré de Gestion Numérique de la Police Nationale du Tchad (formerly TPMS)
 
-_Last updated: 2026-09-12 (end of Phase 3)_
+_Last updated: 2026-09-26 (SIGPN-T rename + traffic offences and fines module; incidents/patrols, biometric/forensic identification, evidence & custody, wanted persons and the Arabic language switch were delivered between 2026-09-12 and 2026-09-25 — see CHANGELOG and git history)_
+
+### Latest delivery — Gestion des infractions routières et des amendes (2026-09-26)
+
+Delivered and tested: 82 offences imported from the official table, roadside controls, electronic PV with QR code and PDF, automatic fines, payments and receipts (manual provider — no payment gateway), drivers and vehicles registers, traffic dashboard, public QR verification, 15 permissions and 7 roles. Details, decisions and open points: `docs/INFRACTIONS_ROUTIERES.md`. Regression: 50 unit / 68 integration / 16 security tests green.
 
 | Item | Value |
 | ---- | ----- |
@@ -40,6 +44,6 @@ _Last updated: 2026-09-12 (end of Phase 3)_
 
 ## Demo credentials (development only, fictional)
 
-Shared password: value of `DEMO_PASSWORD` in `.env` (default `Demo-Pms-2026!`). Accounts: `admin` (SUPER_ADMIN), `commander.national`, `commander.central` (province N'Djamena), `commander.dept` (département Ville de N'Djamena), `chief.cs1`, `chief.arr5`, `chief.mdu`, `inv.diallo`, `inv.mensah`, `desk.cs1`, `desk.post1`, `patrol.cs1`, `evidence.cs1`, `custody.cs1`, `fleet.central`, `analyst`, `auditor`. Roles flagged "MFA required" are forced to enrol an authenticator at first sign-in (`npx tsx scripts/demo-totp.ts <user>` prints the current code in development).
+Shared password: value of `DEMO_PASSWORD` in `.env` (default `Demo-Pms-2026!`). Accounts: `admin` (SUPER_ADMIN), `commander.national`, `commander.central` (province N'Djamena), `commander.dept` (département Ville de N'Djamena), `chief.cs1`, `chief.arr5`, `chief.mdu`, `inv.diallo`, `inv.mensah`, `desk.cs1`, `desk.post1`, `patrol.cs1`, `evidence.cs1`, `custody.cs1`, `fleet.central`, `analyst`, `auditor`, `biometric.cs1`, `forensic.cs1`, `prosecutor.cs1`, and the traffic accounts `police.admin`, `officer.cs1`, `traffic.cs1`, `control.cs1`, `traffic.supervisor`, `finance.central`, `readonly.traffic`. Roles flagged "MFA required" are forced to enrol an authenticator at first sign-in (`npx tsx scripts/demo-totp.ts <user>` prints the current code in development).
 
 DEMO dataset (all fictional): 23 provinces (official referential) · 14 structures · 118 officers · 17 accounts · 10 positions · 124 trainings · 90 persons · 70 complaints · 16 cases.

@@ -48,6 +48,37 @@ Base URL: `/api/v1` · Format: JSON · Auth: session cookie **or** `Authorizatio
 | `/api/v1/cases/{id}` | GET | session/key | `cases:view` | path id | `data: Case` with team, parties, tasks, notes (confidential filtered), timeline | 404 outside scope / sensitive non-member | 3 |
 | `/api/v1/cases/{id}` | PATCH | session/key | `assign`→`cases:assign`; other ops→`cases:update` (+`cases:close` for CLOSED / CHARGED / REFERRED, `cases:archive` for ARCHIVED); writer must be team member or hold `cases:assign` | `{ op:"assign", userId, role:"LEAD"\|"SUPERVISOR"\|"MEMBER" }` · `{ op:"addParty", personId, role, notes? }` · `{ op:"partyStatus", partyId, status, notes? }` · `{ op:"note", content, isConfidential? }` · `{ op:"task", title, assignedToId?, dueAt?, priority? }` · `{ op:"taskStatus", taskId, status, result? }` · `{ op:"status", status, disposition?, notes? }` | `data: Case` | 403 not team / missing permission; 409 STATE read-only (CLOSED/ARCHIVED) or invalid transition; 422 disposition required | 3 |
 
+## Traffic offences and fines (`/api/v1/traffic/*`)
+
+All endpoints are scoped like the other modules (controls, PV and fines by station/province; the drivers, vehicles and catalogue registers are national). Full behaviour and rules: `docs/INFRACTIONS_ROUTIERES.md`. Amounts are integers in FCFA. Body/query validation errors → 422, invalid transition or concurrent change → 409, outside scope → 404, missing permission → 403 (audited).
+
+| Endpoint | Method | Permission | Body / query | Response |
+| -------- | ------ | ---------- | ------------ | -------- |
+| `/traffic/controls` | GET | `traffic:view` | `q, outcome, stationId, officerId, mine, from, to, page, pageSize` | `data: Control[]` + `meta` |
+| `/traffic/controls` | POST | `traffic:control_create` | `controlledAt, location, latitude?, longitude?, stationId?`, driver (`driverPersonId` **or** `driverFirstName/LastName/CNI…`, `licenseNumber?`…), vehicle (`vehicleId` **or** `plateNumber`, `vehicleType`, make/model/colour…), `violationIds[]` (0–20), `observations?`, `caseId?`, `incidentId?` | 201 `{ control, ticket \| null, fine \| null, wantedHits[], vehicleAlert }` — PV and fine are created in the same transaction when `violationIds` is not empty |
+| `/traffic/controls/{id}` | GET | `traffic:view` | — | `data: Control` (evidence, PV, offences) + `wantedHits` |
+| `/traffic/controls/{id}/evidence` | POST | `traffic:evidence_upload` | multipart `file` (photo/video/PDF), `caption?`, `latitude?`, `longitude?` | 201 `TrafficEvidence`; 422 for other file types |
+| `/traffic/tickets` | GET | `traffic:view` | `q, status, fineStatus, stationId, from, to, page` | `data: Ticket[]` |
+| `/traffic/tickets/{id}` | GET | `traffic:view` | — | `data: Ticket` with offences, control, fine/payments, `sealValid` (the HMAC is never returned) |
+| `/traffic/tickets/{id}` | PATCH | `traffic:ticket_cancel` | `{ op:"cancel", reason (≥10) }` | `data: Ticket`; 409 if the fine is paid |
+| `/traffic/tickets/{id}/pdf` | GET | `traffic:view` | `?download=1` | `application/pdf` (audited) |
+| `/traffic/tickets/{id}/case` | POST | `traffic:view` + `cases:create` | `title?, description?` | 201 `{ id, number }`; 409 when a case is already linked |
+| `/traffic/fines` | GET | `traffic:view` | `q, status, stationId, overdue, from, to, page` | `data: Fine[]`, `meta.sumAmount/sumPaid` |
+| `/traffic/fines/{id}` | GET | `traffic:view` | — | `data: Fine` with payments and receipts |
+| `/traffic/fines/{id}` | PATCH | `traffic:fine_manage` | `{ op:"status", status: PENDING\|TO_PAY\|CONTESTED\|CANCELLED, note }` | `data: Fine`; `PAID`/`PARTIALLY_PAID` are never set by hand |
+| `/traffic/fines/{id}/payments` | POST | `traffic:payment_record` | `amountFcfa, method (CASH\|ELECTRONIC\|MOBILE_MONEY\|BANK_TRANSFER\|OTHER), provider?, transactionReference? (required except cash), paidAt?, paymentPoint?, notes?` | 201 `{ payment, receipt, fine }`; 409 paid/contested/cancelled or duplicate reference; 422 overpayment, partial payment while disabled |
+| `/traffic/payments/{id}` | PATCH | `traffic:payment_void` | `{ op:"void", reason (≥10) }` | payment voided, fine re-opened; the receipt stays in the register |
+| `/traffic/receipts/{id}` · `/pdf` | GET | `traffic:view` | — | `data: Receipt` · `application/pdf` |
+| `/traffic/drivers` | GET · POST | `traffic:drivers_view` · `traffic:drivers_manage` | search `q` (name, licence, file number, CNI exact) · create | list · 201 |
+| `/traffic/drivers/{id}` | GET · PATCH | `traffic:drivers_view` · `traffic:drivers_manage` | licence fields | profile with national history |
+| `/traffic/vehicles` | GET · POST | `traffic:vehicles_view` · `traffic:vehicles_manage` | `plate=TD-1234-AB` (direct plate search), `q`, `status` · create | list · 201 |
+| `/traffic/vehicles/{id}` · `/documents` | GET · PATCH · POST | idem | vehicle fields · document (insurance, inspection, card…) | vehicle with history |
+| `/traffic/violations` | GET | `traffic:violations_view` | `q, category, offenceClass` | the 82 catalogue offences + `meta.summary` |
+| `/traffic/violations/{id}` | PATCH | `traffic:catalog_manage` | `{ isActive }` only | names, classes, legal texts and amounts are never editable |
+| `/traffic/stats` | GET | `traffic:dashboard` | `from, to, format=json\|csv` (CSV needs `traffic:export`) | KPIs, monthly series, top offences, by category/class/station/zone/province/officer, top vehicles, repeat drivers |
+| `/traffic/search` | GET | `traffic:view` | `pv, fine, plate, driver, license, cni (exact), violation, officer, stationId, fineStatus, from, to` | matching controls with PV / fine |
+| `/public/verify/pv/{token}` · `/public/verify/receipt/{token}` | GET | public (rate-limited) | — | authenticity, seal validity, offences and amounts; identity masked |
+
 ## Territorial scope (Role + Organizational scope + Permission)
 
 Every list and every unitary read applies the caller's scope in addition to the permission:

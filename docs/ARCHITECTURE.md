@@ -273,4 +273,11 @@ Every structure carries a status (ACTIVE / INACTIVE / UNDER_CONSTRUCTION / PLANN
 | 37 | Statistics | 12 | aggregates |
 | 38 | Audit Logs | 1 | AuditLog |
 | 39 | Voice / Speech-to-Text | 13 | Transcript |
+| 40 | Traffic offences and fines (Gestion des infractions routières et des amendes) | 2026-09 | TrafficViolation(Category/LegalReference), TrafficDriver, TrafficVehicle(Document), TrafficControl, TrafficTicket(Offence), TrafficFine, TrafficPayment, TrafficReceipt, TrafficEvidence — see `docs/INFRACTIONS_ROUTIERES.md` |
 | 40–42 | System, Security Administration, Backup | 1/14/15 | SystemSetting, ApiKey, BackupRecord |
+
+## 14. Traffic module architecture (SIGPN-T)
+
+Same layering as the other modules: `src/server/traffic/*` (services take an `Actor`) → server actions (`actions.ts`) and REST handlers (`src/app/api/v1/traffic/**`, thin `withApi` wrappers) → pages under `src/app/(app)/traffic/**`. Files: `schemas.ts` (zod), `registry.ts` (drivers, vehicles, catalogue activation, person/vehicle resolution without duplicates), `enforcement.ts` (control → PV → fine in one transaction, cancellation, fine status machine, evidence, case link, wanted hits), `payments.ts` (payment + receipt, void), `payment-provider.ts` (provider abstraction; `manual` only — no gateway), `seal.ts` (SHA-256 + HMAC seal), `pdf.tsx` (PV and receipt PDF with QR code, `@react-pdf/renderer`), `queries.ts` / `stats.ts` (scoped reads, dashboard SQL with parameterised scope fragments), `catalog.ts` + `data/violations-source.ts` (verbatim import of the official table), `settings.ts` (partial payment, deadline).
+
+Decisions: the audit trail reuses the central immutable `AuditLog` (no duplicate `traffic_audit_logs` table); drivers extend `Person` (no second identity table); evidence goes through the existing `Document` store; the offence lines of a PV are frozen snapshots so later catalogue changes never rewrite history; registries (drivers, vehicles, catalogue) are national while controls, PV and fines follow the territorial scope; public QR verification lives outside the authenticated shell (`/verify/**`, allow-listed in `src/proxy.ts`).

@@ -2,6 +2,24 @@
 
 All notable changes to SIGPN-T (Système Intégré de Gestion Numérique de la Police Nationale du Tchad, formerly TPMS). Dates are ISO (UTC+1, N'Djamena).
 
+## [0.5.0] — 2026-09-26 — SIGPN-T: rename and « Gestion des infractions routières et des amendes »
+
+### Changed
+- **Product renamed SIGPN-T** (Système Intégré de Gestion Numérique de la Police Nationale du Tchad): login page, sidebar, header, footer, browser title/metadata, French and Arabic dictionaries, environment defaults (`APP_NAME`), deployment config, seed text, living documentation. « TPMS » remains only in historical phase reports.
+- Sidebar: the traffic dashboard entry no longer stays highlighted on every `/traffic/*` page.
+
+### Added
+- **Traffic offences and fines module** (see `docs/INFRACTIONS_ROUTIERES.md`): roadside controls (tablet/mobile-first form, GPS, photos), offence catalogue imported **verbatim** from the official table (82 offences: 67 road, 7 cycles/motorcycles, 8 moto-taxis; source PDF kept with its SHA-256), electronic PV (sealed with SHA-256 + HMAC, QR code, PDF, print), automatic fines from the flat amounts, fine statuses (to pay, paid, partially paid, cancelled, contested, on hold), payments (cash, electronic, Mobile Money, transfer — manual provider, no real gateway) and electronic receipts (QR code, PDF), drivers and vehicles registers (documents, insurance / inspection alerts), global search, traffic dashboard (KPIs, SVG charts, CSV export), public QR verification pages with masked identity.
+- Integrations: persons (driver profile, licence and CNI identifiers), officers/units/stations (scope), wanted persons (hit on person or plate → alert, audit, notification), cases (open a case from a PV), incidents (link), documents/GED (evidence with SHA-256), notifications, main dashboard, audit log.
+- 15 `traffic:*` permissions; 7 new system roles (`POLICE_ADMIN`, `OFFICER`, `TRAFFIC_OFFICER`, `TRAFFIC_CONTROL_AGENT`, `TRAFFIC_SUPERVISOR`, `TRAFFIC_PAYMENT_MANAGER`, `TRAFFIC_READONLY`) and traffic grants for existing roles (applied once to already-seeded databases); FR and AR labels for every role, permission, enumeration and service message.
+- Database (2 additive migrations): 13 tables, 10 enums, deletion protection triggers (PV, fines, payments, controls, evidence, drivers, vehicles), append-only receipts and PV offence lines, `CHECK` constraints on amounts, 4 `DocumentEntity` values.
+- REST API `/api/v1/traffic/*` (controls, evidence, tickets, PDF, cases, fines, payments, receipts, drivers, vehicles, violations, stats, search) and public verification `/api/v1/public/verify/{pv,receipt}/{token}`.
+- Demo data: 150 controls, 112 PV, 105 fines, 60 payments, 36 drivers, 48 vehicles (fictional). Seven demo accounts.
+- Tests: 11 unit + 22 integration for the module; full regression 50 unit / 68 integration / 16 security green; `tsc`, `eslint`, `next build` clean.
+
+### Notes
+- `prisma migrate dev` reports a pre-existing checksum change on migration `20260912161408_…` and asks for a reset; migrations are applied with `prisma migrate deploy` (no reset, no data loss).
+
 ## [0.4.0] — 2026-09-12 — Phase 3: Personnel (positions, trainings), Persons, Complaints, Cases
 
 ### Added

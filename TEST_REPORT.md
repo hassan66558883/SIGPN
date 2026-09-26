@@ -11,7 +11,26 @@ _Cumulative. Only tests that were actually executed are recorded. Per-phase deta
 | 2 | 16 pass (re-run) | 22 pass (`db-integrity`, `users-api`, `territory-scope` 8) | 16 pass (re-run) + 8 territorial isolation tests | 8 pass | 2 breakpoints (1366, 375) | PASS |
 | 3 | 22 pass (`workflows` 6 new) | 30 pass (`complaints-cases` 8 new) | 16 pass (re-run) + 4 case-level/person-scope tests | 13 pass | 2 breakpoints (desktop, 375) | PASS |
 
-Last full regression run: 2026-09-12 23:30 — 68 automated tests green, `tsc`, `eslint`, `next build` OK.
+| Traffic (2026-09-26) | 50 pass (`traffic` 11 new) | 68 pass (`traffic` 22 new) | 16 pass (re-run) | 24 pass (in the traffic tests: refusals, scope, duplicates, tampering) | 375 px mobile form, tablet, desktop, Arabic RTL (manual browser checks) | PASS |
+
+Last full regression run: 2026-09-26 — **50 unit, 68 integration, 16 security tests green**; `tsc --noEmit`, `eslint` and `next build` clean.
+
+### Traffic module — executed checks (2026-09-26)
+
+| Area | Result |
+| ---- | ------ |
+| Login, permissions | `traffic.cs1`, `admin` sign-in in the browser; 403 for read-only, desk, finance (no control), auditor (no action); 403 for control agent on payments; MFA-flagged roles unchanged |
+| Catalogue import | 82 rows (67 / 7 / 8), amounts and délits verified by unit + API tests; import idempotent (2nd run: 0 created / 82 updated) |
+| Control → PV → fine | UI run: 3 offences ticked, running total 53 600 FCFA, PV `PV-2026-000007` + fine created, plate normalised; API: 2 offences = 28 600 FCFA; délit-only PV has no fine; compliant control has no PV |
+| PDF / QR | PV and receipt PDFs generated (`%PDF`, QR code, seal, photo embedded) and rendered to an image for visual review; public `/verify/pv/…` authentic, identity masked; tampering detected (`sealValid=false`) |
+| Payment / receipt | cash and mobile money; reference mandatory and unique; overpayment, partial payment (off by default) refused; setting enables partial → PARTIALLY_PAID → PAID; void re-opens the fine; receipt stays |
+| Fine statuses | PAID never set by hand; contest needs a reason and blocks payment; PV cancellation cancels the fine; paid fine cannot be cancelled |
+| Database integrity | DELETE refused on PV/fines/payments; receipts and PV offence lines append-only; `CHECK` refuses overpayment |
+| Scope | other commissariat → 404 on control/PV/fine/evidence download; province finance manager sees them |
+| Integrations | wanted vehicle → alert + audit; case opened from a PV (needs `cases:create`, once); evidence upload (executables refused) |
+| Dashboard / search | KPIs recomputed from the DB inside the scope; CSV needs `traffic:export`; search by PV, plate, driver, CNI (exact only), offence, officer, payment status; direct plate lookup |
+| Audit | 10 `TRAFFIC_*` actions asserted in the log |
+| UI | Arabic RTL rendering, mobile 375 px form with sticky action bar, dashboard charts with real data (150 demo controls) |
 
 How to run: `npm test` (unit) · `npm run test:integration` (needs dev DB) · `npm run test:security` (needs `npm run dev` on 3300 + seed). Last full regression run: 2026-09-12 (all suites green, `tsc --noEmit` and `eslint` clean).
 

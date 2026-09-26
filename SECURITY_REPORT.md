@@ -84,6 +84,22 @@ _Cumulative security posture and test results. Critical/high findings block phas
 | API `PATCH { op }` without the operation's permission | yes (P3-I3, I4) | 403 | — |
 | Identity document reuse across persons | yes (P3-I1) | 409 | — |
 
+## Traffic offences and fines module (2026-09-26)
+
+| Risk | Control | Verified by |
+| ---- | ------- | ----------- |
+| Unauthorised action on PV, fines, payments | 15 `traffic:*` permissions, server-side check in every service and route, denied attempts audited; payment rights held only by the finance / administration roles | `tests/unit/traffic.test.ts` (role matrix), `tests/integration/traffic.test.ts` (403s) |
+| Cross-jurisdiction read | controls, PV, fines scoped by station/province (404 outside scope); evidence downloads use the control's scope; identity details of registry persons only inside the person's scope | integration tests (chief of another commissariat gets 404 incl. download) |
+| Deletion or silent alteration of financial records | DB triggers forbid DELETE on PV, fines, payments, controls, evidence, drivers, vehicles; receipts and PV offence lines are append-only; PV sealed (SHA-256 + HMAC) and re-verified on every QR check; every change audited | integration test « integrity at database level » and « tampering is detected » |
+| Overpayment / double booking | optimistic guard on the fine, DB `CHECK (paid ≤ amount)`, unique `(method, transaction reference)`, reference mandatory for non-cash | integration tests |
+| Information leak through the public QR pages | random 24-character token, rate limiting, no identity beyond masked initials, plate partly masked, robots noindex; unknown token → 404 | integration test (name and CNI absent from the response) |
+| Identity-number enumeration in search | CNI search is an exact match only | integration test |
+| Malicious uploads | allow-list (JPEG/PNG/WebP/HEIC, MP4/MOV/WebM, PDF), size limit, SHA-256 stored, executables refused | integration test |
+| Payment fraud / gateway risk | **no real gateway**: manual provider only; the reference is a declared value, so payments must be reconciled with the bank / operator statements | documented limit |
+| Legal value of the seal | integrity seal only, explicitly not a qualified electronic signature | shown on the PV page |
+
+Findings: none open. Note: the QR code embeds `APP_URL`; a wrong value in production produces unusable links (configuration item).
+
 ## Residual risks / notes
 
 - Argon2id not used (native build constraint on the Windows workstation); bcrypt cost 12 is used as allowed by the specification.
