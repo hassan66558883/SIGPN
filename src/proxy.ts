@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const SESSION_COOKIE = "pms_session";
-const PUBLIC_PATHS = ["/login", "/forgot-password", "/reset-password"];
+// /verify serves the public QR-code checks of PV and receipts (minimal, non-identifying data; rate-limited).
+const PUBLIC_PATHS = ["/login", "/forgot-password", "/reset-password", "/verify"];
 
 function isPublic(pathname: string) {
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));

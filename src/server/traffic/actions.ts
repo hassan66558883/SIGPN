@@ -20,7 +20,20 @@ export async function recordControlAction(_p: FormState, fd: FormData): Promise<
   let target: string;
   try {
     const actor = await requirePermissionForAction("traffic:control_create");
-    const r = await enforcement.recordControl(actor, controlSchema.parse(controlEntries(fd)), await getRequestContext());
+    const input = controlSchema.parse(controlEntries(fd));
+    const ctx = await getRequestContext();
+    const r = await enforcement.recordControl(actor, input, ctx);
+    // Photos taken at the roadside travel with the form; a failed photo never cancels the recorded control.
+    const photos = fd.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0);
+    if (photos.length && actor.permissions.has("traffic:evidence_upload")) {
+      for (const [i, file] of photos.slice(0, 8).entries()) {
+        try {
+          await enforcement.attachEvidence(actor, { controlId: r.control.id, caption: `Photo ${i + 1}`, latitude: input.latitude, longitude: input.longitude }, file, ctx);
+        } catch (e) {
+          console.error("[traffic] photo not attached", e);
+        }
+      }
+    }
     target = `/traffic/controls/${r.control.id}?created=1`;
     revalidateAll();
   } catch (e) {

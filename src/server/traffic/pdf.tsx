@@ -1,10 +1,11 @@
+/* eslint-disable jsx-a11y/alt-text -- @react-pdf/renderer <Image> is a PDF primitive, not an HTML <img> */
 import "server-only";
 import QRCode from "qrcode";
 import { Document, Image, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { env } from "@/server/env";
 import { readUpload } from "@/server/storage";
 import { fmtDate, fmtDateTime } from "@/lib/format";
-import { fmtClassText, fmtFcfa } from "@/lib/traffic-format";
+import { fmtClassText, fmtFcfaPlain as fmtFcfa } from "@/lib/traffic-format";
 import { TRAFFIC_FINE_STATUS, TRAFFIC_PAYMENT_METHOD, TRAFFIC_VEHICLE_TYPE, labelOf } from "@/lib/labels";
 import type { getReceipt, getTicket } from "@/server/traffic/queries";
 

@@ -3,8 +3,14 @@ export function groupThousands(n: number): string {
   return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
-export function fmtFcfa(n: number | null | undefined): string {
+/** Plain text (PDF, CSV): "25 000 FCFA". */
+export function fmtFcfaPlain(n: number | null | undefined): string {
   return n === null || n === undefined ? "—" : `${groupThousands(n)} FCFA`;
+}
+
+/** On screen: the amount is isolated as a left-to-right run (LRI…PDI) so "2 200 FCFA" is never reordered inside right-to-left (Arabic) text. */
+export function fmtFcfa(n: number | null | undefined): string {
+  return n === null || n === undefined ? "—" : `⁦${fmtFcfaPlain(n)}⁩`;
 }
 
 /** The source table writes the class as « 3eme » — displayed « 3ème » (the stored text is never altered). */

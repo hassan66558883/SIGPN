@@ -2,7 +2,10 @@
  * French — reference dictionary (default language). Every key used in the UI is declared here;
  * `en.ts` must provide the same keys (enforced by TypeScript).
  */
+import { trafficFr } from "@/lib/i18n/traffic.fr";
+
 export const fr = {
+  ...trafficFr,
   // ---- application / common ----
   "app.name": "Système Intégré de Gestion Numérique de la Police Nationale du Tchad",
   "app.short": "SIGPN-T",

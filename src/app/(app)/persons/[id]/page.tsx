@@ -6,6 +6,8 @@ import { getPerson } from "@/server/persons/service";
 import { prisma } from "@/server/db";
 import { personBiometricSummary } from "@/server/biometric/queries";
 import { personWantedSummary } from "@/server/wanted/queries";
+import { personTrafficHistory } from "@/server/traffic/queries";
+import { fmtFcfa } from "@/lib/traffic-format";
 import { NotFoundError } from "@/server/errors";
 import { Alert, Badge, ButtonLink, Card, DL, EmptyState, PageHeader, Table } from "@/components/ui";
 import { ActionButton } from "@/components/forms";
@@ -35,6 +37,9 @@ export default async function PersonPage({ params, searchParams }: PageProps<"/p
   const biometric = canViewBiometric ? await personBiometricSummary(p.id) : null;
   const canViewWanted = actor.permissions.has("wanted:view");
   const wanted = canViewWanted ? await personWantedSummary(p.id) : [];
+  const traffic = actor.permissions.has("traffic:drivers_view")
+    ? { driver: await prisma.trafficDriver.findUnique({ where: { personId: p.id }, select: { id: true, licenseNumber: true } }), history: await personTrafficHistory(p.id) }
+    : null;
   const regions = canEdit ? await prisma.region.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : [];
   const mergedInto = p.mergedIntoId ? await prisma.person.findUnique({ where: { id: p.mergedIntoId }, select: { id: true, number: true, firstName: true, lastName: true } }) : null;
   // Only involvements the actor may see (territorial scope; sensitive cases only with the permission).
@@ -287,6 +292,18 @@ export default async function PersonPage({ params, searchParams }: PageProps<"/p
                   );
                 })}
               </ul>
+            </Card>
+          ) : null}
+          {traffic && (traffic.driver || traffic.history.fineCount > 0 || traffic.history.tickets.length > 0) ? (
+            <Card title={t("traffic.eyebrow")} actions={traffic.driver ? <ButtonLink href={`/traffic/drivers/${traffic.driver.id}`} size="xs" variant="ghost">{t("traffic.driver.openProfile")}</ButtonLink> : null}>
+              <dl className="grid grid-cols-2 gap-2 text-sm">
+                <dt className="text-slate">{t("traffic.driver.licenseNumber")}</dt>
+                <dd className="text-end font-mono">{traffic.driver?.licenseNumber ?? "—"}</dd>
+                <dt className="text-slate">{t("traffic.driver.tickets")}</dt>
+                <dd className="text-end font-semibold tabular-nums">{traffic.history.tickets.length}</dd>
+                <dt className="text-slate">{t("traffic.kpi.remaining")}</dt>
+                <dd className="text-end font-semibold tabular-nums text-warning">{fmtFcfa(Math.max(0, traffic.history.totalFines - traffic.history.totalPaid))}</dd>
+              </dl>
             </Card>
           ) : null}
           {actor.permissions.has("persons:merge") && !p.mergedIntoId ? (

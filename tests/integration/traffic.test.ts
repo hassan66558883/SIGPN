@@ -2,6 +2,7 @@
  * Traffic offences and fines (SIGPN-T) — live dev server + seed.
  *   npx tsx --test tests/integration/traffic.test.ts
  */
+/* eslint-disable @typescript-eslint/no-explicit-any -- loose JSON shape of API responses */
 import "dotenv/config";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";

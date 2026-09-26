@@ -30,6 +30,13 @@ export function fmtDate(v: Date | string | null | undefined, locale: Locale = "f
   return d ? dtf(locale, { dateStyle: "medium" }).format(d) : "—";
 }
 
+/** "2026-09" → « sept. 26 » (short month + 2-digit year). */
+export function fmtMonthKey(key: string, locale: Locale = "fr"): string {
+  const [y, m] = key.split("-").map(Number);
+  if (!y || !m) return key;
+  return dtf(locale, { month: "short", year: "2-digit" }).format(new Date(y, m - 1, 1));
+}
+
 export function fmtNumber(v: number | null | undefined, locale: Locale = "fr"): string {
   return v === null || v === undefined ? "—" : new Intl.NumberFormat(INTL[locale] ?? INTL.fr).format(v);
 }

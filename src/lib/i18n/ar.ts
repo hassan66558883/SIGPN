@@ -1,7 +1,10 @@
 import type { fr } from "./fr";
 
 /** Arabic — second language (RTL). Must declare exactly the keys of the French reference dictionary. */
+import { trafficAr } from "@/lib/i18n/traffic.ar";
+
 export const ar: Record<keyof typeof fr, string> = {
+  ...trafficAr,
   // ---- application / common ----
   "app.name": "النظام المتكامل للإدارة الرقمية للشرطة الوطنية التشادية",
   "app.short": "SIGPN-T",

@@ -111,3 +111,17 @@ export function dashboardToCsv(d: TrafficDashboard): string {
   section("Par agent", ["agent", "PV"], d.byOfficer.map((o) => [`${o.lastName} ${o.firstName}`, o.n]));
   return "﻿" + lines.join("\r\n");
 }
+
+/** Light-weight figures for the main dashboard (last 30 days + open receivables), scoped like the full dashboard. */
+export async function trafficSummary(actor: Actor) {
+  const from = new Date(Date.now() - 30 * 86_400_000);
+  const cScope = scopeSql(actor, "c");
+  const tScope = scopeSql(actor, "t");
+  const fScope = scopeSql(actor, "f");
+  const [controls, tickets, open] = await Promise.all([
+    raw<{ n: number }>(Prisma.sql`SELECT COUNT(*)::int AS n FROM "TrafficControl" c WHERE ${cScope} AND c."controlledAt" >= ${from}`),
+    raw<{ n: number }>(Prisma.sql`SELECT COUNT(*)::int AS n FROM "TrafficTicket" t WHERE t.status = 'ISSUED' AND ${tScope} AND t."issuedAt" >= ${from}`),
+    raw<{ n: number; amount: number }>(Prisma.sql`SELECT COUNT(*)::int AS n, COALESCE(SUM(f."amountFcfa" - f."amountPaidFcfa"),0)::float8 AS amount FROM "TrafficFine" f WHERE f.status IN ('TO_PAY','PARTIALLY_PAID','PENDING','CONTESTED') AND ${fScope}`),
+  ]);
+  return { controls30: controls[0]?.n ?? 0, tickets30: tickets[0]?.n ?? 0, unpaidCount: open[0]?.n ?? 0, outstandingFcfa: open[0]?.amount ?? 0 };
+}

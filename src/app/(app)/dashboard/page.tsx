@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { requirePermission } from "@/server/auth/dal";
 import { prisma } from "@/server/db";
 import { biometricDashboardStats } from "@/server/biometric/queries";
 import { wantedDashboardStats } from "@/server/wanted/queries";
+import { trafficSummary } from "@/server/traffic/stats";
+import { fmtFcfa } from "@/lib/traffic-format";
 import { Card, PageHeader, StatCard, EmptyState } from "@/components/ui";
 import { fmtDateTime } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
@@ -17,7 +20,8 @@ export default async function DashboardPage() {
   const actor = await requirePermission("dashboard:view");
   const canViewBiometric = actor.permissions.has("biometric:history_view");
   const canViewWanted = actor.permissions.has("wanted:view");
-  const [t, locale, users, activeSessions, recentAudit, notifications, biometric, wanted] = await Promise.all([
+  const canViewTraffic = actor.permissions.has("traffic:dashboard");
+  const [t, locale, users, activeSessions, recentAudit, notifications, biometric, wanted, traffic] = await Promise.all([
     getT(),
     getLocale(),
     prisma.user.count({ where: { deletedAt: null, status: "ACTIVE" } }),
@@ -26,6 +30,7 @@ export default async function DashboardPage() {
     prisma.notification.findMany({ where: { userId: actor.id, readAt: null }, orderBy: { createdAt: "desc" }, take: 5 }),
     canViewBiometric ? biometricDashboardStats(actor) : Promise.resolve(null),
     canViewWanted ? wantedDashboardStats(actor) : Promise.resolve(null),
+    canViewTraffic ? trafficSummary(actor) : Promise.resolve(null),
   ]);
   return (
     <div>
@@ -61,6 +66,18 @@ export default async function DashboardPage() {
               <StatCard label={t("wanted.stat.located")} value={wanted.located} tone="warning" href="/wanted?status=LOCATED" />
               <StatCard label={t("wanted.stat.apprehended")} value={wanted.apprehended} tone="success" href="/wanted?status=ARRESTED" />
               <StatCard label={t("wanted.stat.cancelled")} value={wanted.cancelled} tone="neutral" href="/wanted?status=CANCELLED" />
+            </div>
+          </Card>
+        </div>
+      ) : null}
+      {traffic ? (
+        <div className="mt-6">
+          <Card title={t("traffic.dash.cardTitle")} description={t("traffic.dash.cardSubtitle")} actions={<Link href="/traffic" className="text-xs font-semibold text-blue hover:underline">{t("traffic.dash.open")}</Link>}>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <StatCard label={t("traffic.kpi.controls")} value={traffic.controls30} tone="info" href="/traffic/controls" />
+              <StatCard label={t("traffic.kpi.tickets")} value={traffic.tickets30} tone="neutral" href="/traffic/tickets" />
+              <StatCard label={t("traffic.kpi.unpaid")} value={traffic.unpaidCount} tone="danger" href="/traffic/fines?status=TO_PAY" />
+              <StatCard label={t("traffic.kpi.remaining")} value={<span className="text-2xl">{fmtFcfa(traffic.outstandingFcfa)}</span>} tone="warning" href="/traffic/fines" />
             </div>
           </Card>
         </div>
