@@ -182,7 +182,10 @@ test("scope: another commissariat gets 404 on the control, the PV and the fine; 
 
 test("payment: only the finance role records it; reference required for mobile money; no overpayment, no partial payment by default", async () => {
   const pay = (k: string, body: object) => api(keys[k], "POST", `/api/v1/traffic/fines/${ids.fine}/payments`, body);
-  assert.equal((await pay("control.cs1", { amountFcfa: 28600, method: "CASH" })).res.status, 403);
+  assert.equal((await pay("readonly.traffic", { amountFcfa: 28600, method: "CASH" })).res.status, 403);
+  // a field agent may collect, but only into an open cash register of their own (see cash.test.ts)
+  await pool.query(`UPDATE "TrafficCashRegister" SET status='CLOSED' WHERE status='OPEN' AND "agentId"=(SELECT id FROM "User" WHERE username='control.cs1')`);
+  assert.equal((await pay("control.cs1", { amountFcfa: 28600, method: "CASH" })).res.status, 409);
   assert.equal((await pay("traffic.supervisor", { amountFcfa: 28600, method: "CASH" })).res.status, 403);
   assert.equal((await pay("finance.central", { amountFcfa: 28600, method: "MOBILE_MONEY" })).res.status, 422, "mobile money needs a transaction reference");
   assert.equal((await pay("finance.central", { amountFcfa: 30000, method: "CASH" })).res.status, 422, "cannot exceed the balance");

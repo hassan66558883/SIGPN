@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePermission } from "@/server/auth/dal";
 import { getFine } from "@/server/traffic/queries";
+import { myRegister } from "@/server/traffic/cash-queries";
 import { allowedFineTransitions } from "@/server/traffic/enforcement";
 import { getPaymentProvider } from "@/server/traffic/payment-provider";
 import { getTrafficSettings } from "@/server/traffic/settings";
@@ -35,9 +36,13 @@ export default async function FineDetailPage({ params }: PageProps<"/traffic/fin
   const st = labelOf(TRAFFIC_FINE_STATUS, f.status, locale);
   const remaining = f.amountFcfa - f.amountPaidFcfa;
   const pct = f.amountFcfa > 0 ? Math.round((f.amountPaidFcfa / f.amountFcfa) * 100) : 0;
-  const canPay = actor.permissions.has("traffic:payment_record") && f.ticket.status === "ISSUED" && (f.status === "TO_PAY" || f.status === "PARTIALLY_PAID");
+  const finance = actor.permissions.has("traffic:payment_record");
+  const fieldAgent = !finance && actor.permissions.has("cash:collect");
+  const register = fieldAgent ? await myRegister(actor) : null;
+  const payable = f.ticket.status === "ISSUED" && (f.status === "TO_PAY" || f.status === "PARTIALLY_PAID");
+  const canPay = payable && (finance || (fieldAgent && register?.status === "OPEN"));
   const canManage = actor.permissions.has("traffic:fine_manage");
-  const canVoid = actor.permissions.has("traffic:payment_void");
+  const canVoidAny = actor.permissions.has("traffic:payment_void");
   const overdue = f.dueDate && f.dueDate < new Date() && (f.status === "TO_PAY" || f.status === "PARTIALLY_PAID");
   return (
     <div className="space-y-4">
@@ -87,6 +92,14 @@ export default async function FineDetailPage({ params }: PageProps<"/traffic/fin
         </Card>
       </div>
 
+      {payable && fieldAgent && register?.status !== "OPEN" ? (
+        <Alert tone="warning">
+          {register?.status === "BLOCKED" ? t("cash.reg.blockedNotice", { number: register.number }) : t("cash.reg.noneOpen")}{" "}
+          <Link href="/traffic/cash/registers" className="font-semibold underline">
+            {t("cash.nav.registers")}
+          </Link>
+        </Alert>
+      ) : null}
       {canPay ? (
         <Card title={t("traffic.pay.title")} description={t("traffic.pay.subtitle")}>
           <PaymentForm fineId={f.id} remaining={remaining} allowPartial={settings.allowPartialPayment} providerName={provider.name} gatewayConnected={provider.gatewayConnected} />
@@ -150,7 +163,7 @@ export default async function FineDetailPage({ params }: PageProps<"/traffic/fin
                           {t("traffic.pay.voidedBy", { name: p.voidedBy ? `${p.voidedBy.firstName} ${p.voidedBy.lastName}` : "" })} — {p.voidReason}
                         </span>
                       ) : null}
-                      {p.status === "COMPLETED" && canVoid ? (
+                      {p.status === "COMPLETED" && (canVoidAny || (actor.permissions.has("cash:collect") && p.receivedBy.id === actor.id)) ? (
                         <details className="mt-2">
                           <summary className="cursor-pointer text-danger">{t("traffic.pay.void")}</summary>
                           <div className="mt-2 max-w-xs">

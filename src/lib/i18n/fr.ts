@@ -3,9 +3,11 @@
  * `en.ts` must provide the same keys (enforced by TypeScript).
  */
 import { trafficFr } from "@/lib/i18n/traffic.fr";
+import { cashFr } from "@/lib/i18n/cash.fr";
 
 export const fr = {
   ...trafficFr,
+  ...cashFr,
   // ---- application / common ----
   "app.name": "Système Intégré de Gestion Numérique de la Police Nationale du Tchad",
   "app.short": "SIGPN-T",

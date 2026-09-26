@@ -6,7 +6,7 @@ import { prisma } from "@/server/db";
 import { env } from "@/server/env";
 import { hashPassword } from "@/server/auth/password";
 import { PERMISSION_CATALOG } from "@/server/rbac/permissions";
-import { SYSTEM_ROLES, TRAFFIC_DEFAULT_GRANTS } from "@/server/rbac/roles";
+import { CASH_DEFAULT_GRANTS, SYSTEM_ROLES, TRAFFIC_DEFAULT_GRANTS } from "@/server/rbac/roles";
 import { DEMO_ACCOUNTS } from "@/server/demo/accounts";
 import { seedTerritory } from "@/server/demo/seed-territory";
 import { seedOperations } from "@/server/demo/seed-operations";
@@ -15,6 +15,7 @@ import { seedBiometric } from "@/server/demo/seed-biometric";
 import { seedWanted } from "@/server/demo/seed-wanted";
 import { syncTrafficCatalog } from "@/server/traffic/catalog";
 import { seedTraffic } from "@/server/demo/seed-traffic";
+import { seedCash } from "@/server/demo/seed-cash";
 
 export async function syncPermissionCatalog() {
   for (const [code, description] of PERMISSION_CATALOG) {
@@ -41,6 +42,7 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
     }
   }
   await grantTrafficDefaultsOnce(byCode);
+  await grantCashDefaultsOnce(byCode);
   return SYSTEM_ROLES.length;
 }
 
@@ -59,6 +61,20 @@ async function grantTrafficDefaultsOnce(byCode: Map<string, string>) {
     await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
   }
   await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions par défaut du module circulation ont été accordées aux rôles système." } });
+}
+
+/** Same one-time additive grant for the revenue module (`cash:*`), plus `audit:view` where the revenue audit trail is required. */
+async function grantCashDefaultsOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.cash_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const roles = await prisma.role.findMany({ where: { isSystem: true }, select: { id: true, code: true } });
+  for (const role of roles) {
+    const grants = [...(CASH_DEFAULT_GRANTS[role.code] ?? [])];
+    if (role.code === "TRAFFIC_SUPERVISOR" || role.code === "TRAFFIC_PAYMENT_MANAGER") grants.push("audit:view");
+    if (!grants.length) continue;
+    await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
+  }
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions par défaut du module recettes et versements ont été accordées aux rôles système." } });
 }
 
 export async function seedOrganization() {
@@ -108,6 +124,7 @@ export async function seedFoundation() {
   const biometric = await seedBiometric();
   const wanted = await seedWanted();
   const traffic = await seedTraffic();
+  const cash = await seedCash();
   await prisma.auditLog.create({ data: { actorLabel: "system", action: "SEED_FOUNDATION", module: "system", summary: `Seed: ${permissions} permissions, ${roles} roles, ${territory.provinces} provinces, ${territory.stations} demo structures, ${territory.officers} new demo officers, ${users} new demo users, ${ops.persons} persons, ${ops.complaints} complaints, ${ops.cases} cases, ${field.zones} zones, ${field.vehicles} vehicles, ${field.patrols} patrols, ${field.incidents} incidents, ${biometric.fingerprintEnrolled} fingerprints, ${biometric.faceEnrolled} face templates, ${biometric.searches} biometric searches, ${biometric.plates} plate detections, ${wanted.created} wanted notices, ${wanted.warrants} warrants, ${trafficCatalog.violations} traffic offences imported, ${traffic.controls} traffic controls (${traffic.tickets} PV, ${traffic.fines} fines, ${traffic.payments} payments)` } });
-  return { permissions, roles, users, territory, ops, field, biometric, wanted, trafficCatalog, traffic };
+  return { permissions, roles, users, territory, ops, field, biometric, wanted, trafficCatalog, traffic, cash };
 }

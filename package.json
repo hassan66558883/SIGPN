@@ -19,7 +19,7 @@
     "db:backup": "tsx scripts/backup.ts",
     "db:restore": "tsx scripts/restore.ts",
     "test": "tsx --test tests/unit/*.test.ts",
-    "test:integration": "tsx --test tests/integration/*.test.ts",
+    "test:integration": "tsx --test --test-concurrency=1 tests/integration/*.test.ts",
     "test:security": "tsx --test tests/security/*.test.ts",
     "traffic:import": "tsx scripts/import-traffic-violations.ts"
   },

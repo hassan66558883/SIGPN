@@ -172,3 +172,7 @@ Unit 22/22 · integration 30/30 (`db-integrity` 5, `users-api` 9, `territory-sco
 
 ### Manual browser checks
 Plaintes (75, compteurs), Fiche plainte (stepper, faits, traitement), Affaire CASE-2026-00001 (vue d'ensemble, personnes avec présomption d'innocence, tâches, audit), Personnes, Fiche personne, Enregistrer une personne, Mes tâches, Fiche agent (fonction, formations), Organisation (fonctions) — no console errors; FR default; 375×812 on the case workspace (scrollable tabs, stacked task cards).
+
+
+## Recettes et versements (2026-09-27)
+`tests/unit/cash.test.ts` (6) et `tests/integration/cash.test.ts` (13) : ouverture/encaissement (espèces, électronique, Mobile Money), annulation avec motif, clôture, état journalier PDF, caisse clôturée (service + base), anti-doublon, suppressions interdites, versement (plafond, bordereau, référence, manquant), bordereau PDF/QR/vérification publique, vérification → validation (séparation des tâches) → rapprochement → clôture définitive, écart (justification, rejet, validation), rejet puis nouvelle soumission, versement partiel (réglage), caisse bloquée, tableau de bord, 12 rapports, recherche, audit (rôle, IP, avant/après, référence), rôles. Régression : unit 56/56 · intégration 81/81 · sécurité 16/16 · tsc, eslint, `next build` propres.

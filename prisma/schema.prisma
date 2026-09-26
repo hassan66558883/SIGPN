@@ -134,71 +134,86 @@ model User {
   passwordHistory     PasswordHistory[]
 
   // domain back-relations
-  personsCreated          Person[]                @relation("PersonCreatedBy")
-  complaintsCreated       Complaint[]             @relation("ComplaintCreatedBy")
-  complaintsAssigned      Complaint[]             @relation("ComplaintAssignedTo")
-  complaintsReviewed      Complaint[]             @relation("ComplaintReviewedBy")
-  casesCreated            Case[]                  @relation("CaseCreatedBy")
-  casesLead               Case[]                  @relation("CaseLead")
-  casesSupervised         Case[]                  @relation("CaseSupervisor")
-  caseAssignments         CaseAssignment[]        @relation("CaseAssignmentUser")
-  caseAssignmentsMade     CaseAssignment[]        @relation("CaseAssignmentBy")
-  caseEvents              CaseEvent[]
-  caseNotes               CaseNote[]
-  tasksAssigned           Task[]                  @relation("TaskAssignee")
-  tasksCreated            Task[]                  @relation("TaskCreator")
-  investigationsLead      Investigation[]         @relation("InvestigationLead")
-  investigationsReviewed  Investigation[]         @relation("InvestigationReviewer")
-  reportsAuthored         InvestigationReport[]   @relation("ReportAuthor")
-  reportsReviewed         InvestigationReport[]   @relation("ReportReviewer")
-  statementsTaken         Statement[]
-  interviewsLed           Interview[]             @relation("InterviewLead")
-  transcriptsReviewed     Transcript[]            @relation("TranscriptReviewer")
-  transcriptsApproved     Transcript[]            @relation("TranscriptApprover")
-  evidenceCollected       Evidence[]              @relation("EvidenceCollectedBy")
-  evidenceCustody         Evidence[]              @relation("EvidenceCustodian")
-  custodyFrom             CustodyEvent[]          @relation("CustodyFrom")
-  custodyTo               CustodyEvent[]          @relation("CustodyTo")
-  custodyRecorded         CustodyEvent[]          @relation("CustodyRecordedBy")
-  custodyAuthorized       CustodyEvent[]          @relation("CustodyAuthorizedBy")
-  warrantsRequested       Warrant[]               @relation("WarrantRequestedBy")
-  warrantsApproved        Warrant[]               @relation("WarrantApprovedBy")
-  warrantsExecuted        Warrant[]               @relation("WarrantExecutedBy")
-  arrestsRecorded         Arrest[]
-  detentionsRecorded      Detention[]
-  detentionLogs           DetentionLog[]
-  wantedIssued            WantedPerson[]          @relation("WantedIssuedBy")
-  wantedApproved          WantedPerson[]          @relation("WantedApprovedBy")
-  wantedSightingsLogged   WantedSighting[]
-  wantedVehiclesAdded     WantedVehicle[]
-  incidentsReported       Incident[]
-  patrolsCreated          Patrol[]
-  operationsCreated       Operation[]
-  documentsUploaded       Document[]
-  documentVersions        DocumentVersion[]
-  generatedReports        GeneratedReport[]
-  settingsUpdated         SystemSetting[]
-  backups                 BackupRecord[]
-  officerAssignments      OfficerAssignment[]
-  trainingsRecorded       Training[]
-  maintenanceRecorded     MaintenanceRecord[]
-  fuelLogs                FuelLog[]
-  fingerprintsCaptured    FingerprintRecord[]     @relation("BiometricCapturedBy")
-  facesCaptured           FaceRecord[]            @relation("BiometricCapturedBy")
-  voicesCaptured          VoiceRecord[]           @relation("BiometricCapturedBy")
-  plateDetectionsLogged   LicensePlateDetection[]
-  biometricSearchesRun    BiometricSearch[]       @relation("BiometricSearchOfficer")
-  biometricActionsTaken   BiometricSearch[]       @relation("BiometricSearchActionBy")
-  trafficDriversCreated   TrafficDriver[]         @relation("TrafficDriverCreatedBy")
-  trafficVehiclesCreated  TrafficVehicle[]        @relation("TrafficVehicleCreatedBy")
-  trafficControlsRecorded TrafficControl[]        @relation("TrafficControlOfficer")
-  trafficTicketsIssued    TrafficTicket[]         @relation("TrafficTicketIssuedBy")
-  trafficTicketsCancelled TrafficTicket[]         @relation("TrafficTicketCancelledBy")
-  trafficFinesIssued      TrafficFine[]           @relation("TrafficFineOfficer")
-  trafficPaymentsReceived TrafficPayment[]        @relation("TrafficPaymentReceivedBy")
-  trafficPaymentsVoided   TrafficPayment[]        @relation("TrafficPaymentVoidedBy")
-  trafficReceiptsIssued   TrafficReceipt[]        @relation("TrafficReceiptIssuedBy")
-  trafficEvidenceUploaded TrafficEvidence[]       @relation("TrafficEvidenceUploadedBy")
+  personsCreated             Person[]                   @relation("PersonCreatedBy")
+  complaintsCreated          Complaint[]                @relation("ComplaintCreatedBy")
+  complaintsAssigned         Complaint[]                @relation("ComplaintAssignedTo")
+  complaintsReviewed         Complaint[]                @relation("ComplaintReviewedBy")
+  casesCreated               Case[]                     @relation("CaseCreatedBy")
+  casesLead                  Case[]                     @relation("CaseLead")
+  casesSupervised            Case[]                     @relation("CaseSupervisor")
+  caseAssignments            CaseAssignment[]           @relation("CaseAssignmentUser")
+  caseAssignmentsMade        CaseAssignment[]           @relation("CaseAssignmentBy")
+  caseEvents                 CaseEvent[]
+  caseNotes                  CaseNote[]
+  tasksAssigned              Task[]                     @relation("TaskAssignee")
+  tasksCreated               Task[]                     @relation("TaskCreator")
+  investigationsLead         Investigation[]            @relation("InvestigationLead")
+  investigationsReviewed     Investigation[]            @relation("InvestigationReviewer")
+  reportsAuthored            InvestigationReport[]      @relation("ReportAuthor")
+  reportsReviewed            InvestigationReport[]      @relation("ReportReviewer")
+  statementsTaken            Statement[]
+  interviewsLed              Interview[]                @relation("InterviewLead")
+  transcriptsReviewed        Transcript[]               @relation("TranscriptReviewer")
+  transcriptsApproved        Transcript[]               @relation("TranscriptApprover")
+  evidenceCollected          Evidence[]                 @relation("EvidenceCollectedBy")
+  evidenceCustody            Evidence[]                 @relation("EvidenceCustodian")
+  custodyFrom                CustodyEvent[]             @relation("CustodyFrom")
+  custodyTo                  CustodyEvent[]             @relation("CustodyTo")
+  custodyRecorded            CustodyEvent[]             @relation("CustodyRecordedBy")
+  custodyAuthorized          CustodyEvent[]             @relation("CustodyAuthorizedBy")
+  warrantsRequested          Warrant[]                  @relation("WarrantRequestedBy")
+  warrantsApproved           Warrant[]                  @relation("WarrantApprovedBy")
+  warrantsExecuted           Warrant[]                  @relation("WarrantExecutedBy")
+  arrestsRecorded            Arrest[]
+  detentionsRecorded         Detention[]
+  detentionLogs              DetentionLog[]
+  wantedIssued               WantedPerson[]             @relation("WantedIssuedBy")
+  wantedApproved             WantedPerson[]             @relation("WantedApprovedBy")
+  wantedSightingsLogged      WantedSighting[]
+  wantedVehiclesAdded        WantedVehicle[]
+  incidentsReported          Incident[]
+  patrolsCreated             Patrol[]
+  operationsCreated          Operation[]
+  documentsUploaded          Document[]
+  documentVersions           DocumentVersion[]
+  generatedReports           GeneratedReport[]
+  settingsUpdated            SystemSetting[]
+  backups                    BackupRecord[]
+  officerAssignments         OfficerAssignment[]
+  trainingsRecorded          Training[]
+  maintenanceRecorded        MaintenanceRecord[]
+  fuelLogs                   FuelLog[]
+  fingerprintsCaptured       FingerprintRecord[]        @relation("BiometricCapturedBy")
+  facesCaptured              FaceRecord[]               @relation("BiometricCapturedBy")
+  voicesCaptured             VoiceRecord[]              @relation("BiometricCapturedBy")
+  plateDetectionsLogged      LicensePlateDetection[]
+  biometricSearchesRun       BiometricSearch[]          @relation("BiometricSearchOfficer")
+  biometricActionsTaken      BiometricSearch[]          @relation("BiometricSearchActionBy")
+  trafficDriversCreated      TrafficDriver[]            @relation("TrafficDriverCreatedBy")
+  trafficVehiclesCreated     TrafficVehicle[]           @relation("TrafficVehicleCreatedBy")
+  trafficControlsRecorded    TrafficControl[]           @relation("TrafficControlOfficer")
+  trafficTicketsIssued       TrafficTicket[]            @relation("TrafficTicketIssuedBy")
+  trafficTicketsCancelled    TrafficTicket[]            @relation("TrafficTicketCancelledBy")
+  trafficFinesIssued         TrafficFine[]              @relation("TrafficFineOfficer")
+  trafficPaymentsReceived    TrafficPayment[]           @relation("TrafficPaymentReceivedBy")
+  trafficPaymentsVoided      TrafficPayment[]           @relation("TrafficPaymentVoidedBy")
+  trafficReceiptsIssued      TrafficReceipt[]           @relation("TrafficReceiptIssuedBy")
+  cashRegisters              TrafficCashRegister[]      @relation("CashRegisterAgent")
+  cashRegistersClosed        TrafficCashRegister[]      @relation("CashRegisterClosedBy")
+  cashRegistersBlocked       TrafficCashRegister[]      @relation("CashRegisterBlockedBy")
+  cashDailyClosures          TrafficDailyClosure[]      @relation("DailyClosureClosedBy")
+  cashCollections            TrafficRevenueCollection[] @relation("RevenueCollectionAgent")
+  cashCollectionsVerified    TrafficRevenueCollection[] @relation("RevenueCollectionVerifiedBy")
+  cashDepositsAgent          TrafficDeposit[]           @relation("DepositAgent")
+  cashDepositsMade           TrafficDeposit[]           @relation("DepositMadeBy")
+  cashDepositsReceived       TrafficDeposit[]           @relation("DepositReceivedBy")
+  cashDepositsReviewed       TrafficDeposit[]           @relation("DepositReviewedBy")
+  cashDepositsValidated      TrafficDeposit[]           @relation("DepositValidatedBy")
+  cashDepositSlips           TrafficDepositReceipt[]    @relation("DepositSlipIssuedBy")
+  cashReconciliations        TrafficReconciliation[]    @relation("ReconciliationDecidedBy")
+  cashDiscrepanciesAgent     TrafficCashDiscrepancy[]   @relation("DiscrepancyAgent")
+  cashDiscrepanciesValidated TrafficCashDiscrepancy[]   @relation("DiscrepancyValidatedBy")
+  trafficEvidenceUploaded    TrafficEvidence[]          @relation("TrafficEvidenceUploadedBy")
 
   @@index([roleId])
   @@index([stationId])
@@ -311,16 +326,16 @@ model ApiKey {
 
 /// Province (kept as table "Region" for backward compatibility; presented as "Province" in the UI).
 model Region {
-  id               String            @id @default(cuid())
+  id               String                     @id @default(cuid())
   organizationId   String
-  organization     Organization      @relation(fields: [organizationId], references: [id])
-  code             String            @unique
+  organization     Organization               @relation(fields: [organizationId], references: [id])
+  code             String                     @unique
   name             String
   capital          String?
-  isActive         Boolean           @default(true)
-  isDemo           Boolean           @default(false)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  isActive         Boolean                    @default(true)
+  isDemo           Boolean                    @default(false)
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
   adminDepartments AdminDepartment[]
   stations         Station[]
   users            User[]
@@ -333,6 +348,9 @@ model Region {
   trafficControls  TrafficControl[]
   trafficTickets   TrafficTicket[]
   trafficFines     TrafficFine[]
+  cashRegisters    TrafficCashRegister[]
+  cashCollections  TrafficRevenueCollection[]
+  cashDeposits     TrafficDeposit[]
 }
 
 /// Administrative department (département) of a province.
@@ -473,6 +491,9 @@ model Station {
   trafficTickets     TrafficTicket[]
   trafficFines       TrafficFine[]
   trafficPayments    TrafficPayment[]
+  cashRegisters      TrafficCashRegister[]
+  cashCollections    TrafficRevenueCollection[]
+  cashDeposits       TrafficDeposit[]
 
   @@index([regionId])
   @@index([adminDepartmentId])
@@ -2118,6 +2139,7 @@ enum DocumentEntity {
   TRAFFIC_TICKET
   TRAFFIC_DRIVER
   TRAFFIC_VEHICLE
+  TRAFFIC_DEPOSIT
   GENERAL
 }
 
@@ -2180,6 +2202,8 @@ model Document {
   mainPhotoOfWanted      WantedPerson?           @relation("WantedMainPhoto")
   trafficDriverPhoto     TrafficDriver?          @relation("TrafficDriverPhoto")
   trafficEvidence        TrafficEvidence?
+  cashDeposit            TrafficDeposit?
+  cashDiscrepancy        TrafficCashDiscrepancy?
   trafficVehicleDocument TrafficVehicleDocument?
 
   @@index([entityType, entityId])
@@ -2891,7 +2915,9 @@ model TrafficPayment {
   notes                String?
   createdAt            DateTime             @default(now())
 
-  receipt TrafficReceipt?
+  receipt         TrafficReceipt?
+  cashTransaction TrafficCashTransaction?
+  depositItems    TrafficDepositItem[]
 
   @@unique([method, transactionReference])
   @@index([fineId])
@@ -2930,4 +2956,290 @@ model TrafficEvidence {
   createdAt    DateTime            @default(now())
 
   @@index([controlId])
+}
+
+/**
+ * ================================================================== field revenue: cash registers, deposits, reconciliation
+ */
+
+enum TrafficCashRegisterStatus {
+  OPEN
+  CLOSED
+  PENDING_DEPOSIT
+  DEPOSITED
+  VALIDATED
+  BLOCKED
+}
+
+enum TrafficCollectionStatus {
+  TO_DEPOSIT
+  PARTIALLY_DEPOSITED
+  DEPOSITED
+  VALIDATED
+}
+
+enum TrafficDepositStatus {
+  SUBMITTED
+  VERIFIED
+  JUSTIFICATION_REQUESTED
+  VALIDATED
+  REJECTED
+}
+
+enum TrafficDepositMethod {
+  BANK
+  TREASURY
+  CENTRAL_CASH
+  MOBILE_MONEY
+  OTHER
+}
+
+enum TrafficReconciliationStatus {
+  PENDING
+  CONFORME
+  GAP_TO_JUSTIFY
+  VALIDATED
+  REJECTED
+}
+
+enum TrafficDiscrepancyStatus {
+  OPEN
+  JUSTIFIED
+  VALIDATED
+  REJECTED
+}
+
+/// The electronic cash register of a collecting agent. One OPEN register per agent (partial unique index).
+model TrafficCashRegister {
+  id                 String                    @id @default(cuid())
+  number             String                    @unique
+  agentId            String
+  agent              User                      @relation("CashRegisterAgent", fields: [agentId], references: [id])
+  agentBadge         String?
+  stationId          String
+  station            Station                   @relation(fields: [stationId], references: [id])
+  regionId           String
+  region             Region                    @relation(fields: [regionId], references: [id])
+  status             TrafficCashRegisterStatus @default(OPEN)
+  openedAt           DateTime                  @default(now())
+  openingBalanceFcfa Int                       @default(0)
+  closedAt           DateTime?
+  closedById         String?
+  closedBy           User?                     @relation("CashRegisterClosedBy", fields: [closedById], references: [id])
+  blockedAt          DateTime?
+  blockedById        String?
+  blockedBy          User?                     @relation("CashRegisterBlockedBy", fields: [blockedById], references: [id])
+  blockReason        String?
+  notes              String?
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+
+  transactions  TrafficCashTransaction[]
+  closure       TrafficDailyClosure?
+  collection    TrafficRevenueCollection?
+  deposits      TrafficDeposit[]
+  discrepancies TrafficCashDiscrepancy[]
+
+  @@index([agentId, status])
+  @@index([stationId, openedAt])
+  @@index([regionId, openedAt])
+}
+
+/// One line per payment collected into a register. `paymentId` is unique: a payment can never be counted twice.
+model TrafficCashTransaction {
+  id         String               @id @default(cuid())
+  registerId String
+  register   TrafficCashRegister  @relation(fields: [registerId], references: [id])
+  paymentId  String               @unique
+  payment    TrafficPayment       @relation(fields: [paymentId], references: [id])
+  amountFcfa Int
+  method     TrafficPaymentMethod
+  recordedAt DateTime             @default(now())
+  voidedAt   DateTime?
+
+  @@index([registerId])
+}
+
+/// Daily closing statement (état journalier des recettes): frozen at closing, append-only.
+model TrafficDailyClosure {
+  id                  String              @id @default(cuid())
+  number              String              @unique
+  registerId          String              @unique
+  register            TrafficCashRegister @relation(fields: [registerId], references: [id])
+  paymentsCount       Int
+  finesTotalFcfa      Int
+  collectedFcfa       Int
+  cashFcfa            Int
+  electronicFcfa      Int
+  mobileMoneyFcfa     Int
+  otherFcfa           Int
+  amountToDepositFcfa Int
+  receiptNumbers      Json
+  ticketNumbers       Json
+  closedById          String
+  closedBy            User                @relation("DailyClosureClosedBy", fields: [closedById], references: [id])
+  closedAt            DateTime            @default(now())
+  notes               String?
+
+  collection TrafficRevenueCollection?
+}
+
+/// The revenue a closed register owes to the administration, and how much of it has been deposited / validated.
+model TrafficRevenueCollection {
+  id            String                  @id @default(cuid())
+  number        String                  @unique
+  registerId    String                  @unique
+  register      TrafficCashRegister     @relation(fields: [registerId], references: [id])
+  closureId     String                  @unique
+  closure       TrafficDailyClosure     @relation(fields: [closureId], references: [id])
+  agentId       String
+  agent         User                    @relation("RevenueCollectionAgent", fields: [agentId], references: [id])
+  stationId     String
+  station       Station                 @relation(fields: [stationId], references: [id])
+  regionId      String
+  region        Region                  @relation(fields: [regionId], references: [id])
+  periodFrom    DateTime
+  periodTo      DateTime
+  collectedFcfa Int
+  depositedFcfa Int                     @default(0)
+  validatedFcfa Int                     @default(0)
+  status        TrafficCollectionStatus @default(TO_DEPOSIT)
+  verifiedById  String?
+  verifiedBy    User?                   @relation("RevenueCollectionVerifiedBy", fields: [verifiedById], references: [id])
+  verifiedAt    DateTime?
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+
+  deposits       TrafficDeposit[]
+  reconciliation TrafficReconciliation?
+  discrepancies  TrafficCashDiscrepancy[]
+
+  @@index([stationId, createdAt])
+  @@index([regionId, createdAt])
+  @@index([agentId])
+}
+
+model TrafficDeposit {
+  id                   String                   @id @default(cuid())
+  number               String                   @unique
+  collectionId         String
+  collection           TrafficRevenueCollection @relation(fields: [collectionId], references: [id])
+  registerId           String
+  register             TrafficCashRegister      @relation(fields: [registerId], references: [id])
+  agentId              String
+  agent                User                     @relation("DepositAgent", fields: [agentId], references: [id])
+  agentBadge           String?
+  stationId            String
+  station              Station                  @relation(fields: [stationId], references: [id])
+  regionId             String
+  region               Region                   @relation(fields: [regionId], references: [id])
+  periodFrom           DateTime
+  periodTo             DateTime
+  collectedFcfa        Int
+  amountDueFcfa        Int
+  amountDepositedFcfa  Int
+  method               TrafficDepositMethod
+  slipNumber           String?
+  reference            String?
+  recipient            String?
+  depositedAt          DateTime
+  depositedById        String
+  depositedBy          User                     @relation("DepositMadeBy", fields: [depositedById], references: [id])
+  receivedById         String?
+  receivedBy           User?                    @relation("DepositReceivedBy", fields: [receivedById], references: [id])
+  observations         String?
+  attachmentDocumentId String?                  @unique
+  attachmentDocument   Document?                @relation(fields: [attachmentDocumentId], references: [id])
+  status               TrafficDepositStatus     @default(SUBMITTED)
+  attempt              Int                      @default(1)
+  previousDepositId    String?
+  reviewedById         String?
+  reviewedBy           User?                    @relation("DepositReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt           DateTime?
+  reviewNote           String?
+  validatedById        String?
+  validatedBy          User?                    @relation("DepositValidatedBy", fields: [validatedById], references: [id])
+  validatedAt          DateTime?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+
+  items TrafficDepositItem[]
+  slip  TrafficDepositReceipt?
+
+  @@index([collectionId])
+  @@index([status])
+  @@index([stationId, depositedAt])
+  @@index([regionId, depositedAt])
+}
+
+/// Snapshot of the payments covered by a deposit (traceability: PV → fine → payment → receipt → deposit).
+model TrafficDepositItem {
+  id         String         @id @default(cuid())
+  depositId  String
+  deposit    TrafficDeposit @relation(fields: [depositId], references: [id])
+  paymentId  String
+  payment    TrafficPayment @relation(fields: [paymentId], references: [id])
+  amountFcfa Int
+
+  @@unique([depositId, paymentId])
+}
+
+/// Bordereau de versement des recettes (append-only, verifiable by QR code).
+model TrafficDepositReceipt {
+  id                String         @id @default(cuid())
+  number            String         @unique
+  verificationToken String         @unique
+  depositId         String         @unique
+  deposit           TrafficDeposit @relation(fields: [depositId], references: [id])
+  contentHash       String
+  issuedAt          DateTime       @default(now())
+  issuedById        String
+  issuedBy          User           @relation("DepositSlipIssuedBy", fields: [issuedById], references: [id])
+}
+
+model TrafficReconciliation {
+  id            String                      @id @default(cuid())
+  number        String                      @unique
+  collectionId  String                      @unique
+  collection    TrafficRevenueCollection    @relation(fields: [collectionId], references: [id])
+  collectedFcfa Int
+  depositedFcfa Int
+  validatedFcfa Int
+  gapFcfa       Int
+  status        TrafficReconciliationStatus @default(PENDING)
+  computedAt    DateTime                    @default(now())
+  decidedById   String?
+  decidedBy     User?                       @relation("ReconciliationDecidedBy", fields: [decidedById], references: [id])
+  decidedAt     DateTime?
+  note          String?
+  updatedAt     DateTime                    @updatedAt
+
+  discrepancies TrafficCashDiscrepancy[]
+}
+
+model TrafficCashDiscrepancy {
+  id                   String                   @id @default(cuid())
+  number               String                   @unique
+  reconciliationId     String
+  reconciliation       TrafficReconciliation    @relation(fields: [reconciliationId], references: [id])
+  collectionId         String
+  collection           TrafficRevenueCollection @relation(fields: [collectionId], references: [id])
+  registerId           String
+  register             TrafficCashRegister      @relation(fields: [registerId], references: [id])
+  agentId              String
+  agent                User                     @relation("DiscrepancyAgent", fields: [agentId], references: [id])
+  amountFcfa           Int
+  reason               String?
+  justification        String?
+  attachmentDocumentId String?                  @unique
+  attachmentDocument   Document?                @relation(fields: [attachmentDocumentId], references: [id])
+  status               TrafficDiscrepancyStatus @default(OPEN)
+  validatedById        String?
+  validatedBy          User?                    @relation("DiscrepancyValidatedBy", fields: [validatedById], references: [id])
+  validatedAt          DateTime?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+
+  @@index([status])
+  @@index([agentId])
 }

@@ -32,7 +32,8 @@ export function Legend({ items }: { items: { name: string; color: string }[] }) 
 }
 
 /** Column chart, 1 or 2 series grouped per label. Only the peak of each series is labelled. */
-export function ColumnChart({ series, format, title, tableLabel }: { series: Series[]; format: (n: number) => string; title: string; tableLabel: string }) {
+export function ColumnChart({ series, format, axisFormat, title, tableLabel }: { series: Series[]; format: (n: number) => string; axisFormat?: (n: number) => string; title: string; tableLabel: string }) {
+  const short = axisFormat ?? format;
   const W = 480;
   const H = 210;
   const padL = 54;
@@ -56,7 +57,7 @@ export function ColumnChart({ series, format, title, tableLabel }: { series: Ser
           <g key={t}>
             <line x1={padL} x2={W - 4} y1={y(t)} y2={y(t)} stroke={CHART.grid} strokeWidth={1} />
             <text x={padL - 6} y={y(t) + 3} textAnchor="end" fontSize={11} fill={CHART.axis}>
-              {format(t)}
+              {short(t)}
             </text>
           </g>
         ))}
@@ -76,7 +77,7 @@ export function ColumnChart({ series, format, title, tableLabel }: { series: Ser
                     </path>
                     {peak ? (
                       <text x={x + barW / 2} y={padT + plotH - h - 4} textAnchor="middle" fontSize={11} fontWeight={600} fill={CHART.ink}>
-                        {format(v)}
+                        {short(v)}
                       </text>
                     ) : null}
                   </g>

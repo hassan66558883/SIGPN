@@ -2,6 +2,15 @@
 
 All notable changes to SIGPN-T (Système Intégré de Gestion Numérique de la Police Nationale du Tchad, formerly TPMS). Dates are ISO (UTC+1, N'Djamena).
 
+## [0.6.0] — 2026-09-27 — « Gestion des recettes et versements »
+
+### Added
+- Cash register per collecting agent, automatic booking of field payments, daily closing statement (PDF), revenue collections, deposits with electronic slip (PDF + QR + public check), verification / validation workflow (four-eyes), reconciliation, discrepancy sheets, blocking, revenue dashboard, 12 financial reports (PDF/CSV), search and financial audit (see `docs/RECETTES_VERSEMENTS.md`).
+- 10 `cash:*` permissions, role « Responsable d'unité (recettes) », demo accounts `unit.head` and `control.cs2`, 5 demo registers, migration `20260927100000_traffic_cash_revenue` (triggers: no delete, closed register takes no operation, frozen statements and slips).
+
+### Changed
+- A field agent (`cash:collect`) may now record and void their own payments, only in an open register; finance roles are unchanged. Sidebar and chart axis (compact labels) tweaks; `test:integration` runs files sequentially.
+
 ## [0.5.0] — 2026-09-26 — SIGPN-T: rename and « Gestion des infractions routières et des amendes »
 
 ### Changed

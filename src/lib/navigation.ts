@@ -56,6 +56,21 @@ export const NAVIGATION: NavSection[] = [
     ],
   },
   {
+    titleKey: "cash.section",
+    items: [
+      { href: "/traffic/cash", labelKey: "cash.nav.dashboard", permission: "cash:reports", icon: "◨" },
+      { href: "/traffic/cash/registers", labelKey: "cash.nav.registers", permission: "cash:view", anyOf: ["cash:register"], icon: "▣" },
+      { href: "/traffic/cash/collections", labelKey: "cash.nav.collections", permission: "cash:view", anyOf: ["cash:register"], icon: "₣" },
+      { href: "/traffic/cash/closures", labelKey: "cash.nav.closures", permission: "cash:view", anyOf: ["cash:register"], icon: "⊟" },
+      { href: "/traffic/cash/deposits", labelKey: "cash.nav.deposits", permission: "cash:view", anyOf: ["cash:register"], icon: "⇥" },
+      { href: "/traffic/cash/slips", labelKey: "cash.nav.slips", permission: "cash:view", anyOf: ["cash:register"], icon: "▤" },
+      { href: "/traffic/cash/reconciliation", labelKey: "cash.nav.reconciliation", permission: "cash:view", icon: "⇄" },
+      { href: "/traffic/cash/discrepancies", labelKey: "cash.nav.discrepancies", permission: "cash:view", anyOf: ["cash:register"], icon: "≠" },
+      { href: "/traffic/cash/reports", labelKey: "cash.nav.reports", permission: "cash:reports", icon: "≡" },
+      { href: "/traffic/cash/audit", labelKey: "cash.nav.audit", permission: "audit:view", anyOf: [], icon: "☷" },
+    ],
+  },
+  {
     titleKey: "nav.section.operations",
     items: [
       { href: "/patrols", labelKey: "nav.patrols", permission: "patrols:view", icon: "➶" },

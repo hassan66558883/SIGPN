@@ -27,7 +27,7 @@ export function canSeePersonDetails(actor: Actor, person: { stationId: string | 
 
 /** Parameterized SQL fragment restricting `alias`.stationId / regionId to the actor's scope (raw statistics queries).
  * `alias` is always a code-controlled constant, never user input. */
-export function scopeSql(actor: Actor, alias: "c" | "t" | "f"): Prisma.Sql {
+export function scopeSql(actor: Actor, alias: "c" | "t" | "f" | "r"): Prisma.Sql {
   const col = (name: "stationId" | "regionId") => PrismaRuntime.raw(`"${alias}"."${name}"`);
   switch (actor.scopeLevel) {
     case "NATIONAL":

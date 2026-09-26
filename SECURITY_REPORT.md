@@ -106,3 +106,13 @@ Findings: none open. Note: the QR code embeds `APP_URL`; a wrong value in produc
 - Without a trusted proxy the application cannot see the client socket IP (Next.js limitation); per-IP limits therefore only become effective behind Nginx (`TRUST_PROXY=1`). Per-identifier limits and account lockout are always effective.
 - No e-mail/SMS gateway: password reset links are issued by administrators and handed over out-of-band (audited).
 - The in-process rate limiter is per instance; a multi-instance deployment should add the Nginx zones (configured) or a shared store (deferred to deployment).
+
+
+## Recettes et versements (2026-09-27)
+| Risque | Contrôle | Vérifié par |
+| ------ | -------- | ----------- |
+| Détournement / double comptage | paiement unique par caisse, caisse fermée sans opération (service + trigger), versement ≤ disponible (CHECK), pas de suppression, états figés | `tests/integration/cash.test.ts` |
+| Collusion | vérifier/valider son propre versement ou écart refusé ; administrateur sans permission d'écriture financière | tests de rôles |
+| Falsification du bordereau | append-only, empreinte SHA-256, QR public sans donnée personnelle | test de vérification publique |
+| Traçabilité | audit `traffic_cash` : utilisateur, rôle, IP, avant/après, référence | test d'audit |
+Limite : pas de passerelle de paiement ; le versement Mobile Money est déclaratif. Constats ouverts : aucun.

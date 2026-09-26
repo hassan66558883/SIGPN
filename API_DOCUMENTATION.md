@@ -97,3 +97,16 @@ Records outside the scope answer 404 (no existence leak). Master-data writes (pr
 1. Sign in to the web UI, open **Mon compte › Clés API**, create a key (shown once, format `pms_<prefix>_<secret>`; only its SHA-256 is stored).
 2. Send `Authorization: Bearer pms_…` on every request. The key carries exactly the owner's permissions and scope; revoking the key or disabling the user stops access immediately.
 3. Keys can expire (`expiresInDays`) and are limited to 5 active per user.
+
+
+## Recettes et versements (`/api/v1/traffic/cash`)
+| Route | Méthodes | Permission |
+| ----- | -------- | ---------- |
+| `registers`, `registers/{id}` | GET, POST (ouvrir) ; PATCH `{op: close|block|unblock}` | `cash:register` / `cash:block` |
+| `collections`, `collections/{id}` | GET ; PATCH `{op: verify_closure|finalize|reject|declare_gap}` | `cash:view`, `cash:verify_closure`, `cash:reconcile` |
+| `closures`, `closures/{id}`, `closures/{id}/pdf` | GET | `cash:view` / `cash:register` |
+| `deposits`, `deposits/{id}`, `deposits/{id}/pdf` | GET, POST ; PATCH `{op: verify|request_justification|reject|validate|respond}` | `cash:deposit_*` |
+| `discrepancies`, `discrepancies/{id}` | GET ; PATCH `{op: justify|validate|reject}` | `cash:reconcile` |
+| `reconciliations` | GET | `cash:view` |
+| `stats`, `reports/{kind}` (`json|csv|pdf`), `search` | GET | `cash:reports` / `cash:view` |
+| `/api/v1/public/verify/deposit/{token}` | GET (public) | — |

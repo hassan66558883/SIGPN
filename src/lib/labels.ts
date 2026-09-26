@@ -502,6 +502,53 @@ export const TRAFFIC_PAYMENT_STATUS: LabelMap = {
   VOIDED: def("Annulé", "ملغى", "neutral"),
 };
 
+export const CASH_REGISTER_STATUS: LabelMap = {
+  OPEN: def("Ouverte", "مفتوح", "success"),
+  CLOSED: def("Clôturée", "مقفل", "neutral"),
+  PENDING_DEPOSIT: def("En attente de versement", "في انتظار التسديد", "warning"),
+  DEPOSITED: def("Versée", "مسدَّد", "info"),
+  VALIDATED: def("Validée", "مصادَق عليه", "success"),
+  BLOCKED: def("Bloquée", "محظور", "danger"),
+};
+
+export const CASH_COLLECTION_STATUS: LabelMap = {
+  TO_DEPOSIT: def("À verser", "للتسديد", "warning"),
+  PARTIALLY_DEPOSITED: def("Partiellement versée", "مسدَّد جزئياً", "violet"),
+  DEPOSITED: def("Versée", "مسدَّد", "info"),
+  VALIDATED: def("Validée", "مصادَق عليه", "success"),
+};
+
+export const CASH_DEPOSIT_METHOD: LabelMap = {
+  BANK: def("Banque", "بنك"),
+  TREASURY: def("Trésor / administration", "الخزينة / الإدارة"),
+  CENTRAL_CASH: def("Caisse centrale", "الصندوق المركزي"),
+  MOBILE_MONEY: def("Mobile Money (si autorisé)", "موبايل موني (إن كان مرخَّصاً)", "info"),
+  OTHER: def("Autre moyen autorisé", "وسيلة أخرى مرخَّصة"),
+};
+
+export const CASH_DEPOSIT_STATUS: LabelMap = {
+  SUBMITTED: def("Déclaré", "مصرَّح به", "info"),
+  VERIFIED: def("Vérifié", "تم التحقق", "violet"),
+  JUSTIFICATION_REQUESTED: def("Justification demandée", "مطلوب تبرير", "warning"),
+  VALIDATED: def("Validé", "مصادَق عليه", "success"),
+  REJECTED: def("Rejeté", "مرفوض", "danger"),
+};
+
+export const CASH_RECONCILIATION_STATUS: LabelMap = {
+  PENDING: def("En attente", "قيد الانتظار", "info"),
+  CONFORME: def("Conforme", "مطابق", "success"),
+  GAP_TO_JUSTIFY: def("Écart à justifier", "فارق يجب تبريره", "warning"),
+  VALIDATED: def("Validé", "مصادَق عليه", "success"),
+  REJECTED: def("Rejeté", "مرفوض", "danger"),
+};
+
+export const CASH_DISCREPANCY_STATUS: LabelMap = {
+  OPEN: def("Ouvert", "مفتوح", "danger"),
+  JUSTIFIED: def("Justifié", "تم تبريره", "warning"),
+  VALIDATED: def("Validé", "مصادَق عليه", "success"),
+  REJECTED: def("Justification rejetée", "التبرير مرفوض", "danger"),
+};
+
 export const TRAFFIC_EVIDENCE_KIND: LabelMap = {
   PHOTO: def("Photo", "صورة"),
   VIDEO: def("Vidéo", "فيديو"),

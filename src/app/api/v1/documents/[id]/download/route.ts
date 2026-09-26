@@ -6,6 +6,11 @@ import { readUpload } from "@/server/storage";
 
 type P = { id: string };
 
+/** Supporting documents of deposits and discrepancies: the collecting agent, or a cash:view holder inside scope. */
+function cashAccess(actor: Parameters<typeof inScope>[0], rec: { stationId: string; regionId: string }, agentId: string) {
+  return (actor.permissions.has("cash:register") && agentId === actor.id) || (actor.permissions.has("cash:view") && inScope(actor, rec));
+}
+
 /** GET /api/v1/documents/{id}/download — streams the current version of an evidence- or wanted-person-linked
  * document. Scoped through the linked entity's station/region; never served publicly. */
 export const GET = withApi<P>({}, async ({ actor, params }) => {
@@ -17,6 +22,8 @@ export const GET = withApi<P>({}, async ({ actor, params }) => {
       evidence: { select: { case: { select: { stationId: true, regionId: true } } } },
       wantedPerson: { select: { stationId: true, regionId: true } },
       trafficEvidence: { select: { control: { select: { stationId: true, regionId: true } } } },
+      cashDeposit: { select: { agentId: true, stationId: true, regionId: true } },
+      cashDiscrepancy: { select: { agentId: true, register: { select: { stationId: true, regionId: true } } } },
       versions: { orderBy: { version: "desc" }, take: 1, select: { fileName: true, mimeType: true, storagePath: true } },
     },
   });
@@ -25,6 +32,8 @@ export const GET = withApi<P>({}, async ({ actor, params }) => {
   if (doc.evidence) allowed = actor.permissions.has("evidence:view") && inScope(actor, { stationId: doc.evidence.case.stationId, regionId: doc.evidence.case.regionId });
   else if (doc.wantedPerson) allowed = actor.permissions.has("wanted:view") && inScope(actor, { stationId: doc.wantedPerson.stationId, regionId: doc.wantedPerson.regionId });
   else if (doc.trafficEvidence) allowed = actor.permissions.has("traffic:view") && inScope(actor, doc.trafficEvidence.control);
+  else if (doc.cashDeposit) allowed = cashAccess(actor, doc.cashDeposit, doc.cashDeposit.agentId);
+  else if (doc.cashDiscrepancy) allowed = cashAccess(actor, doc.cashDiscrepancy.register, doc.cashDiscrepancy.agentId);
   if (!allowed) return apiError(404, "NOT_FOUND", "Document not found.");
   const v = doc.versions[0];
   if (!v) return apiError(404, "NOT_FOUND", "No file version available.");

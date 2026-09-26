@@ -3,13 +3,19 @@
 import { redirect } from "next/navigation";
 import { getRequestContext } from "@/server/request-context";
 import { fail, formEntries, formFile, revalidateAll } from "@/server/action-utils";
-import { requirePermissionForAction } from "@/server/auth/dal";
+import { requireActorForAction, requirePermissionForAction } from "@/server/auth/dal";
 import { BusinessError } from "@/server/errors";
 import type { FormState } from "@/components/forms";
 import * as enforcement from "@/server/traffic/enforcement";
 import * as payments from "@/server/traffic/payments";
 import * as registry from "@/server/traffic/registry";
 import { controlSchema, driverCreateSchema, driverUpdateSchema, evidenceSchema, fineStatusSchema, openCaseSchema, paymentSchema, paymentVoidSchema, ticketCancelSchema, vehicleCreateSchema, vehicleDocumentSchema, vehicleUpdateSchema, violationToggleSchema } from "@/server/traffic/schemas";
+
+/** Payments are recorded by finance roles (traffic:payment_*) or collected in the field by an agent (cash:collect). */
+async function requirePaymentActor(primary: "traffic:payment_record" | "traffic:payment_void", field: "cash:collect") {
+  const actor = await requireActorForAction();
+  return requirePermissionForAction(actor.permissions.has(field) ? field : primary, actor);
+}
 
 /** Form posts carry several `violationId` fields; formEntries() would keep only the last one. */
 function controlEntries(fd: FormData) {
@@ -94,7 +100,7 @@ export async function setFineStatusAction(_p: FormState, fd: FormData): Promise<
 export async function recordPaymentAction(_p: FormState, fd: FormData): Promise<FormState> {
   let target: string;
   try {
-    const actor = await requirePermissionForAction("traffic:payment_record");
+    const actor = await requirePaymentActor("traffic:payment_record", "cash:collect");
     const r = await payments.recordPayment(actor, paymentSchema.parse(formEntries(fd)), await getRequestContext());
     target = `/traffic/receipts/${r.receipt.id}?created=1`;
     revalidateAll();
@@ -106,7 +112,7 @@ export async function recordPaymentAction(_p: FormState, fd: FormData): Promise<
 
 export async function voidPaymentAction(_p: FormState, fd: FormData): Promise<FormState> {
   try {
-    const actor = await requirePermissionForAction("traffic:payment_void");
+    const actor = await requirePaymentActor("traffic:payment_void", "cash:collect");
     await payments.voidPayment(actor, paymentVoidSchema.parse(formEntries(fd)), await getRequestContext());
     revalidateAll();
     return { ok: true, message: "Payment voided." };

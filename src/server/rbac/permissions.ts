@@ -135,6 +135,17 @@ export const PERMISSION_CATALOG = [
   ["traffic:catalog_manage", "Activate or deactivate an offence of the catalogue"],
   ["traffic:dashboard", "View the traffic dashboard and statistics"],
   ["traffic:export", "Export traffic lists and statistics"],
+  // field revenue: cash registers, deposits, reconciliation
+  ["cash:collect", "Collect a fine payment in the field into one's own cash register"],
+  ["cash:register", "Open, view and close one's own cash register and daily statement"],
+  ["cash:view", "View cash registers, collected revenue, deposits and reconciliations within scope"],
+  ["cash:verify_closure", "Verify the closing of an agent's cash register"],
+  ["cash:deposit_create", "Declare the deposit of collected revenue to the administration"],
+  ["cash:deposit_review", "Verify, accept, reject or ask for a justification on a deposit"],
+  ["cash:deposit_validate", "Definitively validate a deposit"],
+  ["cash:reconcile", "Manage reconciliations and process cash discrepancies"],
+  ["cash:reports", "View and export financial revenue reports and the revenue dashboard"],
+  ["cash:block", "Block or unblock an agent's cash register"],
   // self-service
   ["apikeys:manage_own", "Create/revoke own API keys"],
 ] as const;

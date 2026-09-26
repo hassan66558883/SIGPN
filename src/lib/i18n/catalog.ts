@@ -27,6 +27,7 @@ export const ROLE_NAMES_FR: Record<string, string> = {
   TRAFFIC_CONTROL_AGENT: "Agent de contrôle routier",
   TRAFFIC_SUPERVISOR: "Superviseur de la circulation",
   TRAFFIC_PAYMENT_MANAGER: "Responsable financier / paiement",
+  TRAFFIC_UNIT_HEAD: "Responsable d'unité (recettes)",
   TRAFFIC_READONLY: "Consultation (lecture seule)",
 };
 
@@ -53,6 +54,7 @@ export const ROLE_NAMES_AR: Record<string, string> = {
   TRAFFIC_CONTROL_AGENT: "عون المراقبة الطرقية",
   TRAFFIC_SUPERVISOR: "مشرف المرور",
   TRAFFIC_PAYMENT_MANAGER: "المسؤول المالي / التحصيل",
+  TRAFFIC_UNIT_HEAD: "مسؤول الوحدة (الإيرادات)",
   TRAFFIC_READONLY: "الاطلاع (قراءة فقط)",
 };
 
@@ -79,6 +81,7 @@ export const ROLE_DESCRIPTIONS_FR: Record<string, string> = {
   TRAFFIC_CONTROL_AGENT: "Agent de contrôle routier : enregistre les contrôles et établit les PV ; consulte les fiches conducteurs et véhicules sans pouvoir les modifier.",
   TRAFFIC_SUPERVISOR: "Supervise la verbalisation d'une unité : revoit les contrôles et les PV, annule un PV, gère le statut des amendes, exporte les statistiques.",
   TRAFFIC_PAYMENT_MANAGER: "Enregistre les paiements d'amendes, délivre les reçus, annule un paiement saisi par erreur et suit les statistiques de recouvrement.",
+  TRAFFIC_UNIT_HEAD: "Responsable d'unité : suit les recettes encaissées par les agents de l'unité, vérifie les clôtures journalières et contrôle les versements.",
   TRAFFIC_READONLY: "Consultation uniquement : contrôles routiers, PV, amendes, conducteurs, véhicules et catalogue des infractions.",
 };
 
@@ -105,6 +108,7 @@ export const ROLE_DESCRIPTIONS_AR: Record<string, string> = {
   TRAFFIC_CONTROL_AGENT: "عون المراقبة الطرقية: يسجل المراقبات ويحرر المحاضر؛ يطلع على بطاقات السائقين والمركبات دون تعديلها.",
   TRAFFIC_SUPERVISOR: "يشرف على تحرير المخالفات في وحدة: يراجع المراقبات والمحاضر، يلغي محضراً، يدير حالة الغرامات، ويصدّر الإحصائيات.",
   TRAFFIC_PAYMENT_MANAGER: "يسجل دفع الغرامات ويصدر الوصولات ويلغي دفعة سُجِّلت بالخطأ ويتابع إحصائيات التحصيل.",
+  TRAFFIC_UNIT_HEAD: "مسؤول الوحدة: يتابع الإيرادات التي يحصّلها أعوان الوحدة، ويتحقق من الإقفال اليومي ويراقب التسديدات.",
   TRAFFIC_READONLY: "اطلاع فقط: المراقبات الطرقية، المحاضر، الغرامات، السائقون، المركبات ودليل المخالفات.",
 };
 
@@ -238,6 +242,16 @@ export const PERMISSION_DESCRIPTIONS_FR: Record<string, string> = {
   "traffic:catalog_manage": "Activer ou désactiver une infraction du catalogue",
   "traffic:dashboard": "Consulter le tableau de bord et les statistiques des infractions routières",
   "traffic:export": "Exporter les listes et statistiques des infractions routières",
+  "cash:collect": "Encaisser une amende sur le terrain dans sa propre caisse",
+  "cash:register": "Ouvrir, consulter et clôturer sa propre caisse et son état journalier",
+  "cash:view": "Consulter les caisses, recettes collectées, versements et rapprochements du périmètre",
+  "cash:verify_closure": "Vérifier la clôture de la caisse d'un agent",
+  "cash:deposit_create": "Déclarer le versement des recettes collectées à l'administration",
+  "cash:deposit_review": "Vérifier, accepter, rejeter un versement ou demander une justification",
+  "cash:deposit_validate": "Valider définitivement un versement",
+  "cash:reconcile": "Gérer les rapprochements et traiter les écarts de caisse",
+  "cash:reports": "Consulter et exporter les rapports financiers et le tableau de bord des recettes",
+  "cash:block": "Bloquer ou débloquer la caisse d'un agent",
 };
 
 export const PERMISSION_DESCRIPTIONS_AR: Record<string, string> = {
@@ -358,6 +372,16 @@ export const PERMISSION_DESCRIPTIONS_AR: Record<string, string> = {
   "traffic:catalog_manage": "تفعيل مخالفة من الدليل أو تعطيلها",
   "traffic:dashboard": "الاطلاع على لوحة القيادة وإحصائيات المخالفات الطرقية",
   "traffic:export": "تصدير قوائم وإحصائيات المخالفات الطرقية",
+  "cash:collect": "تحصيل غرامة ميدانياً في صندوق العون",
+  "cash:register": "فتح صندوقه وعرضه وإقفاله والكشف اليومي",
+  "cash:view": "الاطلاع على الصناديق والإيرادات المحصّلة والتسديدات والمطابقات ضمن النطاق",
+  "cash:verify_closure": "التحقق من إقفال صندوق عون",
+  "cash:deposit_create": "التصريح بتسديد الإيرادات المحصّلة للإدارة",
+  "cash:deposit_review": "التحقق من تسديد أو قبوله أو رفضه أو طلب تبرير",
+  "cash:deposit_validate": "المصادقة النهائية على تسديد",
+  "cash:reconcile": "إدارة المطابقات ومعالجة فوارق الصندوق",
+  "cash:reports": "الاطلاع على التقارير المالية ولوحة الإيرادات وتصديرها",
+  "cash:block": "حظر صندوق عون أو رفع الحظر عنه",
 };
 
 export function permissionDescription(code: string, stored: string, locale: Locale): string {

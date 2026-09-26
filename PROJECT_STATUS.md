@@ -47,3 +47,7 @@ Delivered and tested: 82 offences imported from the official table, roadside con
 Shared password: value of `DEMO_PASSWORD` in `.env` (default `Demo-Pms-2026!`). Accounts: `admin` (SUPER_ADMIN), `commander.national`, `commander.central` (province N'Djamena), `commander.dept` (département Ville de N'Djamena), `chief.cs1`, `chief.arr5`, `chief.mdu`, `inv.diallo`, `inv.mensah`, `desk.cs1`, `desk.post1`, `patrol.cs1`, `evidence.cs1`, `custody.cs1`, `fleet.central`, `analyst`, `auditor`, `biometric.cs1`, `forensic.cs1`, `prosecutor.cs1`, and the traffic accounts `police.admin`, `officer.cs1`, `traffic.cs1`, `control.cs1`, `traffic.supervisor`, `finance.central`, `readonly.traffic`. Roles flagged "MFA required" are forced to enrol an authenticator at first sign-in (`npx tsx scripts/demo-totp.ts <user>` prints the current code in development).
 
 DEMO dataset (all fictional): 23 provinces (official referential) · 14 structures · 118 officers · 17 accounts · 10 positions · 124 trainings · 90 persons · 70 complaints · 16 cases.
+
+
+## Recettes et versements (2026-09-27)
+Module « Gestion des recettes et versements » livré (v0.6.0) : caisses des agents, clôture, versements, bordereaux, rapprochement, écarts, tableau de bord, 12 rapports, audit financier. Guide : `docs/RECETTES_VERSEMENTS.md`. Tests : 56 unitaires, 81 intégration, 16 sécurité.
