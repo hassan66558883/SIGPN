@@ -1058,6 +1058,7 @@ model Case {
   documents              Document[]
   biometricSearches      BiometricSearch[]
   licensePlateDetections LicensePlateDetection[]
+  trafficControls        TrafficControl[]
 
   @@index([status])
   @@index([stationId, status])
@@ -1838,9 +1839,10 @@ model Incident {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
 
-  officers  IncidentOfficer[]
-  persons   IncidentPerson[]
-  documents Document[]
+  officers        IncidentOfficer[]
+  persons         IncidentPerson[]
+  documents       Document[]
+  trafficControls TrafficControl[]
 
   @@index([stationId, status])
   @@index([occurredAt])
@@ -2751,6 +2753,10 @@ model TrafficControl {
   vehicleColor   String?
   outcome        TrafficControlOutcome @default(COMPLIANT)
   observations   String?
+  caseId         String?
+  case           Case?                 @relation(fields: [caseId], references: [id])
+  incidentId     String?
+  incident       Incident?             @relation(fields: [incidentId], references: [id])
   isDemo         Boolean               @default(false)
   createdAt      DateTime              @default(now())
   updatedAt      DateTime              @updatedAt

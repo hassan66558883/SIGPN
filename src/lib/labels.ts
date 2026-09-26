@@ -423,6 +423,91 @@ export const DANGER_LEVEL: LabelMap = {
   EXTREME: def("Critique", "حرجة", "danger"),
 };
 
+/* ---- Circulation routière : infractions, PV, amendes, paiements ---- */
+
+export const TRAFFIC_OFFENCE_CLASS: LabelMap = {
+  CLASS_2: def("2ème classe", "الدرجة الثانية", "info"),
+  CLASS_3: def("3ème classe", "الدرجة الثالثة", "warning"),
+  CLASS_4: def("4ème classe", "الدرجة الرابعة", "danger"),
+  DELIT: def("Délit", "جنحة", "violet"),
+};
+
+export const TRAFFIC_CATEGORY: LabelMap = {
+  ROAD: def("Infractions routières", "المخالفات الطرقية", "info"),
+  CYCLE_MOTORCYCLE: def("Cycles et motocyclettes", "الدراجات والدراجات النارية", "violet"),
+  MOTO_TAXI: def("Moto-taxis", "سيارات الأجرة الدراجة (موطو-تاكسي)", "warning"),
+};
+
+export const TRAFFIC_VEHICLE_TYPE: LabelMap = {
+  CAR: def("Voiture particulière", "سيارة خاصة"),
+  PICKUP: def("Pick-up / camionnette", "شاحنة صغيرة"),
+  MOTORCYCLE: def("Motocyclette", "دراجة نارية"),
+  MOTO_TAXI: def("Moto-taxi", "موطو-تاكسي"),
+  TRICYCLE: def("Tricycle", "دراجة ثلاثية العجلات"),
+  CYCLE: def("Cycle / cyclomoteur", "دراجة / دراجة بمحرك"),
+  MINIBUS: def("Minibus", "حافلة صغيرة"),
+  BUS: def("Autocar / bus", "حافلة"),
+  TRUCK: def("Camion", "شاحنة"),
+  TRACTOR_TRAILER: def("Tracteur avec remorque", "جرار مع مقطورة"),
+  OTHER: def("Autre", "أخرى"),
+};
+
+export const TRAFFIC_VEHICLE_STATUS: LabelMap = {
+  ACTIVE: def("En circulation", "قيد السير", "success"),
+  SUSPENDED: def("Suspendu", "معلَّق", "warning"),
+  SEIZED: def("Saisi", "محجوز", "danger"),
+  STOLEN: def("Volé", "مسروق", "danger"),
+  SCRAPPED: def("Retiré / hors d'usage", "مسحوب / خارج الخدمة", "neutral"),
+};
+
+export const TRAFFIC_VEHICLE_DOC_TYPE: LabelMap = {
+  REGISTRATION_CARD: def("Carte grise", "البطاقة الرمادية"),
+  INSURANCE: def("Assurance", "التأمين"),
+  TECHNICAL_INSPECTION: def("Visite technique", "الفحص التقني"),
+  BLUE_CARD: def("Carte bleue", "البطاقة الزرقاء"),
+  TRANSPORT_LICENSE: def("Licence de transport", "رخصة النقل"),
+  STICKER: def("Vignette", "الملصق الضريبي"),
+  OTHER: def("Autre document", "وثيقة أخرى"),
+};
+
+export const TRAFFIC_CONTROL_OUTCOME: LabelMap = {
+  COMPLIANT: def("Conforme", "مطابق", "success"),
+  INFRACTION: def("Infraction relevée", "مخالفة مسجَّلة", "danger"),
+};
+
+export const TRAFFIC_TICKET_STATUS: LabelMap = {
+  ISSUED: def("Établi", "محرَّر", "success"),
+  CANCELLED: def("Annulé", "ملغى", "neutral"),
+};
+
+export const TRAFFIC_FINE_STATUS: LabelMap = {
+  TO_PAY: def("À payer", "مستحقة الدفع", "warning"),
+  PENDING: def("En attente", "قيد الانتظار", "info"),
+  PARTIALLY_PAID: def("Partiellement payée", "مدفوعة جزئياً", "violet"),
+  PAID: def("Payée", "مدفوعة", "success"),
+  CONTESTED: def("Contestée", "مطعون فيها", "danger"),
+  CANCELLED: def("Annulée", "ملغاة", "neutral"),
+};
+
+export const TRAFFIC_PAYMENT_METHOD: LabelMap = {
+  CASH: def("Espèces", "نقداً"),
+  ELECTRONIC: def("Paiement électronique", "دفع إلكتروني", "info"),
+  MOBILE_MONEY: def("Mobile Money", "الدفع عبر الهاتف (موبايل موني)", "info"),
+  BANK_TRANSFER: def("Virement bancaire", "تحويل بنكي", "info"),
+  OTHER: def("Autre moyen autorisé", "وسيلة أخرى مرخَّصة"),
+};
+
+export const TRAFFIC_PAYMENT_STATUS: LabelMap = {
+  COMPLETED: def("Enregistré", "مسجَّل", "success"),
+  VOIDED: def("Annulé", "ملغى", "neutral"),
+};
+
+export const TRAFFIC_EVIDENCE_KIND: LabelMap = {
+  PHOTO: def("Photo", "صورة"),
+  VIDEO: def("Vidéo", "فيديو"),
+  DOCUMENT: def("Document", "وثيقة"),
+};
+
 export function labelOf(map: LabelMap, key: string | null | undefined, locale: Locale): LabelDef {
   if (!key) return { label: "—", tone: "neutral" };
   const d = map[key];

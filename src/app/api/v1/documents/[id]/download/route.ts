@@ -16,6 +16,7 @@ export const GET = withApi<P>({}, async ({ actor, params }) => {
       currentVersion: true,
       evidence: { select: { case: { select: { stationId: true, regionId: true } } } },
       wantedPerson: { select: { stationId: true, regionId: true } },
+      trafficEvidence: { select: { control: { select: { stationId: true, regionId: true } } } },
       versions: { orderBy: { version: "desc" }, take: 1, select: { fileName: true, mimeType: true, storagePath: true } },
     },
   });
@@ -23,6 +24,7 @@ export const GET = withApi<P>({}, async ({ actor, params }) => {
   let allowed = false;
   if (doc.evidence) allowed = actor.permissions.has("evidence:view") && inScope(actor, { stationId: doc.evidence.case.stationId, regionId: doc.evidence.case.regionId });
   else if (doc.wantedPerson) allowed = actor.permissions.has("wanted:view") && inScope(actor, { stationId: doc.wantedPerson.stationId, regionId: doc.wantedPerson.regionId });
+  else if (doc.trafficEvidence) allowed = actor.permissions.has("traffic:view") && inScope(actor, doc.trafficEvidence.control);
   if (!allowed) return apiError(404, "NOT_FOUND", "Document not found.");
   const v = doc.versions[0];
   if (!v) return apiError(404, "NOT_FOUND", "No file version available.");
