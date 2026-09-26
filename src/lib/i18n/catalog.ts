@@ -21,6 +21,13 @@ export const ROLE_NAMES_FR: Record<string, string> = {
   BIOMETRIC_OFFICER: "Agent biométrique",
   FORENSIC_OFFICER: "Agent de police scientifique",
   PROSECUTOR: "Procureur",
+  POLICE_ADMIN: "Administrateur police",
+  OFFICER: "Officier de police",
+  TRAFFIC_OFFICER: "Agent de circulation",
+  TRAFFIC_CONTROL_AGENT: "Agent de contrôle routier",
+  TRAFFIC_SUPERVISOR: "Superviseur de la circulation",
+  TRAFFIC_PAYMENT_MANAGER: "Responsable financier / paiement",
+  TRAFFIC_READONLY: "Consultation (lecture seule)",
 };
 
 export const ROLE_NAMES_AR: Record<string, string> = {
@@ -40,6 +47,13 @@ export const ROLE_NAMES_AR: Record<string, string> = {
   BIOMETRIC_OFFICER: "ضابط القياسات الحيوية",
   FORENSIC_OFFICER: "ضابط الأدلة الجنائية",
   PROSECUTOR: "وكيل النيابة",
+  POLICE_ADMIN: "مسؤول إدارة الشرطة",
+  OFFICER: "ضابط شرطة",
+  TRAFFIC_OFFICER: "عون المرور",
+  TRAFFIC_CONTROL_AGENT: "عون المراقبة الطرقية",
+  TRAFFIC_SUPERVISOR: "مشرف المرور",
+  TRAFFIC_PAYMENT_MANAGER: "المسؤول المالي / التحصيل",
+  TRAFFIC_READONLY: "الاطلاع (قراءة فقط)",
 };
 
 export const ROLE_DESCRIPTIONS_FR: Record<string, string> = {
@@ -59,6 +73,13 @@ export const ROLE_DESCRIPTIONS_FR: Record<string, string> = {
   BIOMETRIC_OFFICER: "Effectue les recherches d'empreintes, de visage, de voix et de plaques (ANPR) et enregistre la vérification par l'enquêteur.",
   FORENSIC_OFFICER: "Gère les pièces à conviction et la chaîne de possession ; enregistre les gabarits biométriques et effectue des recherches d'empreintes.",
   PROSECUTOR: "Supervision judiciaire : lecture seule des affaires, pièces et activité biométrique, y compris les dossiers sensibles et confidentiels.",
+  POLICE_ADMIN: "Administration nationale du système d'information de la police : utilisateurs, organisation et toutes les fonctions de circulation routière, hors paramètres de sécurité système et sauvegardes.",
+  OFFICER: "Officier de police (OPJ) : enregistre les contrôles routiers et les PV, tient à jour les fiches conducteurs et véhicules, enregistre les personnes.",
+  TRAFFIC_OFFICER: "Agent de la police de la circulation : contrôles routiers, procès-verbal électronique, photos de preuve, fiches conducteurs et véhicules.",
+  TRAFFIC_CONTROL_AGENT: "Agent de contrôle routier : enregistre les contrôles et établit les PV ; consulte les fiches conducteurs et véhicules sans pouvoir les modifier.",
+  TRAFFIC_SUPERVISOR: "Supervise la verbalisation d'une unité : revoit les contrôles et les PV, annule un PV, gère le statut des amendes, exporte les statistiques.",
+  TRAFFIC_PAYMENT_MANAGER: "Enregistre les paiements d'amendes, délivre les reçus, annule un paiement saisi par erreur et suit les statistiques de recouvrement.",
+  TRAFFIC_READONLY: "Consultation uniquement : contrôles routiers, PV, amendes, conducteurs, véhicules et catalogue des infractions.",
 };
 
 export const ROLE_DESCRIPTIONS_AR: Record<string, string> = {
@@ -78,6 +99,13 @@ export const ROLE_DESCRIPTIONS_AR: Record<string, string> = {
   BIOMETRIC_OFFICER: "يجري عمليات البحث بالبصمات والوجه والصوت واللوحات (ANPR) ويسجل تحقق المحقق.",
   FORENSIC_OFFICER: "يدير الأدلة وسلسلة الحيازة؛ يسجل القوالب البيومترية ويجري عمليات البحث بالبصمات.",
   PROSECUTOR: "إشراف قضائي: قراءة فقط للقضايا والأدلة والنشاط البيومتري، بما في ذلك الملفات الحساسة والسرية.",
+  POLICE_ADMIN: "إدارة وطنية لنظام معلومات الشرطة: المستخدمون والتنظيم وجميع وظائف المرور الطرقي، دون إعدادات أمان النظام والنسخ الاحتياطي.",
+  OFFICER: "ضابط شرطة (ضابط شرطة قضائية): يسجل المراقبات الطرقية ومحاضر المخالفات، ويحدّث بطاقات السائقين والمركبات، ويسجل الأشخاص.",
+  TRAFFIC_OFFICER: "عون شرطة المرور: المراقبات الطرقية، محضر المخالفة الإلكتروني، صور الإثبات، بطاقات السائقين والمركبات.",
+  TRAFFIC_CONTROL_AGENT: "عون المراقبة الطرقية: يسجل المراقبات ويحرر المحاضر؛ يطلع على بطاقات السائقين والمركبات دون تعديلها.",
+  TRAFFIC_SUPERVISOR: "يشرف على تحرير المخالفات في وحدة: يراجع المراقبات والمحاضر، يلغي محضراً، يدير حالة الغرامات، ويصدّر الإحصائيات.",
+  TRAFFIC_PAYMENT_MANAGER: "يسجل دفع الغرامات ويصدر الوصولات ويلغي دفعة سُجِّلت بالخطأ ويتابع إحصائيات التحصيل.",
+  TRAFFIC_READONLY: "اطلاع فقط: المراقبات الطرقية، المحاضر، الغرامات، السائقون، المركبات ودليل المخالفات.",
 };
 
 export function roleName(code: string, stored: string, locale: Locale): string {
@@ -195,6 +223,21 @@ export const PERMISSION_DESCRIPTIONS_FR: Record<string, string> = {
   "biometric:manage": "Enregistrer des gabarits biométriques (empreinte/visage/voix) pour une personne",
   "biometric:history_view": "Consulter l'historique des recherches biométriques",
   "biometric:verify": "Enregistrer la vérification d'un enquêteur sur une correspondance biométrique",
+  "traffic:view": "Consulter les contrôles routiers, procès-verbaux (PV) et amendes du périmètre",
+  "traffic:control_create": "Enregistrer un contrôle routier et établir un procès-verbal électronique",
+  "traffic:evidence_upload": "Joindre des photos et preuves à un contrôle routier",
+  "traffic:ticket_cancel": "Annuler un procès-verbal (motif obligatoire)",
+  "traffic:fine_manage": "Gérer le statut des amendes (en attente, contestée, annulée)",
+  "traffic:payment_record": "Enregistrer un paiement d'amende et délivrer le reçu",
+  "traffic:payment_void": "Annuler un paiement enregistré par erreur",
+  "traffic:drivers_view": "Consulter les conducteurs et leur historique",
+  "traffic:drivers_manage": "Créer et modifier les fiches conducteurs",
+  "traffic:vehicles_view": "Consulter les véhicules et leur historique",
+  "traffic:vehicles_manage": "Créer et modifier les fiches véhicules et leurs documents",
+  "traffic:violations_view": "Consulter le catalogue des infractions et les taux d'amende forfaitaire",
+  "traffic:catalog_manage": "Activer ou désactiver une infraction du catalogue",
+  "traffic:dashboard": "Consulter le tableau de bord et les statistiques des infractions routières",
+  "traffic:export": "Exporter les listes et statistiques des infractions routières",
 };
 
 export const PERMISSION_DESCRIPTIONS_AR: Record<string, string> = {
@@ -300,6 +343,21 @@ export const PERMISSION_DESCRIPTIONS_AR: Record<string, string> = {
   "biometric:manage": "تسجيل قوالب بيومترية (بصمة/وجه/صوت) لشخص",
   "biometric:history_view": "الاطلاع على سجل عمليات البحث البيومترية",
   "biometric:verify": "تسجيل تحقق المحقق من تطابق بيومتري",
+  "traffic:view": "الاطلاع على المراقبات الطرقية ومحاضر المخالفات والغرامات ضمن النطاق",
+  "traffic:control_create": "تسجيل مراقبة طرقية وتحرير محضر مخالفة إلكتروني",
+  "traffic:evidence_upload": "إرفاق صور وأدلة بمراقبة طرقية",
+  "traffic:ticket_cancel": "إلغاء محضر مخالفة (مع ذكر السبب)",
+  "traffic:fine_manage": "إدارة حالة الغرامات (قيد الانتظار، مطعون فيها، ملغاة)",
+  "traffic:payment_record": "تسجيل دفع غرامة وإصدار الوصل",
+  "traffic:payment_void": "إلغاء دفعة سُجِّلت بالخطأ",
+  "traffic:drivers_view": "الاطلاع على السائقين وسجلهم",
+  "traffic:drivers_manage": "إنشاء بطاقات السائقين وتعديلها",
+  "traffic:vehicles_view": "الاطلاع على المركبات وسجلها",
+  "traffic:vehicles_manage": "إنشاء بطاقات المركبات ووثائقها وتعديلها",
+  "traffic:violations_view": "الاطلاع على دليل المخالفات ومبالغ الغرامات الجزافية",
+  "traffic:catalog_manage": "تفعيل مخالفة من الدليل أو تعطيلها",
+  "traffic:dashboard": "الاطلاع على لوحة القيادة وإحصائيات المخالفات الطرقية",
+  "traffic:export": "تصدير قوائم وإحصائيات المخالفات الطرقية",
 };
 
 export function permissionDescription(code: string, stored: string, locale: Locale): string {

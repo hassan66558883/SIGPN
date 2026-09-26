@@ -23,4 +23,11 @@ export const DEMO_ACCOUNTS = [
   { username: "biometric.cs1", roleCode: "BIOMETRIC_OFFICER", roleName: "Biometric Officer", firstName: "Hassan", lastName: "Idriss", hint: "Commissariat Central N'Djamena · MFA required", station: "CS-01" },
   { username: "forensic.cs1", roleCode: "FORENSIC_OFFICER", roleName: "Forensic Officer", firstName: "Zara", lastName: "Nadjita", hint: "Commissariat Central N'Djamena · MFA required", station: "CS-01" },
   { username: "prosecutor.cs1", roleCode: "PROSECUTOR", roleName: "Prosecutor", firstName: "Youssouf", lastName: "Tahir", hint: "Commissariat Central N'Djamena · MFA required", station: "CS-01" },
+  { username: "police.admin", roleCode: "POLICE_ADMIN", roleName: "Police Administrator", firstName: "Abdelaziz", lastName: "Mahamat", hint: "Administrateur police · national · MFA required" },
+  { username: "officer.cs1", roleCode: "OFFICER", roleName: "Police Officer", firstName: "Nodjiel", lastName: "Ngarta", hint: "Officier · Commissariat Central N'Djamena", station: "CS-01" },
+  { username: "traffic.cs1", roleCode: "TRAFFIC_OFFICER", roleName: "Traffic Officer", firstName: "Moussa", lastName: "Ali", hint: "Agent de circulation · Commissariat Central N'Djamena", station: "CS-01" },
+  { username: "control.cs1", roleCode: "TRAFFIC_CONTROL_AGENT", roleName: "Traffic Control Agent", firstName: "Kadidja", lastName: "Oumar", hint: "Agent de contrôle · Commissariat Central N'Djamena", station: "CS-01" },
+  { username: "traffic.supervisor", roleCode: "TRAFFIC_SUPERVISOR", roleName: "Traffic Supervisor", firstName: "Brahim", lastName: "Senoussi", hint: "Superviseur circulation · Commissariat Central N'Djamena · MFA required", station: "CS-01" },
+  { username: "finance.central", roleCode: "TRAFFIC_PAYMENT_MANAGER", roleName: "Payment & Finance Manager", firstName: "Halimé", lastName: "Doungous", hint: "Responsable financier / paiement · Province de N'Djamena · MFA required", province: "NDJ" },
+  { username: "readonly.traffic", roleCode: "TRAFFIC_READONLY", roleName: "Traffic Read-only", firstName: "Idriss", lastName: "Kalzeube", hint: "Consultation circulation · Commissariat Central N'Djamena", station: "CS-01" },
 ] as const;

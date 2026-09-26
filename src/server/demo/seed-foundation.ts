@@ -6,7 +6,7 @@ import { prisma } from "@/server/db";
 import { env } from "@/server/env";
 import { hashPassword } from "@/server/auth/password";
 import { PERMISSION_CATALOG } from "@/server/rbac/permissions";
-import { SYSTEM_ROLES } from "@/server/rbac/roles";
+import { SYSTEM_ROLES, TRAFFIC_DEFAULT_GRANTS } from "@/server/rbac/roles";
 import { DEMO_ACCOUNTS } from "@/server/demo/accounts";
 import { seedTerritory } from "@/server/demo/seed-territory";
 import { seedOperations } from "@/server/demo/seed-operations";
@@ -39,7 +39,25 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
       await prisma.rolePermission.createMany({ data: def.permissions.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
     }
   }
+  await grantTrafficDefaultsOnce(byCode);
   return SYSTEM_ROLES.length;
+}
+
+/**
+ * Databases seeded before the traffic module already have their system roles populated, and
+ * `syncSystemRoles` never touches an existing permission set. Grant the traffic defaults ONCE
+ * (marked in SystemSetting) so later manual changes by an administrator are respected.
+ */
+async function grantTrafficDefaultsOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.traffic_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const roles = await prisma.role.findMany({ where: { isSystem: true }, select: { id: true, code: true } });
+  for (const role of roles) {
+    const grants = TRAFFIC_DEFAULT_GRANTS[role.code] ?? [];
+    if (!grants.length) continue;
+    await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
+  }
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions par défaut du module circulation ont été accordées aux rôles système." } });
 }
 
 export async function seedOrganization() {

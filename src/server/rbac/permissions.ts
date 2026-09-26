@@ -119,6 +119,22 @@ export const PERMISSION_CATALOG = [
   ["biometric:manage", "Enroll biometric templates (fingerprint/face/voice) for persons"],
   ["biometric:history_view", "View biometric search history"],
   ["biometric:verify", "Record investigator verification action on a biometric match"],
+  // traffic offences and fines
+  ["traffic:view", "View traffic controls, tickets (PV) and fines within scope"],
+  ["traffic:control_create", "Record a traffic control and issue an electronic ticket (PV)"],
+  ["traffic:evidence_upload", "Attach photos and evidence to a traffic control"],
+  ["traffic:ticket_cancel", "Cancel a ticket (PV) with a reason"],
+  ["traffic:fine_manage", "Manage fine status (on hold, contested, cancelled)"],
+  ["traffic:payment_record", "Record a fine payment and issue the receipt"],
+  ["traffic:payment_void", "Void a payment recorded by mistake"],
+  ["traffic:drivers_view", "View drivers and their history"],
+  ["traffic:drivers_manage", "Create and update driver records"],
+  ["traffic:vehicles_view", "View vehicles and their history"],
+  ["traffic:vehicles_manage", "Create and update vehicle records and their documents"],
+  ["traffic:violations_view", "View the offence catalogue and flat fine rates"],
+  ["traffic:catalog_manage", "Activate or deactivate an offence of the catalogue"],
+  ["traffic:dashboard", "View the traffic dashboard and statistics"],
+  ["traffic:export", "Export traffic lists and statistics"],
   // self-service
   ["apikeys:manage_own", "Create/revoke own API keys"],
 ] as const;
