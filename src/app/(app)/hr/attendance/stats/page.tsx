@@ -8,6 +8,7 @@ import { Alert, Badge, Card, EmptyState, PageHeader, Select, StatCard, Table } f
 import { ATTENDANCE_STATUS, labelOf } from "@/lib/labels";
 import { fmtNumber } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
+import { translateMessage } from "@/lib/i18n/errors";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -45,7 +46,7 @@ export default async function AttendanceStatsPage({ searchParams }: PageProps<"/
           </button>
         </form>
       </Card>
-      {error ? <Alert tone="danger">{error}</Alert> : null}
+      {error ? <Alert tone="danger">{translateMessage(error, locale)}</Alert> : null}
       {s ? (
         s.total === 0 ? (
           <EmptyState>{t("hr.att.noData")}</EmptyState>

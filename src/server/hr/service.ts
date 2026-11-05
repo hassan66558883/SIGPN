@@ -60,7 +60,7 @@ export async function careerHistory(officerId: string) {
   }));
 }
 
-export type DossierFilter = { q?: string; stationId?: string; rankId?: string; corpsId?: string; status?: AdministrativeStatus; page?: number; pageSize?: number };
+export type DossierFilter = { q?: string; stationId?: string; regionId?: string; rankId?: string; corpsId?: string; status?: AdministrativeStatus; page?: number; pageSize?: number };
 
 export async function listDossiers(actor: Actor, f: DossierFilter = {}) {
   const page = Math.max(f.page ?? 1, 1);
@@ -69,6 +69,7 @@ export async function listDossiers(actor: Actor, f: DossierFilter = {}) {
     deletedAt: null,
     ...scopeWhere(actor, { via: "station" }),
     ...(f.stationId ? { stationId: f.stationId } : {}),
+    ...(f.regionId ? { AND: [{ station: { regionId: f.regionId } }] } : {}),
     ...(f.rankId ? { rankId: f.rankId } : {}),
     ...(f.corpsId ? { corpsId: f.corpsId } : {}),
     ...(f.status ? { administrativeStatus: f.status } : {}),

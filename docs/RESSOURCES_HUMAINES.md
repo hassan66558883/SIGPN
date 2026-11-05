@@ -113,3 +113,20 @@ Sont ignorés : agents hors activité, suspendus, commandants de structure, chef
 **Tests :** `tests/integration/hr-discipline.test.ts` (9 tests : confidentialité et audit, procédure et droits de la défense, quatre yeux, mise à pied et réintégration automatique, révocation, distinctions, documents PDF/Word figés et confidentialité, téléversements, photo). Pages vérifiées dans le navigateur (compte temporaire sans MFA, ensuite désactivé).
 
 **Non fait :** recours contre une sanction, délais de prescription disciplinaire, texte juridique officiel des décisions (les modèles de texte sont génériques et à valider par la Direction), documents en arabe (PDF/Word en français uniquement), antivirus sur les fichiers téléversés.
+
+## Phase 8 — Tableaux de bord et statistiques RH (fait)
+
+**Service (`src/server/hr/stats.ts`, `hrStatistics`)** : tous les chiffres sont calculés **dans le périmètre de l'utilisateur** et jamais codés en dur. Les effectifs décrivent la situation du jour ; les mouvements portent sur la période choisie (12 mois par défaut, 2 ans maximum). Filtres : période, délégation (= province), commissariat / structure, grade.
+- **Effectifs** : total et situation administrative, par grade, par délégation, par commissariat (40 premiers, le filtre donne les autres), par sexe.
+- **Affectations** : ancienneté au poste actuel (moins de 6 mois, 6 à 12, 12 à 24, plus de 24) et mutations en cours dans le circuit.
+- **Mutations** : par statut, exécutées dans la période et courbe mensuelle ; décisions de carrière par type ; promotions de grade (courbe mensuelle) ; départs à la retraite enregistrés.
+- **Retraites** : prévisionnel sur 6 ans et sur 12 mois, calculé à partir de la date de naissance et d'un **âge de départ paramétrable (60 ans par défaut)** ; les agents sans date de naissance sont signalés, non comptés.
+- **Promotions en attente** : agents ayant au moins N années dans leur grade (**3 ans par défaut, paramétrable**), hors grade le plus élevé, par grade. C'est une éligibilité à l'ancienneté : le système n'a pas de procédure de promotion distincte.
+- **Formations** : par type et par statut, réussies et taux de réussite, expirant sous 90 jours. **Absences** : par statut, taux de présence et d'absence injustifiée, retards et absences par mois.
+Les deux paramètres (âge de retraite, ancienneté de promotion) sont réglés par `PUT /api/v1/hr/stats/settings` (permission `system:settings`, journalisé) : ils relèvent du statut du personnel, pas du code.
+
+**API :** `GET /api/v1/hr/stats?from=&to=&regionId=&stationId=&rankId=`, `GET …/stats/export` (CSV, journalisé, protégé contre l'injection de formules), `GET|PUT …/stats/settings`. **Interface :** la page *Vue d'ensemble RH* devient le tableau de bord : filtres, 8 indicateurs cliquables, répartition des effectifs avec onglets (grade, délégation, commissariat, sexe) dont chaque barre ouvre les dossiers correspondants, courbes mensuelles commutables (mutations, promotions, absences/retards), prévision des retraites, durée au poste, situations et décisions, promotions en attente, formations, tableau de chaque courbe, export CSV. FR/AR.
+
+**Tests :** `tests/integration/hr-stats.test.ts` (6 tests : permission et période, cohérence avec la base et sommes des répartitions, périmètre d'un commandant, filtres et chiffres contrôlés sur une structure de test, prévisions et paramètres, export CSV).
+
+**Non fait :** comparaison entre deux périodes, statistiques disciplinaires (dossiers confidentiels, volontairement hors du tableau de bord), mise en cache pour de très gros volumes (mesure de charge prévue en phase 9).

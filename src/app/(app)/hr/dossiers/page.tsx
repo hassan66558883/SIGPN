@@ -21,7 +21,7 @@ export default async function DossiersPage({ searchParams }: PageProps<"/hr/doss
   const actor = await requirePermission("hr:view");
   const [p, t, locale] = await Promise.all([searchParams, getT(), getLocale()]);
   const status = ADMIN_STATUSES.find((s) => s === p.status) as AdministrativeStatus | undefined;
-  const filter = { q: str(p.q), stationId: str(p.stationId), rankId: str(p.rankId), corpsId: str(p.corpsId), status, page: Number(p.page ?? 1) || 1 };
+  const filter = { q: str(p.q), stationId: str(p.stationId), regionId: str(p.regionId), rankId: str(p.rankId), corpsId: str(p.corpsId), status, page: Number(p.page ?? 1) || 1 };
   const [{ items, total, page, pageSize }, refs, corps] = await Promise.all([listDossiers(actor, filter), orgReferences(actor), listCorps()]);
   const qs = (n: number) => {
     const s = new URLSearchParams();
