@@ -3,13 +3,15 @@ import { notFound } from "next/navigation";
 import { requirePermission } from "@/server/auth/dal";
 import { careerHistory, getDossier, listCorps } from "@/server/hr/service";
 import { listExceptions } from "@/server/hr/rotation";
+import { leaveBalance, officerLeaves } from "@/server/hr/attendance";
+import { officerCompetences } from "@/server/hr/training";
 import { MANUAL_CAREER_EVENTS } from "@/server/hr/schemas";
 import { getRequestContext } from "@/server/request-context";
 import { listPositions } from "@/server/org/personnel";
 import { orgReferences } from "@/server/org/queries";
 import { NotFoundError } from "@/server/errors";
 import { Alert, Badge, ButtonLink, Card, DL, EmptyState, PageHeader, Table } from "@/components/ui";
-import { ADMINISTRATIVE_STATUS, CAREER_EVENT_TYPE, GENDER, MARITAL_STATUS, RANK_CATEGORY, labelOf } from "@/lib/labels";
+import { ADMINISTRATIVE_STATUS, CAREER_EVENT_TYPE, GENDER, LEAVE_STATUS, LEAVE_TYPE, MARITAL_STATUS, RANK_CATEGORY, TRAINING_KIND, TRAINING_STATUS, labelOf } from "@/lib/labels";
 import { fmtDate, toInputDate } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
 import { CareerEventForm, DossierForm } from "../../hr-forms";
@@ -33,7 +35,7 @@ export default async function DossierPage({ params }: PageProps<"/hr/dossiers/[i
   const canManage = actor.permissions.has("hr:manage");
   const canCareer = actor.permissions.has("hr:career");
   const terminal = ["RETIRED", "CEASED", "DECEASED"].includes(o.administrativeStatus);
-  const [history, corps, positions, refs, exceptions] = await Promise.all([careerHistory(id), listCorps(), canCareer ? listPositions() : Promise.resolve([]), canCareer ? orgReferences(actor) : Promise.resolve(null), listExceptions(id)]);
+  const [history, corps, positions, refs, exceptions, leaves, balance, comp] = await Promise.all([careerHistory(id), listCorps(), canCareer ? listPositions() : Promise.resolve([]), canCareer ? orgReferences(actor) : Promise.resolve(null), listExceptions(id), officerLeaves(actor, id), leaveBalance(id), officerCompetences(actor, id)]);
   const st = labelOf(ADMINISTRATIVE_STATUS, o.administrativeStatus, locale);
   const change = (e: (typeof history)[number]) => {
     if (e.toRank) return `${e.fromRank ?? "—"} → ${e.toRank}`;
@@ -106,6 +108,42 @@ export default async function DossierPage({ params }: PageProps<"/hr/dossiers/[i
             )}
             <p className="mt-3 text-xs text-slate">{t("hr.dossier.photoLater")}</p>
           </Card>
+          <Card title={t("hr.tr.dossierTitle")} padded={false}>
+            {comp.trainings.length === 0 && comp.skills.length === 0 ? (
+              <div className="p-5">
+                <EmptyState>{t("training.none")}</EmptyState>
+              </div>
+            ) : (
+              <div className="space-y-3 p-4 text-sm">
+                {comp.skills.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {comp.skills.map((k) => (
+                      <Badge key={k.id} tone={k.expiresAt && k.expiresAt < new Date() ? "danger" : "success"} title={k.expiresAt ? fmtDate(k.expiresAt, locale) : undefined}>
+                        {k.skill.name} · {k.level}/5
+                      </Badge>
+                    ))}
+                  </div>
+                ) : null}
+                <ul className="divide-y divide-line">
+                  {comp.trainings.map((x) => (
+                    <li key={x.id} className="flex flex-wrap items-center gap-2 py-1.5">
+                      <Badge tone={labelOf(TRAINING_STATUS, x.status, locale).tone}>{labelOf(TRAINING_STATUS, x.status, locale).label}</Badge>
+                      <span className="font-semibold">{x.title}</span>
+                      <span className="text-xs text-slate">
+                        {labelOf(TRAINING_KIND, x.kind, locale).label} · {fmtDate(x.startDate, locale)}
+                        {x.score != null ? ` · ${x.score}/20` : ""}
+                      </span>
+                      {x.certificateIssuedAt ? (
+                        <a href={`/api/v1/hr/trainings/${x.id}/certificate`} className="ms-auto font-mono text-xs text-blue hover:underline">
+                          {x.certificateNo}
+                        </a>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </Card>
           <Card title={t("hr.career.title")} padded={false}>
             {history.length === 0 ? (
               <div className="p-5">
@@ -164,6 +202,31 @@ export default async function DossierPage({ params }: PageProps<"/hr/dossiers/[i
                 { label: t("hr.dossier.currentPostSince"), value: fmtDate(o.currentPostSince, locale) },
               ]}
             />
+          </Card>
+          <Card title={t("hr.leave.title")}>
+            <p className="mb-2 text-sm text-slate">{t("hr.leave.balance", { y: balance.year, r: balance.remaining, e: balance.entitlement })}</p>
+            {leaves.length === 0 ? (
+              <p className="text-sm text-slate">{t("hr.leave.none")}</p>
+            ) : (
+              <ul className="space-y-1.5 text-sm">
+                {leaves.slice(0, 6).map((l) => (
+                  <li key={l.id} className="flex flex-wrap items-center gap-2">
+                    <Badge tone={labelOf(LEAVE_STATUS, l.status, locale).tone}>{labelOf(LEAVE_STATUS, l.status, locale).label}</Badge>
+                    <span>{labelOf(LEAVE_TYPE, l.type, locale).label}</span>
+                    <span className="text-xs text-slate">
+                      {fmtDate(l.startDate, locale)} → {fmtDate(l.endDate, locale)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {actor.permissions.has("hr:leave_request") ? (
+              <div className="mt-3">
+                <ButtonLink href={`/hr/leaves/new?officerId=${o.id}`} size="sm" variant="secondary">
+                  {t("hr.leave.new")}
+                </ButtonLink>
+              </div>
+            ) : null}
           </Card>
           <Card title={t("hr.rot.exc.title")}>
             {exceptions.length === 0 ? <p className="text-sm text-slate">{t("hr.rot.exc.none")}</p> : (

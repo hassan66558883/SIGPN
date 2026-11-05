@@ -46,6 +46,7 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
   await grantHrDefaultsOnce(byCode);
   await grantHrTransferDefaultsOnce(byCode);
   await grantHrRotationDefaultsOnce(byCode);
+  await grantHrPhase6DefaultsOnce(byCode);
   return SYSTEM_ROLES.length;
 }
 
@@ -117,6 +118,20 @@ async function grantHrRotationDefaultsOnce(byCode: Map<string, string>) {
     await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
   }
   await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "La permission de paramétrage de l'affectation automatique a été accordée aux rôles système." } });
+}
+
+/** Phase 6: attendance, leave and training permissions, granted once to already-seeded databases. */
+async function grantHrPhase6DefaultsOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.hr_phase6_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const wanted = new Set(["hr:attendance_record", "hr:leave_request", "hr:leave_approve", "hr:training_manage"]);
+  const roles = await prisma.role.findMany({ where: { isSystem: true }, select: { id: true, code: true } });
+  for (const role of roles) {
+    const grants = (HR_DEFAULT_GRANTS[role.code] ?? []).filter((c) => wanted.has(c));
+    if (!grants.length) continue;
+    await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
+  }
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions présences, congés et formations ont été accordées aux rôles système." } });
 }
 
 export async function seedOrganization() {

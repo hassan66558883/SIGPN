@@ -266,6 +266,10 @@ export const PERMISSION_DESCRIPTIONS_FR: Record<string, string> = {
   "hr:transfer_review": "Examiner les propositions de mutation (RH), annuler et exécuter les mutations validées",
   "hr:transfer_validate": "Valider ou rejeter une mutation en tant qu'autorité compétente (doit couvrir les deux structures)",
   "hr:auto_assign_config": "Activer, désactiver et paramétrer l'affectation automatique (AFFECTATION_AUTOMATIQUE)",
+  "hr:attendance_record": "Saisir l'appel quotidien (présences, absences, retards) des structures du périmètre",
+  "hr:leave_request": "Déposer des demandes de congé, permission et absence pour les agents du périmètre",
+  "hr:leave_approve": "Approuver ou rejeter les demandes de congé, permission et absence du périmètre",
+  "hr:training_manage": "Évaluer les formations, accorder des compétences et délivrer des attestations de formation",
   "hr:career": "Enregistrer les décisions de carrière : nomination, promotion, changement de fonction, statut, retraite",
 };
 
@@ -403,6 +407,10 @@ export const PERMISSION_DESCRIPTIONS_AR: Record<string, string> = {
   "hr:transfer_review": "دراسة مقترحات النقل (الموارد البشرية) وإلغاء وتنفيذ عمليات النقل المصادق عليها",
   "hr:transfer_validate": "المصادقة على النقل أو رفضه بصفة السلطة المختصة (يجب أن تشمل الهيكلين)",
   "hr:auto_assign_config": "تفعيل التعيين التلقائي وتعطيله وضبط معاييره (AFFECTATION_AUTOMATIQUE)",
+  "hr:attendance_record": "تسجيل المناداة اليومية (الحضور والغياب والتأخر) للهياكل ضمن النطاق",
+  "hr:leave_request": "تقديم طلبات العطل والرخص والغياب لأعوان النطاق",
+  "hr:leave_approve": "الموافقة على طلبات العطل والرخص والغياب أو رفضها ضمن النطاق",
+  "hr:training_manage": "تقييم التكوينات ومنح الكفاءات وإصدار شهادات التكوين",
   "hr:career": "تسجيل قرارات المسار المهني: التعيين، الترقية، تغيير الوظيفة، الوضعية، التقاعد",
 };
 

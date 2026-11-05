@@ -126,6 +126,37 @@ export const TRANSFER_ORIGIN: LabelMap = {
   AUTOMATIC: def("Détection automatique", "رصد تلقائي", "info"),
 };
 
+export const ATTENDANCE_STATUS: LabelMap = {
+  PRESENT: def("Présent", "حاضر", "success"),
+  LATE: def("En retard", "متأخر", "warning"),
+  ABSENT: def("Absent", "غائب", "danger"),
+  ON_LEAVE: def("En congé", "في عطلة", "info"),
+  PERMISSION: def("En permission", "في رخصة", "info"),
+  UNAVAILABLE: def("Indisponible", "غير متاح", "neutral"),
+};
+
+export const LEAVE_TYPE: LabelMap = {
+  ANNUAL: def("Congé annuel", "عطلة سنوية", "info"),
+  EXCEPTIONAL: def("Congé exceptionnel", "عطلة استثنائية", "violet"),
+  PERMISSION: def("Permission", "رخصة", "neutral"),
+  ABSENCE_AUTHORIZATION: def("Autorisation d'absence", "ترخيص بالغياب", "neutral"),
+  UNAVAILABILITY: def("Indisponibilité", "عدم الجاهزية", "warning"),
+};
+
+export const LEAVE_STATUS: LabelMap = {
+  REQUESTED: def("Demandée", "مطلوبة", "warning"),
+  APPROVED: def("Approuvée", "موافق عليها", "success"),
+  REJECTED: def("Rejetée", "مرفوضة", "danger"),
+  CANCELLED: def("Annulée", "ملغاة", "neutral"),
+};
+
+export const TRAINING_KIND: LabelMap = {
+  INITIAL: def("Formation initiale", "تكوين أساسي", "info"),
+  CONTINUING: def("Formation continue", "تكوين مستمر", "neutral"),
+  INTERNSHIP: def("Stage professionnel", "تربص مهني", "violet"),
+  SPECIALIZED: def("Formation spécialisée", "تكوين متخصص", "warning"),
+};
+
 export const DEPARTMENT_TYPE: LabelMap = {
   COMMAND: def("Commandement", "القيادة", "violet"),
   INVESTIGATION: def("Enquêtes", "التحقيقات", "info"),

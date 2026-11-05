@@ -85,6 +85,9 @@ const INVESTIGATIVE_WRITE: Permission[] = [
 const COMMAND: Permission[] = [
   "hr:view",
   "hr:transfer_propose",
+  "hr:attendance_record",
+  "hr:leave_request",
+  "hr:leave_approve",
   "complaints:review",
   "complaints:assign",
   "complaints:convert",
@@ -119,8 +122,8 @@ const COMMAND: Permission[] = [
 ];
 
 /** Human resources: HR service (dossiers) and HR director (dossiers + career decisions). */
-const HR_SERVICE: Permission[] = ["dashboard:view", "org:view", "officers:view", "officers:manage", "hr:view", "hr:manage", "hr:transfer_propose", "hr:transfer_review", "statistics:view", "documents:view", "apikeys:manage_own"];
-const HR_DIRECTION: Permission[] = [...HR_SERVICE, "hr:career", "reports:view", "reports:generate", "audit:view"];
+const HR_SERVICE: Permission[] = ["dashboard:view", "org:view", "officers:view", "officers:manage", "hr:view", "hr:manage", "hr:transfer_propose", "hr:transfer_review", "hr:attendance_record", "hr:leave_request", "hr:training_manage", "statistics:view", "documents:view", "apikeys:manage_own"];
+const HR_DIRECTION: Permission[] = [...HR_SERVICE, "hr:leave_approve", "hr:career", "reports:view", "reports:generate", "audit:view"];
 
 export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
   {

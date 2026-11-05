@@ -8,6 +8,11 @@ All notable changes to SIGPN-T (Système Intégré de Gestion Numérique de la P
 - HR dossier (birth place, marital status, corps, administrative status, service dates), append-only career history, `hr:*` permissions, roles `HR_DIRECTOR` / `HR_OFFICER`, HR menu and pages (FR/AR), REST API `/api/v1/hr/*`, station type `DELEGATION` (see `docs/RESSOURCES_HUMAINES.md`).
 - Migration `20261105170000_hr_dossier_career` (additive; backfills corps and recruitment events).
 
+## [Unreleased] — 2026-11-05 — « RH, phase 6 : présences, congés et formations »
+
+### Added
+- Daily roll-call and presence statistics; leave, permission, absence and unavailability requests with approval, balance and attendance generation; training kinds, final evaluation, competences and certificate PDF; permissions `hr:attendance_record`, `hr:leave_request`, `hr:leave_approve`, `hr:training_manage`; migration `20261105200000_hr_attendance_training`. See `docs/RESSOURCES_HUMAINES.md`.
+
 ## [Unreleased] — 2026-11-05 — « RH, phase 5 : affectation automatique après une durée au poste »
 
 ### Added

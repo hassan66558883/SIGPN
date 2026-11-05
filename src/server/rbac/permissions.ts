@@ -154,6 +154,10 @@ export const PERMISSION_CATALOG = [
   ["hr:transfer_review", "Examine transfer proposals as HR, cancel and execute approved transfers"],
   ["hr:transfer_validate", "Validate or reject a transfer as the competent authority (must cover both structures)"],
   ["hr:auto_assign_config", "Activate, deactivate and configure the automatic assignment (AFFECTATION_AUTOMATIQUE)"],
+  ["hr:attendance_record", "Record the daily roll-call (presences, absences, lateness) of structures within scope"],
+  ["hr:leave_request", "File leave, permission and absence requests on behalf of officers within scope"],
+  ["hr:leave_approve", "Approve or reject leave, permission and absence requests within scope"],
+  ["hr:training_manage", "Evaluate trainings, grant competences and issue training certificates"],
   // self-service
   ["apikeys:manage_own", "Create/revoke own API keys"],
 ] as const;
