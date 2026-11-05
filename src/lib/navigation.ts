@@ -92,6 +92,7 @@ export const NAVIGATION: NavSection[] = [
     items: [
       { href: "/hr", labelKey: "nav.hr.overview", permission: "hr:view", icon: "◆" },
       { href: "/hr/dossiers", labelKey: "nav.hr.dossiers", permission: "hr:view", icon: "▤" },
+      { href: "/hr/transfers", labelKey: "nav.hr.transfers", permission: "hr:view", icon: "⇄" },
     ],
   },
   {

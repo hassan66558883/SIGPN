@@ -262,6 +262,9 @@ export const PERMISSION_DESCRIPTIONS_FR: Record<string, string> = {
   "cash:block": "Bloquer ou débloquer la caisse d'un agent",
   "hr:view": "Consulter les dossiers RH et l'historique de carrière dans le périmètre",
   "hr:manage": "Modifier le dossier RH d'un policier (identité, corps, données administratives)",
+  "hr:transfer_propose": "Proposer une mutation pour un agent du périmètre",
+  "hr:transfer_review": "Examiner les propositions de mutation (RH), annuler et exécuter les mutations validées",
+  "hr:transfer_validate": "Valider ou rejeter une mutation en tant qu'autorité compétente (doit couvrir les deux structures)",
   "hr:career": "Enregistrer les décisions de carrière : nomination, promotion, changement de fonction, statut, retraite",
 };
 
@@ -395,6 +398,9 @@ export const PERMISSION_DESCRIPTIONS_AR: Record<string, string> = {
   "cash:block": "حظر صندوق عون أو رفع الحظر عنه",
   "hr:view": "الاطلاع على الملفات الإدارية للموارد البشرية والمسار المهني ضمن النطاق",
   "hr:manage": "تعديل الملف الإداري لشرطي (الهوية، السلك، البيانات الإدارية)",
+  "hr:transfer_propose": "اقتراح نقل لعون ضمن النطاق",
+  "hr:transfer_review": "دراسة مقترحات النقل (الموارد البشرية) وإلغاء وتنفيذ عمليات النقل المصادق عليها",
+  "hr:transfer_validate": "المصادقة على النقل أو رفضه بصفة السلطة المختصة (يجب أن تشمل الهيكلين)",
   "hr:career": "تسجيل قرارات المسار المهني: التعيين، الترقية، تغيير الوظيفة، الوضعية، التقاعد",
 };
 

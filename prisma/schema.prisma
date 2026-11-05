@@ -182,6 +182,9 @@ model User {
   officerAssignments         OfficerAssignment[]
   trainingsRecorded          Training[]
   careerEventsRecorded       CareerEvent[]
+  transfersProposed          TransferRequest[]          @relation("TransferProposedBy")
+  transfersReviewed          TransferRequest[]          @relation("TransferReviewedBy")
+  transfersValidated         TransferRequest[]          @relation("TransferValidatedBy")
   maintenanceRecorded        MaintenanceRecord[]
   fuelLogs                   FuelLog[]
   fingerprintsCaptured       FingerprintRecord[]        @relation("BiometricCapturedBy")
@@ -496,6 +499,8 @@ model Station {
   cashRegisters      TrafficCashRegister[]
   cashCollections    TrafficRevenueCollection[]
   cashDeposits       TrafficDeposit[]
+  transfersFrom      TransferRequest[]          @relation("TransferFrom")
+  transfersTo        TransferRequest[]          @relation("TransferTo")
 
   @@index([regionId])
   @@index([adminDepartmentId])
@@ -613,6 +618,7 @@ model Officer {
   /// Date of taking up the current post (drives the 12-month rotation, phase 5).
   currentPostSince     DateTime?
   careerEvents         CareerEvent[]
+  transferRequests     TransferRequest[]
 
   commandsStation     Station?            @relation("StationCommander")
   headsDepartment     Department?         @relation("DepartmentHead")
@@ -712,6 +718,60 @@ model CareerEvent {
 
   @@index([officerId, effectiveDate])
   @@index([type, effectiveDate])
+}
+
+enum TransferStatus {
+  PROPOSED
+  HR_APPROVED
+  APPROVED
+  EXECUTED
+  REJECTED
+  CANCELLED
+}
+
+enum TransferOrigin {
+  MANUAL
+  AUTOMATIC
+}
+
+/// Posting change (mutation) going through the validation circuit: proposal -> HR review -> validation by the
+/// competent authority -> decision -> execution on the dossier. Nothing moves an officer before APPROVED.
+model TransferRequest {
+  id               String         @id @default(cuid())
+  number           String         @unique
+  officerId        String
+  officer          Officer        @relation(fields: [officerId], references: [id])
+  fromStationId    String
+  fromStation      Station        @relation("TransferFrom", fields: [fromStationId], references: [id])
+  fromDepartmentId String?
+  toStationId      String
+  toStation        Station        @relation("TransferTo", fields: [toStationId], references: [id])
+  toDepartmentId   String?
+  toPositionId     String?
+  effectiveDate    DateTime
+  reason           String
+  origin           TransferOrigin @default(MANUAL)
+  status           TransferStatus @default(PROPOSED)
+  proposedById     String?
+  proposedBy       User?          @relation("TransferProposedBy", fields: [proposedById], references: [id])
+  reviewedById     String?
+  reviewedBy       User?          @relation("TransferReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt       DateTime?
+  reviewNote       String?
+  validatedById    String?
+  validatedBy      User?          @relation("TransferValidatedBy", fields: [validatedById], references: [id])
+  validatedAt      DateTime?
+  validationNote   String?
+  decisionNumber   String?        @unique
+  executedAt       DateTime?
+  closeReason      String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([officerId])
+  @@index([status, createdAt])
+  @@index([fromStationId])
+  @@index([toStationId])
 }
 
 /// Fonction (post/duty title) referential, e.g. Commissaire, Chef de service, Officier de police judiciaire.

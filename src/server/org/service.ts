@@ -409,6 +409,7 @@ export async function assignOfficer(actor: Actor, input: AssignmentInput, ctx: R
   const before = await getOfficer(actor, input.officerId);
   const { station, departmentId } = await validateOfficerPlacement({ rankId: nul(input.rankId) ?? before.rankId, stationId: input.stationId, departmentId: input.departmentId });
   assertOfficerScope(actor, { stationId: station.id, regionId: station.regionId });
+  if (station.id !== before.stationId) throw new BusinessError("A change of station is a transfer: use the validated transfer circuit (Human resources → Transfers).", "STATE");
   const rankId = nul(input.rankId) ?? before.rankId;
   if (input.startDate.getTime() > Date.now() + 86_400_000 * 366) throw new BusinessError("Start date is too far in the future.");
   if (before.commandsStation && before.commandsStation.id !== station.id) throw new BusinessError("This officer commands a station; appoint another commander before transferring them.", "STATE");

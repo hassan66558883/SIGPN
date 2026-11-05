@@ -44,6 +44,7 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
   await grantTrafficDefaultsOnce(byCode);
   await grantCashDefaultsOnce(byCode);
   await grantHrDefaultsOnce(byCode);
+  await grantHrTransferDefaultsOnce(byCode);
   return SYSTEM_ROLES.length;
 }
 
@@ -89,6 +90,19 @@ async function grantHrDefaultsOnce(byCode: Map<string, string>) {
     await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
   }
   await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions par défaut du module ressources humaines ont été accordées aux rôles système." } });
+}
+
+/** Phase 4 of the HR module: the transfer-circuit permissions, granted once to already-seeded databases. */
+async function grantHrTransferDefaultsOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.hr_transfer_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const roles = await prisma.role.findMany({ where: { isSystem: true }, select: { id: true, code: true } });
+  for (const role of roles) {
+    const grants = (HR_DEFAULT_GRANTS[role.code] ?? []).filter((c) => c.startsWith("hr:transfer_"));
+    if (!grants.length) continue;
+    await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
+  }
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions du circuit de mutation ont été accordées aux rôles système." } });
 }
 
 export async function seedOrganization() {

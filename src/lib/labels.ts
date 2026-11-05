@@ -112,6 +112,20 @@ export const CAREER_EVENT_TYPE: LabelMap = {
   CESSATION: def("Cessation de service", "إنهاء الخدمة", "danger"),
 };
 
+export const TRANSFER_STATUS: LabelMap = {
+  PROPOSED: def("Proposée", "مقترح", "info"),
+  HR_APPROVED: def("Examinée par les RH", "درسته الموارد البشرية", "warning"),
+  APPROVED: def("Validée", "مصادق عليه", "success"),
+  EXECUTED: def("Exécutée", "منفَّذ", "success"),
+  REJECTED: def("Rejetée", "مرفوض", "danger"),
+  CANCELLED: def("Annulée", "ملغى", "neutral"),
+};
+
+export const TRANSFER_ORIGIN: LabelMap = {
+  MANUAL: def("Proposition manuelle", "اقتراح يدوي", "neutral"),
+  AUTOMATIC: def("Détection automatique", "رصد تلقائي", "info"),
+};
+
 export const DEPARTMENT_TYPE: LabelMap = {
   COMMAND: def("Commandement", "القيادة", "violet"),
   INVESTIGATION: def("Enquêtes", "التحقيقات", "info"),

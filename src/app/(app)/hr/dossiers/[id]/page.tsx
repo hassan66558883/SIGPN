@@ -50,6 +50,11 @@ export default async function DossierPage({ params }: PageProps<"/hr/dossiers/[i
         actions={
           <>
             <Badge tone={st.tone}>{st.label}</Badge>
+            {actor.permissions.has("hr:transfer_propose") && !terminal ? (
+              <ButtonLink href={`/hr/transfers/new?officerId=${o.id}`} size="sm">
+                {t("hr.transfers.proposeFor")}
+              </ButtonLink>
+            ) : null}
             {actor.permissions.has("officers:view") ? (
               <ButtonLink href={`/officers/${o.id}`} variant="secondary" size="sm">
                 {t("hr.dossier.openOfficer")}

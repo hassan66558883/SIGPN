@@ -150,6 +150,9 @@ export const PERMISSION_CATALOG = [
   ["hr:view", "View HR dossiers and career history within scope"],
   ["hr:manage", "Edit the HR dossier of an officer (identity, corps, administrative data)"],
   ["hr:career", "Record career decisions: appointment, promotion, change of function, status, retirement"],
+  ["hr:transfer_propose", "Propose a transfer (mutation) for an officer within scope"],
+  ["hr:transfer_review", "Examine transfer proposals as HR, cancel and execute approved transfers"],
+  ["hr:transfer_validate", "Validate or reject a transfer as the competent authority (must cover both structures)"],
   // self-service
   ["apikeys:manage_own", "Create/revoke own API keys"],
 ] as const;
