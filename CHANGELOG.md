@@ -8,6 +8,11 @@ All notable changes to SIGPN-T (Système Intégré de Gestion Numérique de la P
 - HR dossier (birth place, marital status, corps, administrative status, service dates), append-only career history, `hr:*` permissions, roles `HR_DIRECTOR` / `HR_OFFICER`, HR menu and pages (FR/AR), REST API `/api/v1/hr/*`, station type `DELEGATION` (see `docs/RESSOURCES_HUMAINES.md`).
 - Migration `20261105170000_hr_dossier_career` (additive; backfills corps and recruitment events).
 
+## [Unreleased] — 2026-11-05 — « RH, phase 5 : affectation automatique après une durée au poste »
+
+### Added
+- AFFECTATION_AUTOMATIQUE (off by default) with configurable duration, categories, excluded functions, rules, validation authorities, administrative exceptions and pilot structures; idempotent engine, internal scheduler (`src/instrumentation.ts`) and `npm run hr:rotation`; permission `hr:auto_assign_config`; migration `20261105190000_hr_rotation`. See `docs/RESSOURCES_HUMAINES.md`.
+
 ## [Unreleased] — 2026-11-05 — « RH, phase 4 : mutations et circuit de validation »
 
 ### Added

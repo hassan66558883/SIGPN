@@ -182,6 +182,7 @@ model User {
   officerAssignments         OfficerAssignment[]
   trainingsRecorded          Training[]
   careerEventsRecorded       CareerEvent[]
+  rotationExceptionsCreated  RotationException[]
   transfersProposed          TransferRequest[]          @relation("TransferProposedBy")
   transfersReviewed          TransferRequest[]          @relation("TransferReviewedBy")
   transfersValidated         TransferRequest[]          @relation("TransferValidatedBy")
@@ -619,6 +620,8 @@ model Officer {
   currentPostSince     DateTime?
   careerEvents         CareerEvent[]
   transferRequests     TransferRequest[]
+  rotationExceptions   RotationException[]
+  rotationAlerts       RotationAlert[]
 
   commandsStation     Station?            @relation("StationCommander")
   headsDepartment     Department?         @relation("DepartmentHead")
@@ -637,6 +640,7 @@ model Officer {
   @@index([stationId])
   @@index([departmentId])
   @@index([lastName, firstName])
+  @@index([currentPostSince])
 }
 
 model OfficerAssignment {
@@ -772,6 +776,41 @@ model TransferRequest {
   @@index([status, createdAt])
   @@index([fromStationId])
   @@index([toStationId])
+}
+
+/// Administrative exception: the officer is skipped by the automatic rotation while it is active.
+model RotationException {
+  id          String    @id @default(cuid())
+  officerId   String
+  officer     Officer   @relation(fields: [officerId], references: [id])
+  reason      String
+  startsAt    DateTime
+  endsAt      DateTime?
+  createdById String?
+  createdBy   User?     @relation(fields: [createdById], references: [id])
+  endedAt     DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([officerId])
+}
+
+enum RotationAlertKind {
+  UPCOMING
+  DUE
+}
+
+/// Idempotence ledger of the automatic rotation: one UPCOMING and one DUE alert per officer and post tenure.
+model RotationAlert {
+  id         String            @id @default(cuid())
+  officerId  String
+  officer    Officer           @relation(fields: [officerId], references: [id])
+  kind       RotationAlertKind
+  postSince  DateTime
+  transferId String?
+  createdAt  DateTime          @default(now())
+
+  @@unique([officerId, postSince, kind])
+  @@index([kind, createdAt])
 }
 
 /// Fonction (post/duty title) referential, e.g. Commissaire, Chef de service, Officier de police judiciaire.

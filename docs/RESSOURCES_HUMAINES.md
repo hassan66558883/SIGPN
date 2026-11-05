@@ -49,3 +49,26 @@ Plan en 10 phases (cahier des charges « SIGEC PN » : dossiers, carrière, muta
 **Tests :** `tests/integration/hr-transfers.test.ts` (9 tests : permissions, impossibilité de court-circuiter, périmètre de l'autorité, exécution et historique, date future, rejets, contraintes SQL).
 
 **Non fait / non vérifié :** pages non parcourues dans un navigateur ; l'affectation initiale reste celle de la création de l'agent (pas de circuit) ; le refus du changement de structure par `assignOfficer` n'est pas couvert par un test automatisé (pas d'API REST associée).
+
+## Phase 5 — Affectation automatique après une durée au poste (fait)
+
+**Interrupteur :** `AFFECTATION_AUTOMATIQUE` = ACTIVÉE / DÉSACTIVÉE, **désactivée par défaut**, réglée dans `SystemSetting` (`hr.auto_assignment`) par un détenteur de `hr:auto_assign_config` (administrateur système et administrateur police) depuis *RH → Affectation automatique* ou `PUT /api/v1/hr/rotation/settings`. Chaque changement est journalisé (`HR_ROTATION_ENABLED` / `_DISABLED`). Désactivée : le traitement automatique s'arrête (aucune alerte, aucune proposition, aucune exécution planifiée) ; mutations et affectations manuelles, données et historiques restent intacts.
+
+**Paramètres :** durée de référence (12 mois), préavis « bientôt éligibles » (30 j), catégories de grades concernées, fonctions exclues, règle d'affectation (même province ou non, délai avant la date d'effet), autorités de validation (codes de rôle ; vide = toute autorité compétente), exceptions administratives (par agent, avec motif et fin), déploiement progressif par structures (`pilotStationIds`, pour ouvrir le traitement délégation par délégation) et plafond de propositions par exécution.
+
+**Moteur (`src/server/hr/rotation.ts`, `runRotation`)** — une passe idempotente :
+1. alerte une seule fois par agent et par période de poste les agents qui atteindront la durée (notification par structure et aux RH) ;
+2. crée **une seule** proposition automatique (`origin = AUTOMATIC`, statut `PROPOSED`, proposée par le système) par agent et par période de poste (registre `RotationAlert` à clé unique : une proposition rejetée n'est pas re-proposée pendant la même période) ;
+3. destination : même type de structure, même province si demandé, la moins dotée d'abord, en évitant les structures où l'agent a servi ces 2 dernières années ; sans destination possible, l'agent est compté (`noDestination`) et réessayé plus tard ;
+4. exécute les mutations **déjà validées par l'autorité** dont la date d'effet est arrivée (uniquement si la fonction est activée ; sinon un acteur RH les exécute à la main).
+Sont ignorés : agents hors activité, suspendus, commandants de structure, chefs de service, agents avec exception active ou mutation en cours. Le moteur ne déplace jamais personne de sa propre initiative : la proposition suit le circuit de la phase 4 (examen RH, validation d'une autorité couvrant les deux structures ; pour une proposition automatique, l'autorité doit en plus figurer dans la liste configurée si elle n'est pas vide). L'exécution d'une mutation démarre une nouvelle période de poste et efface les alertes de la précédente.
+
+**Planification :** minuterie interne démarrée par `src/instrumentation.ts` (toutes les `HR_SCHEDULER_INTERVAL_MINUTES`, 60 par défaut, première passe 1 min après le démarrage ; `HR_SCHEDULER=off` pour la couper), ou `npm run hr:rotation` depuis un cron. Plusieurs instances ne créent pas de doublons (clés uniques). Passage manuel : bouton « Lancer maintenant » ou `POST /api/v1/hr/rotation/run` (`hr:transfer_review`).
+
+**Interface :** page *Affectation automatique* (état ACTIVÉE/DÉSACTIVÉE, agents échus et bientôt éligibles dans le périmètre, dernière exécution, paramètres) et carte « Exceptions » sur le dossier de chaque agent. FR/AR.
+
+**À savoir avant d'activer en production :** `currentPostSince` est initialisé depuis la date de début de l'affectation en cours (ou la date de recrutement). Avec des dates d'import anciennes, la première passe peut proposer beaucoup de mutations : commencer par une structure pilote et un plafond bas, et corriger les dates au besoin. Sur la base de démonstration, la plupart des agents seraient « échus » pour cette raison.
+
+**Tests :** `tests/integration/hr-rotation.test.ts` (8 tests : droit de configurer, désactivée = rien, alertes uniques, une seule proposition, destination, exceptions et catégories, autorités de validation, exécution planifiée, aucune pollution). Les tests d'intégration partagent un limiteur de requêtes par compte : relancer plusieurs fois de suite le même fichier peut produire des 429.
+
+**Non fait / non vérifié :** pages non parcourues dans un navigateur ; minuterie interne observée seulement au démarrage du serveur de développement (pas de test de charge ni de multi-instances) ; notifications par e-mail/SMS non prévues.

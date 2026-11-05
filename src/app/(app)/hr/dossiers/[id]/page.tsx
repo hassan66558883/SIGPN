@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requirePermission } from "@/server/auth/dal";
 import { careerHistory, getDossier, listCorps } from "@/server/hr/service";
+import { listExceptions } from "@/server/hr/rotation";
 import { MANUAL_CAREER_EVENTS } from "@/server/hr/schemas";
 import { getRequestContext } from "@/server/request-context";
 import { listPositions } from "@/server/org/personnel";
@@ -12,6 +13,7 @@ import { ADMINISTRATIVE_STATUS, CAREER_EVENT_TYPE, GENDER, MARITAL_STATUS, RANK_
 import { fmtDate, toInputDate } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
 import { CareerEventForm, DossierForm } from "../../hr-forms";
+import { EndExceptionForm, ExceptionForm } from "../../rotation/rotation-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -31,7 +33,7 @@ export default async function DossierPage({ params }: PageProps<"/hr/dossiers/[i
   const canManage = actor.permissions.has("hr:manage");
   const canCareer = actor.permissions.has("hr:career");
   const terminal = ["RETIRED", "CEASED", "DECEASED"].includes(o.administrativeStatus);
-  const [history, corps, positions, refs] = await Promise.all([careerHistory(id), listCorps(), canCareer ? listPositions() : Promise.resolve([]), canCareer ? orgReferences(actor) : Promise.resolve(null)]);
+  const [history, corps, positions, refs, exceptions] = await Promise.all([careerHistory(id), listCorps(), canCareer ? listPositions() : Promise.resolve([]), canCareer ? orgReferences(actor) : Promise.resolve(null), listExceptions(id)]);
   const st = labelOf(ADMINISTRATIVE_STATUS, o.administrativeStatus, locale);
   const change = (e: (typeof history)[number]) => {
     if (e.toRank) return `${e.fromRank ?? "—"} → ${e.toRank}`;
@@ -162,6 +164,29 @@ export default async function DossierPage({ params }: PageProps<"/hr/dossiers/[i
                 { label: t("hr.dossier.currentPostSince"), value: fmtDate(o.currentPostSince, locale) },
               ]}
             />
+          </Card>
+          <Card title={t("hr.rot.exc.title")}>
+            {exceptions.length === 0 ? <p className="text-sm text-slate">{t("hr.rot.exc.none")}</p> : (
+              <ul className="space-y-2 text-sm">
+                {exceptions.map((x) => {
+                  const live = !x.endedAt && (!x.endsAt || x.endsAt > new Date());
+                  return (
+                    <li key={x.id} className="flex flex-wrap items-center gap-2">
+                      <Badge tone={live ? "info" : "neutral"}>{live ? t("hr.rot.exc.active") : t("hr.rot.exc.ended")}</Badge>
+                      <span>{x.reason}</span>
+                      <span className="text-xs text-slate">{fmtDate(x.startsAt, locale)}{x.endsAt ? ` → ${fmtDate(x.endsAt, locale)}` : ""}</span>
+                      {live && canManage ? <EndExceptionForm id={x.id} /> : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+            {canManage ? (
+              <div className="mt-3 border-t border-line pt-3">
+                <ExceptionForm officerId={o.id} />
+                <p className="mt-2 text-xs text-slate">{t("hr.rot.exc.hint")}</p>
+              </div>
+            ) : null}
           </Card>
           {canCareer ? (
             <Card title={t("hr.career.record")}>

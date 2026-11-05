@@ -265,6 +265,7 @@ export const PERMISSION_DESCRIPTIONS_FR: Record<string, string> = {
   "hr:transfer_propose": "Proposer une mutation pour un agent du périmètre",
   "hr:transfer_review": "Examiner les propositions de mutation (RH), annuler et exécuter les mutations validées",
   "hr:transfer_validate": "Valider ou rejeter une mutation en tant qu'autorité compétente (doit couvrir les deux structures)",
+  "hr:auto_assign_config": "Activer, désactiver et paramétrer l'affectation automatique (AFFECTATION_AUTOMATIQUE)",
   "hr:career": "Enregistrer les décisions de carrière : nomination, promotion, changement de fonction, statut, retraite",
 };
 
@@ -401,6 +402,7 @@ export const PERMISSION_DESCRIPTIONS_AR: Record<string, string> = {
   "hr:transfer_propose": "اقتراح نقل لعون ضمن النطاق",
   "hr:transfer_review": "دراسة مقترحات النقل (الموارد البشرية) وإلغاء وتنفيذ عمليات النقل المصادق عليها",
   "hr:transfer_validate": "المصادقة على النقل أو رفضه بصفة السلطة المختصة (يجب أن تشمل الهيكلين)",
+  "hr:auto_assign_config": "تفعيل التعيين التلقائي وتعطيله وضبط معاييره (AFFECTATION_AUTOMATIQUE)",
   "hr:career": "تسجيل قرارات المسار المهني: التعيين، الترقية، تغيير الوظيفة، الوضعية، التقاعد",
 };
 

@@ -257,7 +257,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     description: "National administration of the police information system: users, organization and every traffic function, without system security or backup settings.",
     scopeLevel: "NATIONAL",
     requiresMfa: true,
-    permissions: [...READ_ALL, ...COMMAND, "cases:archive", "audit:view", "org:manage", ...TRAFFIC_ALL, ...CASH_READ],
+    permissions: [...READ_ALL, ...COMMAND, "cases:archive", "audit:view", "org:manage", "hr:auto_assign_config", ...TRAFFIC_ALL, ...CASH_READ],
   },
   {
     code: "HR_DIRECTOR",

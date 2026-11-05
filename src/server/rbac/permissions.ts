@@ -153,6 +153,7 @@ export const PERMISSION_CATALOG = [
   ["hr:transfer_propose", "Propose a transfer (mutation) for an officer within scope"],
   ["hr:transfer_review", "Examine transfer proposals as HR, cancel and execute approved transfers"],
   ["hr:transfer_validate", "Validate or reject a transfer as the competent authority (must cover both structures)"],
+  ["hr:auto_assign_config", "Activate, deactivate and configure the automatic assignment (AFFECTATION_AUTOMATIQUE)"],
   // self-service
   ["apikeys:manage_own", "Create/revoke own API keys"],
 ] as const;

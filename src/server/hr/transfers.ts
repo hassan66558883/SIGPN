@@ -8,6 +8,7 @@ import type { Permission } from "@/server/rbac/permissions";
 import type { RequestContext } from "@/server/request-context";
 import { getOfficer } from "@/server/org/service";
 import { nextNumber } from "@/server/sequences";
+import { getRotationSettings } from "@/server/hr/rotation-settings";
 import { notify, notifyPermission } from "@/server/notifications";
 import type { ProposeTransferInput, TransferDecisionInput } from "@/server/hr/transfer-schemas";
 
@@ -144,6 +145,10 @@ export async function validateTransfer(actor: Actor, input: TransferDecisionInpu
   if (t.proposedById === actor.id || t.reviewedById === actor.id) throw new BusinessError("The validating authority must be different from the proposer and the HR reviewer.", "STATE");
   const covers = (s: { id: string; regionId: string }) => inScope(actor, { stationId: s.id, regionId: s.regionId });
   if (!covers(t.fromStation) || !covers(t.toStation)) throw new BusinessError("The competent authority must cover both the origin and the destination structures.", "STATE");
+  if (t.origin === "AUTOMATIC") {
+    const cfg = await getRotationSettings();
+    if (cfg.validatorRoleCodes.length > 0 && !cfg.validatorRoleCodes.includes(actor.roleCode)) throw new BusinessError("This automatic proposal must be validated by one of the authorities defined in the settings.", "STATE");
+  }
   if (input.decision === "REJECT" && !(input.note && input.note.trim().length >= 5)) throw new BusinessError("A reason is required to reject.", "VALIDATION", { note: "required" });
 
   if (input.decision === "REJECT") {
@@ -193,10 +198,10 @@ export async function cancelTransfer(actor: Actor, id: string, reason: string, c
 
 // ---------------- Execution ----------------
 
-type Notice = { transferId: string; number: string; decisionNumber: string; officerName: string; badgeNumber: string; officerUserId: string | null; proposedById: string | null; fromStationId: string; toStationId: string; fromName: string; toName: string };
+export type Notice = { transferId: string; number: string; decisionNumber: string; officerName: string; badgeNumber: string; officerUserId: string | null; proposedById: string | null; fromStationId: string; toStationId: string; fromName: string; toName: string };
 
 /** Moves the officer. Re-checks every precondition against the CURRENT state: a stale approval cannot corrupt the dossier. */
-async function applyTransfer(tx: Prisma.TransactionClient, id: string, actor: Actor, ctx: RequestContext): Promise<Notice> {
+export async function applyTransfer(tx: Prisma.TransactionClient, id: string, actor: Actor | null, ctx: RequestContext): Promise<Notice> {
   const t = await tx.transferRequest.findUniqueOrThrow({ where: { id }, include: { officer: { include: { commandsStation: { select: { id: true } }, headsDepartment: { select: { id: true } } } }, fromStation: { select: { name: true } }, toStation: { select: { id: true, name: true, regionId: true, adminDepartmentId: true, isActive: true, status: true } } } });
   const o = t.officer;
   if (t.status !== "APPROVED" || !t.decisionNumber) throw new BusinessError("Only a validated transfer can be executed.", "STATE");
@@ -210,12 +215,13 @@ async function applyTransfer(tx: Prisma.TransactionClient, id: string, actor: Ac
 
   await tx.officerAssignment.updateMany({ where: { officerId: o.id, endDate: null }, data: { endDate: t.effectiveDate } });
   await tx.officerAssignment.create({
-    data: { officerId: o.id, stationId: t.toStationId, departmentId: t.toDepartmentId, rankId: o.rankId, positionId: position?.id ?? o.positionId, position: position?.name ?? null, startDate: t.effectiveDate, reason: `Transfer ${t.number} — decision ${t.decisionNumber}`, createdById: actor.id },
+    data: { officerId: o.id, stationId: t.toStationId, departmentId: t.toDepartmentId, rankId: o.rankId, positionId: position?.id ?? o.positionId, position: position?.name ?? null, startDate: t.effectiveDate, reason: `Transfer ${t.number} — decision ${t.decisionNumber}`, createdById: actor?.id ?? null },
   });
   await tx.officer.update({ where: { id: o.id }, data: { stationId: t.toStationId, departmentId: t.toDepartmentId, currentPostSince: t.effectiveDate, ...(position ? { positionId: position.id } : {}) } });
+  await tx.rotationAlert.deleteMany({ where: { officerId: o.id } }); // a new post tenure starts: rotation alerts of the previous one no longer apply
   if (o.userId) await tx.user.update({ where: { id: o.userId }, data: { stationId: t.toStationId, regionId: t.toStation.regionId, adminDepartmentId: t.toStation.adminDepartmentId } });
   await tx.careerEvent.create({
-    data: { officerId: o.id, type: "TRANSFER", effectiveDate: t.effectiveDate, reference: t.decisionNumber, reason: t.reason, fromStationId: t.fromStationId, toStationId: t.toStationId, fromPositionId: position ? o.positionId : null, toPositionId: position?.id ?? null, recordedById: actor.id },
+    data: { officerId: o.id, type: "TRANSFER", effectiveDate: t.effectiveDate, reference: t.decisionNumber, reason: t.reason, fromStationId: t.fromStationId, toStationId: t.toStationId, fromPositionId: position ? o.positionId : null, toPositionId: position?.id ?? null, recordedById: actor?.id ?? null },
   });
   const u = await tx.transferRequest.updateMany({ where: { id, status: "APPROVED" }, data: { status: "EXECUTED", executedAt: new Date() } });
   if (u.count !== 1) throw new BusinessError("The record was modified concurrently. Reload and retry.", "CONFLICT");
@@ -224,7 +230,7 @@ async function applyTransfer(tx: Prisma.TransactionClient, id: string, actor: Ac
 }
 
 /** Step 7: notify the officer, the proposer and the HR/command users of both structures. */
-async function sendExecutionNotices(n: Notice) {
+export async function sendExecutionNotices(n: Notice) {
   const href = `/hr/transfers/${n.transferId}`;
   const body = `${n.decisionNumber}: ${n.officerName} (${n.badgeNumber}), ${n.fromName} → ${n.toName}.`;
   if (n.officerUserId) await notify({ userId: n.officerUserId, kind: "ASSIGNMENT", title: "New posting", body, href });
