@@ -77,6 +77,7 @@ export const SEVERITY: LabelMap = {
 
 export const STATION_TYPE: LabelMap = {
   HEADQUARTERS: def("Direction générale", "الإدارة العامة", "violet"),
+  DELEGATION: def("Délégation de police", "مندوبية الشرطة", "violet"),
   PROVINCIAL_DIRECTION: def("Direction provinciale", "المديرية الإقليمية", "violet"),
   DEPARTMENTAL_DIRECTION: def("Direction départementale", "المديرية المحافظاتية", "info"),
   CENTRAL_STATION: def("Commissariat central", "المركز المركزي", "info"),
@@ -85,6 +86,139 @@ export const STATION_TYPE: LabelMap = {
   UNIT: def("Unité", "وحدة", "neutral"),
   BRIGADE: def("Brigade", "لواء", "neutral"),
   SPECIAL_UNIT: def("Unité spéciale", "وحدة خاصة", "warning"),
+};
+
+export const ADMINISTRATIVE_STATUS: LabelMap = {
+  ACTIVE: def("En activité", "في الخدمة", "success"),
+  SECONDED: def("Détaché", "ملحق", "info"),
+  AT_DISPOSAL: def("Mis à disposition", "موضوع تحت التصرف", "info"),
+  SUSPENDED: def("Suspendu", "موقوف", "warning"),
+  RETIRED: def("Retraité", "متقاعد", "neutral"),
+  CEASED: def("Cessation de service", "انتهاء الخدمة", "neutral"),
+  DECEASED: def("Décédé", "متوفى", "neutral"),
+};
+
+export const CAREER_EVENT_TYPE: LabelMap = {
+  RECRUITMENT: def("Recrutement", "توظيف", "info"),
+  APPOINTMENT: def("Nomination", "تعيين", "info"),
+  PROMOTION: def("Promotion de grade", "ترقية في الرتبة", "success"),
+  ADVANCEMENT: def("Avancement", "ترقية في الدرجة", "success"),
+  FUNCTION_CHANGE: def("Changement de fonction", "تغيير الوظيفة", "info"),
+  TRANSFER: def("Mutation", "نقل", "violet"),
+  SECONDMENT: def("Détachement", "إلحاق", "warning"),
+  AT_DISPOSAL: def("Mise à disposition", "وضع تحت التصرف", "warning"),
+  REINSTATEMENT: def("Réintégration", "إعادة إدماج", "success"),
+  RETIREMENT: def("Départ à la retraite", "إحالة على التقاعد", "neutral"),
+  CESSATION: def("Cessation de service", "إنهاء الخدمة", "danger"),
+  SUSPENSION: def("Suspension", "إيقاف عن العمل", "warning"),
+};
+
+export const TRANSFER_STATUS: LabelMap = {
+  PROPOSED: def("Proposée", "مقترح", "info"),
+  HR_APPROVED: def("Examinée par les RH", "درسته الموارد البشرية", "warning"),
+  APPROVED: def("Validée", "مصادق عليه", "success"),
+  EXECUTED: def("Exécutée", "منفَّذ", "success"),
+  REJECTED: def("Rejetée", "مرفوض", "danger"),
+  CANCELLED: def("Annulée", "ملغى", "neutral"),
+};
+
+export const TRANSFER_ORIGIN: LabelMap = {
+  MANUAL: def("Proposition manuelle", "اقتراح يدوي", "neutral"),
+  AUTOMATIC: def("Détection automatique", "رصد تلقائي", "info"),
+};
+
+export const ATTENDANCE_STATUS: LabelMap = {
+  PRESENT: def("Présent", "حاضر", "success"),
+  LATE: def("En retard", "متأخر", "warning"),
+  ABSENT: def("Absent", "غائب", "danger"),
+  ON_LEAVE: def("En congé", "في عطلة", "info"),
+  PERMISSION: def("En permission", "في رخصة", "info"),
+  UNAVAILABLE: def("Indisponible", "غير متاح", "neutral"),
+};
+
+export const LEAVE_TYPE: LabelMap = {
+  ANNUAL: def("Congé annuel", "عطلة سنوية", "info"),
+  EXCEPTIONAL: def("Congé exceptionnel", "عطلة استثنائية", "violet"),
+  PERMISSION: def("Permission", "رخصة", "neutral"),
+  ABSENCE_AUTHORIZATION: def("Autorisation d'absence", "ترخيص بالغياب", "neutral"),
+  UNAVAILABILITY: def("Indisponibilité", "عدم الجاهزية", "warning"),
+};
+
+export const LEAVE_STATUS: LabelMap = {
+  REQUESTED: def("Demandée", "مطلوبة", "warning"),
+  APPROVED: def("Approuvée", "موافق عليها", "success"),
+  REJECTED: def("Rejetée", "مرفوضة", "danger"),
+  CANCELLED: def("Annulée", "ملغاة", "neutral"),
+};
+
+export const TRAINING_KIND: LabelMap = {
+  INITIAL: def("Formation initiale", "تكوين أساسي", "info"),
+  CONTINUING: def("Formation continue", "تكوين مستمر", "neutral"),
+  INTERNSHIP: def("Stage professionnel", "تربص مهني", "violet"),
+  SPECIALIZED: def("Formation spécialisée", "تكوين متخصص", "warning"),
+};
+
+export const DISCIPLINE_STATUS: LabelMap = {
+  OPEN: def("Ouvert", "مفتوح", "warning"),
+  IN_PROCEDURE: def("En procédure", "قيد الإجراء", "info"),
+  DECIDED: def("Décidé", "تم البت", "violet"),
+  CLOSED: def("Clos", "مغلق", "neutral"),
+};
+
+export const DISCIPLINE_STEP: LabelMap = {
+  NOTIFICATION: def("Notification des griefs", "إبلاغ بالمآخذ", "info"),
+  HEARING: def("Audition / droits de la défense", "استماع / حقوق الدفاع", "success"),
+  REPORT: def("Rapport", "تقرير", "neutral"),
+  NOTE: def("Note", "ملاحظة", "neutral"),
+};
+
+export const SANCTION_KIND: LabelMap = {
+  NO_ACTION: def("Classement sans suite", "حفظ دون عقوبة", "neutral"),
+  WARNING: def("Avertissement", "إنذار", "warning"),
+  REPRIMAND: def("Blâme", "توبيخ", "warning"),
+  SUSPENSION: def("Mise à pied (suspension)", "إيقاف عن العمل", "danger"),
+  DISMISSAL: def("Révocation", "عزل", "danger"),
+};
+
+export const DISTINCTION_KIND: LabelMap = {
+  COMMENDATION: def("Félicitations", "تنويه", "success"),
+  CITATION: def("Citation", "إشادة", "success"),
+  MEDAL: def("Médaille", "وسام", "violet"),
+  REWARD: def("Récompense", "مكافأة", "info"),
+};
+
+export const HR_DOCUMENT_KIND: LabelMap = {
+  ASSIGNMENT_DECISION: def("Décision d'affectation", "مقرر تعيين", "info"),
+  APPOINTMENT_ORDER: def("Arrêté de nomination", "قرار تعيين", "info"),
+  TRANSFER_DECISION: def("Décision de mutation", "مقرر نقل", "violet"),
+  WORK_CERTIFICATE: def("Attestation de travail", "شهادة عمل", "success"),
+  TRAINING_DOCUMENT: def("Document de formation", "وثيقة تكوين", "neutral"),
+  ADMIN_FILE: def("Dossier administratif", "ملف إداري", "neutral"),
+  DISCIPLINARY_DOCUMENT: def("Document disciplinaire", "وثيقة تأديبية", "danger"),
+  SERVICE_NOTE: def("Note de service", "مذكرة خدمة", "warning"),
+};
+
+export const PAY_KIND: LabelMap = {
+  BONUS: def("Prime", "علاوة", "success"),
+  ALLOWANCE: def("Indemnité", "تعويض", "info"),
+  BENEFIT: def("Avantage en nature", "منفعة عينية", "violet"),
+  DEDUCTION: def("Retenue", "اقتطاع", "danger"),
+};
+
+export const PAY_CALCULATION: LabelMap = {
+  FIXED: def("Montant fixe (FCFA)", "مبلغ ثابت (فرنك)", "neutral"),
+  PERCENT_OF_BASE: def("% de la solde de base", "٪ من الأجر الأساسي", "neutral"),
+};
+
+export const PAY_APPROVAL: LabelMap = {
+  PENDING: def("En attente de validation", "في انتظار المصادقة", "warning"),
+  ACTIVE: def("Validé", "مصادق عليه", "success"),
+  REJECTED: def("Rejeté", "مرفوض", "danger"),
+};
+
+export const PAY_RUN_STATUS: LabelMap = {
+  DRAFT: def("Brouillon", "مسودة", "warning"),
+  VALIDATED: def("Validé", "مصادق عليه", "success"),
 };
 
 export const DEPARTMENT_TYPE: LabelMap = {

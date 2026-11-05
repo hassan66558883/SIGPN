@@ -1,10 +1,10 @@
 # SIGPN-T — Documentation de la base de données
 
-_Generated from `prisma/schema.prisma` on 2026-09-26 by `scripts/gen-db-docs.ts`. Do not edit by hand._
+_Generated from `prisma/schema.prisma` on 2026-11-05 by `scripts/gen-db-docs.ts`. Do not edit by hand._
 
 - Engine: PostgreSQL 18 · ORM: Prisma 7 (pg adapter)
-- Tables: **90** · Enums: **77**
-- Migrations: `20260911165632_init`, `20260911165825_immutability_triggers`, `20260912102414_national_territory`, `20260912161408_personnel_positions_trainings_person_station`, `20260922124549_biometric_forensic_identification`, `20260922150000_wanted_persons`, `20260922150500_wanted_persons_station_scope`, `20260926140000_traffic_offences_fines`, `20260926150000_traffic_control_links`
+- Tables: **117** · Enums: **102**
+- Migrations: `20260911165632_init`, `20260911165825_immutability_triggers`, `20260912102414_national_territory`, `20260912161408_personnel_positions_trainings_person_station`, `20260922124549_biometric_forensic_identification`, `20260922150000_wanted_persons`, `20260922150500_wanted_persons_station_scope`, `20260926140000_traffic_offences_fines`, `20260926150000_traffic_control_links`, `20260927100000_traffic_cash_revenue`, `20261105170000_hr_dossier_career`, `20261105180000_hr_transfers`, `20261105190000_hr_rotation`, `20261105200000_hr_attendance_training`, `20261105210000_hr_discipline_documents`, `20261106100000_hr_pay`
 
 ## Integrity rules
 
@@ -167,6 +167,22 @@ Constraints/indexes: `@@id([roleId, permissionId])`
 | backups | BackupRecord[] | 1→N relation |
 | officerAssignments | OfficerAssignment[] | 1→N relation |
 | trainingsRecorded | Training[] | 1→N relation |
+| careerEventsRecorded | CareerEvent[] | 1→N relation |
+| rotationExceptionsCreated | RotationException[] | 1→N relation |
+| leavesRequested | LeaveRequest[] | 1→N relation |
+| leavesDecided | LeaveRequest[] | 1→N relation |
+| disciplineOpened | DisciplinaryCase[] | 1→N relation |
+| disciplineDecided | DisciplinaryCase[] | 1→N relation |
+| hrDocumentsCreated | HrDocument[] | 1→N relation |
+| payElementsRequested | OfficerPayElement[] | 1→N relation |
+| payElementsValidated | OfficerPayElement[] | 1→N relation |
+| payScaleCreated | PayScaleEntry[] | 1→N relation |
+| payScaleValidated | PayScaleEntry[] | 1→N relation |
+| payRunsGenerated | PayRun[] | 1→N relation |
+| payRunsValidated | PayRun[] | 1→N relation |
+| transfersProposed | TransferRequest[] | 1→N relation |
+| transfersReviewed | TransferRequest[] | 1→N relation |
+| transfersValidated | TransferRequest[] | 1→N relation |
 | maintenanceRecorded | MaintenanceRecord[] | 1→N relation |
 | fuelLogs | FuelLog[] | 1→N relation |
 | fingerprintsCaptured | FingerprintRecord[] | 1→N relation |
@@ -184,6 +200,21 @@ Constraints/indexes: `@@id([roleId, permissionId])`
 | trafficPaymentsReceived | TrafficPayment[] | 1→N relation |
 | trafficPaymentsVoided | TrafficPayment[] | 1→N relation |
 | trafficReceiptsIssued | TrafficReceipt[] | 1→N relation |
+| cashRegisters | TrafficCashRegister[] | 1→N relation |
+| cashRegistersClosed | TrafficCashRegister[] | 1→N relation |
+| cashRegistersBlocked | TrafficCashRegister[] | 1→N relation |
+| cashDailyClosures | TrafficDailyClosure[] | 1→N relation |
+| cashCollections | TrafficRevenueCollection[] | 1→N relation |
+| cashCollectionsVerified | TrafficRevenueCollection[] | 1→N relation |
+| cashDepositsAgent | TrafficDeposit[] | 1→N relation |
+| cashDepositsMade | TrafficDeposit[] | 1→N relation |
+| cashDepositsReceived | TrafficDeposit[] | 1→N relation |
+| cashDepositsReviewed | TrafficDeposit[] | 1→N relation |
+| cashDepositsValidated | TrafficDeposit[] | 1→N relation |
+| cashDepositSlips | TrafficDepositReceipt[] | 1→N relation |
+| cashReconciliations | TrafficReconciliation[] | 1→N relation |
+| cashDiscrepanciesAgent | TrafficCashDiscrepancy[] | 1→N relation |
+| cashDiscrepanciesValidated | TrafficCashDiscrepancy[] | 1→N relation |
 | trafficEvidenceUploaded | TrafficEvidence[] | 1→N relation |
 
 Constraints/indexes: `@@index([roleId])`, `@@index([stationId])`, `@@index([regionId])`, `@@index([status])`, `@@index([lastName, firstName])`
@@ -328,6 +359,9 @@ Province (kept as table "Region" for backward compatibility; presented as "Provi
 | trafficControls | TrafficControl[] | 1→N relation |
 | trafficTickets | TrafficTicket[] | 1→N relation |
 | trafficFines | TrafficFine[] | 1→N relation |
+| cashRegisters | TrafficCashRegister[] | 1→N relation |
+| cashCollections | TrafficRevenueCollection[] | 1→N relation |
+| cashDeposits | TrafficDeposit[] | 1→N relation |
 
 ### AdminDepartment
 
@@ -447,6 +481,14 @@ Police structure: commissariat, poste, unité, brigade, direction. Posts and uni
 | trafficTickets | TrafficTicket[] | 1→N relation |
 | trafficFines | TrafficFine[] | 1→N relation |
 | trafficPayments | TrafficPayment[] | 1→N relation |
+| cashRegisters | TrafficCashRegister[] | 1→N relation |
+| cashCollections | TrafficRevenueCollection[] | 1→N relation |
+| cashDeposits | TrafficDeposit[] | 1→N relation |
+| transfersFrom | TransferRequest[] | 1→N relation |
+| transfersTo | TransferRequest[] | 1→N relation |
+| attendance | AttendanceRecord[] | 1→N relation |
+| leaveRequests | LeaveRequest[] | 1→N relation |
+| hrDocuments | HrDocument[] | 1→N relation |
 
 Constraints/indexes: `@@index([regionId])`, `@@index([adminDepartmentId])`, `@@index([communeId])`, `@@index([parentId])`, `@@index([status])`
 
@@ -483,6 +525,7 @@ Constraints/indexes: `@@unique([stationId, code])`
 | isActive | Boolean | default true |
 | officers | Officer[] | 1→N relation |
 | assignments | OfficerAssignment[] | 1→N relation |
+| payScale | PayScaleEntry[] | 1→N relation |
 
 ### Officer
 
@@ -514,6 +557,26 @@ Constraints/indexes: `@@unique([stationId, code])`
 | createdAt | DateTime | default now( |
 | updatedAt | DateTime | auto-updated |
 | deletedAt | DateTime? | nullable |
+| birthPlace | String? | nullable, FK → String |
+| maritalStatus | MaritalStatus? | nullable, enum |
+| photoPath | String? | nullable, FK → String |
+| corpsId | String? | nullable, FK → String |
+| corps | Corps? | nullable, FK → Corps |
+| administrativeStatus | AdministrativeStatus | enum, default ACTIVE |
+| serviceStartDate | DateTime? | nullable |
+| currentPostSince | DateTime? | nullable, Date of taking up the current post (drives the 12-month rotation, phase 5). |
+| careerEvents | CareerEvent[] | 1→N relation |
+| transferRequests | TransferRequest[] | 1→N relation |
+| rotationExceptions | RotationException[] | 1→N relation |
+| rotationAlerts | RotationAlert[] | 1→N relation |
+| attendance | AttendanceRecord[] | 1→N relation |
+| leaveRequests | LeaveRequest[] | 1→N relation |
+| skills | OfficerSkill[] | 1→N relation |
+| disciplinaryCases | DisciplinaryCase[] | 1→N relation |
+| distinctions | Distinction[] | 1→N relation |
+| hrDocuments | HrDocument[] | 1→N relation |
+| payElements | OfficerPayElement[] | 1→N relation |
+| payLines | PayRunLine[] | 1→N relation |
 | commandsStation | Station? | nullable, FK → Station |
 | headsDepartment | Department? | nullable, FK → Department |
 | assignments | OfficerAssignment[] | 1→N relation |
@@ -528,7 +591,7 @@ Constraints/indexes: `@@unique([stationId, code])`
 | fuelLogs | FuelLog[] | 1→N relation |
 | trainings | Training[] | 1→N relation |
 
-Constraints/indexes: `@@index([stationId])`, `@@index([departmentId])`, `@@index([lastName, firstName])`
+Constraints/indexes: `@@index([stationId])`, `@@index([departmentId])`, `@@index([lastName, firstName])`, `@@index([currentPostSince])`
 
 ### OfficerAssignment
 
@@ -554,6 +617,409 @@ Constraints/indexes: `@@index([stationId])`, `@@index([departmentId])`, `@@index
 | createdAt | DateTime | default now( |
 
 Constraints/indexes: `@@index([officerId, startDate])`
+
+### Corps
+
+Corps of the Police nationale (referential, editable by HR administrators).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| code | String | unique, FK → String |
+| name | String | FK → String |
+| isActive | Boolean | default true |
+| officers | Officer[] | 1→N relation |
+
+### CareerEvent
+
+Append-only career history of an officer (every change of grade, function, status or posting).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| officerId | String | FK → String |
+| officer | Officer | FK → Officer |
+| type | CareerEventType | enum |
+| effectiveDate | DateTime |  |
+| reference | String | FK → String |
+| reason | String? | nullable, FK → String |
+| fromRankId | String? | nullable, FK → String |
+| toRankId | String? | nullable, FK → String |
+| fromPositionId | String? | nullable, FK → String |
+| toPositionId | String? | nullable, FK → String |
+| fromStationId | String? | nullable, FK → String |
+| toStationId | String? | nullable, FK → String |
+| fromStatus | AdministrativeStatus? | nullable, enum |
+| toStatus | AdministrativeStatus? | nullable, enum |
+| recordedById | String? | nullable, FK → String |
+| recordedBy | User? | nullable, FK → User |
+| createdAt | DateTime | default now( |
+
+Constraints/indexes: `@@index([officerId, effectiveDate])`, `@@index([type, effectiveDate])`
+
+### TransferRequest
+
+Posting change (mutation) going through the validation circuit: proposal -> HR review -> validation by the competent authority -> decision -> execution on the dossier. Nothing moves an officer before APPROVED.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| officerId | String | FK → String |
+| officer | Officer | FK → Officer |
+| fromStationId | String | FK → String |
+| fromStation | Station | FK → Station |
+| fromDepartmentId | String? | nullable, FK → String |
+| toStationId | String | FK → String |
+| toStation | Station | FK → Station |
+| toDepartmentId | String? | nullable, FK → String |
+| toPositionId | String? | nullable, FK → String |
+| effectiveDate | DateTime |  |
+| reason | String | FK → String |
+| origin | TransferOrigin | enum, default MANUAL |
+| status | TransferStatus | enum, default PROPOSED |
+| proposedById | String? | nullable, FK → String |
+| proposedBy | User? | nullable, FK → User |
+| reviewedById | String? | nullable, FK → String |
+| reviewedBy | User? | nullable, FK → User |
+| reviewedAt | DateTime? | nullable |
+| reviewNote | String? | nullable, FK → String |
+| validatedById | String? | nullable, FK → String |
+| validatedBy | User? | nullable, FK → User |
+| validatedAt | DateTime? | nullable |
+| validationNote | String? | nullable, FK → String |
+| decisionNumber | String? | unique, nullable, FK → String |
+| executedAt | DateTime? | nullable |
+| closeReason | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+
+Constraints/indexes: `@@index([officerId])`, `@@index([status, createdAt])`, `@@index([fromStationId])`, `@@index([toStationId])`
+
+### AttendanceRecord
+
+One row per officer and day. LEAVE-derived rows (leaveId set) are generated by an approved leave and cannot be edited by roll-call.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| officerId | String | FK → String |
+| officer | Officer | FK → Officer |
+| stationId | String | FK → String |
+| station | Station | FK → Station |
+| date | DateTime |  |
+| status | AttendanceStatus | enum |
+| lateMinutes | Int? | nullable |
+| note | String? | nullable, FK → String |
+| leaveId | String? | nullable, FK → String |
+| recordedById | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+
+Constraints/indexes: `@@unique([officerId, date])`, `@@index([stationId, date])`, `@@index([date, status])`
+
+### LeaveRequest
+
+Leave, permission, authorised absence or unavailability: request -> approval by a hierarchical authority -> attendance generated.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| officerId | String | FK → String |
+| officer | Officer | FK → Officer |
+| stationId | String | FK → String |
+| station | Station | FK → Station |
+| type | LeaveType | enum |
+| startDate | DateTime |  |
+| endDate | DateTime |  |
+| days | Int |  |
+| reason | String? | nullable, FK → String |
+| status | LeaveStatus | enum, default REQUESTED |
+| requestedById | String? | nullable, FK → String |
+| requestedBy | User? | nullable, FK → User |
+| decidedById | String? | nullable, FK → String |
+| decidedBy | User? | nullable, FK → User |
+| decidedAt | DateTime? | nullable |
+| decisionNote | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+
+Constraints/indexes: `@@index([officerId, startDate])`, `@@index([status, createdAt])`, `@@index([stationId, status])`
+
+### DisciplinaryCase
+
+Disciplinary procedure. Strictly confidential: every read is audited and needs hr:discipline_view.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| officerId | String | FK → String |
+| officer | Officer | FK → Officer |
+| stationId | String | FK → String |
+| facts | String | FK → String |
+| factsDate | DateTime |  |
+| status | DisciplineStatus | enum, default OPEN |
+| openedById | String? | nullable, FK → String |
+| openedBy | User? | nullable, FK → User |
+| sanction | SanctionKind? | nullable, enum |
+| sanctionStart | DateTime? | nullable |
+| sanctionEnd | DateTime? | nullable |
+| sanctionActive | Boolean | default false |
+| decisionNumber | String? | unique, nullable, FK → String |
+| decisionReason | String? | nullable, FK → String |
+| decidedById | String? | nullable, FK → String |
+| decidedBy | User? | nullable, FK → User |
+| decidedAt | DateTime? | nullable |
+| closedAt | DateTime? | nullable |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+| steps | DisciplinaryStep[] | 1→N relation |
+
+Constraints/indexes: `@@index([officerId])`, `@@index([status])`, `@@index([stationId])`
+
+### DisciplinaryStep
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| caseId | String | FK → String |
+| case | DisciplinaryCase | FK → DisciplinaryCase |
+| kind | DisciplineStepKind | enum |
+| date | DateTime |  |
+| note | String | FK → String |
+| recordedById | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+
+Constraints/indexes: `@@index([caseId, date])`
+
+### Distinction
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| officerId | String | FK → String |
+| officer | Officer | FK → Officer |
+| kind | DistinctionKind | enum |
+| title | String | FK → String |
+| reason | String? | nullable, FK → String |
+| reference | String? | nullable, FK → String |
+| awardedAt | DateTime |  |
+| recordedById | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+
+Constraints/indexes: `@@index([officerId, awardedAt])`
+
+### HrDocument
+
+Central HR document space. GENERATED documents keep a frozen content snapshot (rendered to PDF or Word on demand); UPLOADED ones keep the stored file. CONFIDENTIAL documents need hr:discipline_view.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| kind | HrDocumentKind | enum |
+| title | String | FK → String |
+| source | HrDocumentSource | enum |
+| confidential | Boolean | default false |
+| officerId | String? | nullable, FK → String |
+| officer | Officer? | nullable, FK → Officer |
+| stationId | String? | nullable, FK → String |
+| station | Station? | nullable, FK → Station |
+| relatedType | String? | nullable, FK → String |
+| relatedId | String? | nullable, FK → String |
+| snapshot | Json? | nullable |
+| storagePath | String? | nullable, FK → String |
+| fileName | String? | nullable, FK → String |
+| mimeType | String? | nullable, FK → String |
+| sizeBytes | Int? | nullable |
+| sha256 | String? | nullable, FK → String |
+| createdById | String? | nullable, FK → String |
+| createdBy | User? | nullable, FK → User |
+| createdAt | DateTime | default now( |
+
+Constraints/indexes: `@@index([officerId, createdAt])`, `@@index([kind, createdAt])`, `@@index([stationId])`
+
+### PayComponent
+
+Referential of pay elements other than the base salary: bonuses (primes), allowances (indemnités), benefits in kind (avantages) and deductions (retenues). FIXED = FCFA per month; PERCENT_OF_BASE = whole percent of the base salary.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| code | String | unique, FK → String |
+| name | String | FK → String |
+| kind | PayComponentKind | enum |
+| calculation | PayCalculation | enum, default FIXED |
+| defaultValue | Int | default 0 |
+| description | String? | nullable, FK → String |
+| isActive | Boolean | default true |
+| createdAt | DateTime | default now( |
+| elements | OfficerPayElement[] | 1→N relation |
+
+### PayScaleEntry
+
+Base monthly salary (FCFA) of a rank from a date. Changes are requested then validated by someone else; history is kept.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| rankId | String | FK → String |
+| rank | Rank | FK → Rank |
+| amount | Int |  |
+| effectiveFrom | DateTime |  |
+| status | PayApprovalStatus | enum, default PENDING |
+| createdById | String? | nullable, FK → String |
+| createdBy | User? | nullable, FK → User |
+| validatedById | String? | nullable, FK → String |
+| validatedBy | User? | nullable, FK → User |
+| validatedAt | DateTime? | nullable |
+| note | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+
+Constraints/indexes: `@@unique([rankId, effectiveFrom])`, `@@index([rankId, status, effectiveFrom])`
+
+### OfficerPayElement
+
+A pay element granted to an officer for a period. Becomes effective only after validation by a person other than the requester.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| officerId | String | FK → String |
+| officer | Officer | FK → Officer |
+| componentId | String | FK → String |
+| component | PayComponent | FK → PayComponent |
+| value | Int? | nullable |
+| startDate | DateTime |  |
+| endDate | DateTime? | nullable |
+| status | PayApprovalStatus | enum, default PENDING |
+| reason | String | FK → String |
+| decisionRef | String? | nullable, FK → String |
+| requestedById | String? | nullable, FK → String |
+| requestedBy | User? | nullable, FK → User |
+| validatedById | String? | nullable, FK → String |
+| validatedBy | User? | nullable, FK → User |
+| validatedAt | DateTime? | nullable |
+| note | String? | nullable, FK → String |
+| endReason | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+
+Constraints/indexes: `@@index([officerId, status])`, `@@index([status, createdAt])`
+
+### PayRun
+
+Monthly pay statement (état récapitulatif) of the whole force. Frozen once validated; it is a statement for the financial services, the system never moves money.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| period | String | unique, FK → String |
+| status | PayRunStatus | enum, default DRAFT |
+| generatedById | String? | nullable, FK → String |
+| generatedBy | User? | nullable, FK → User |
+| validatedById | String? | nullable, FK → String |
+| validatedBy | User? | nullable, FK → User |
+| validatedAt | DateTime? | nullable |
+| exportedAt | DateTime? | nullable |
+| exportCount | Int | default 0 |
+| officers | Int | default 0 |
+| suspendedCount | Int | default 0 |
+| excludedNoScale | Int | default 0 |
+| excludedStatus | Int | default 0 |
+| totalBase | BigInt | default 0 |
+| totalGross | BigInt | default 0 |
+| totalDeductions | BigInt | default 0 |
+| totalNet | BigInt | default 0 |
+| suspendedPercent | Int | default 100 |
+| createdAt | DateTime | default now( |
+| lines | PayRunLine[] | 1→N relation |
+
+### PayRunLine
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| runId | String | FK → String |
+| run | PayRun | FK → PayRun, cascade |
+| officerId | String | FK → String |
+| officer | Officer | FK → Officer |
+| rankId | String | FK → String |
+| stationId | String | FK → String |
+| regionId | String | FK → String |
+| status | AdministrativeStatus | enum |
+| base | Int |  |
+| gross | Int |  |
+| deductions | Int |  |
+| net | Int |  |
+| detail | Json |  |
+
+Constraints/indexes: `@@unique([runId, officerId])`, `@@index([officerId])`, `@@index([runId, rankId])`, `@@index([runId, regionId])`
+
+### Skill
+
+Competence referential and the competences held by officers (granted by evaluated trainings).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| code | String | unique, FK → String |
+| name | String | FK → String |
+| isActive | Boolean | default true |
+| holders | OfficerSkill[] | 1→N relation |
+
+### OfficerSkill
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| officerId | String | FK → String |
+| officer | Officer | FK → Officer |
+| skillId | String | FK → String |
+| skill | Skill | FK → Skill |
+| level | Int |  |
+| acquiredAt | DateTime |  |
+| expiresAt | DateTime? | nullable |
+| trainingId | String? | nullable, FK → String |
+| training | Training? | nullable, FK → Training |
+
+Constraints/indexes: `@@unique([officerId, skillId])`
+
+### RotationException
+
+Administrative exception: the officer is skipped by the automatic rotation while it is active.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| officerId | String | FK → String |
+| officer | Officer | FK → Officer |
+| reason | String | FK → String |
+| startsAt | DateTime |  |
+| endsAt | DateTime? | nullable |
+| createdById | String? | nullable, FK → String |
+| createdBy | User? | nullable, FK → User |
+| endedAt | DateTime? | nullable |
+| createdAt | DateTime | default now( |
+
+Constraints/indexes: `@@index([officerId])`
+
+### RotationAlert
+
+Idempotence ledger of the automatic rotation: one UPCOMING and one DUE alert per officer and post tenure.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| officerId | String | FK → String |
+| officer | Officer | FK → Officer |
+| kind | RotationAlertKind | enum |
+| postSince | DateTime |  |
+| transferId | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+
+Constraints/indexes: `@@unique([officerId, postSince, kind])`, `@@index([kind, createdAt])`
 
 ### Position
 
@@ -590,6 +1056,12 @@ Training / certification record of an officer.
 | notes | String? | nullable, FK → String |
 | recordedById | String? | nullable, FK → String |
 | recordedBy | User? | nullable, FK → User |
+| kind | TrainingKind | enum, default CONTINUING |
+| score | Float? | nullable |
+| passed | Boolean? | nullable |
+| evaluatedAt | DateTime? | nullable |
+| certificateIssuedAt | DateTime? | nullable |
+| skillsGranted | OfficerSkill[] | 1→N relation |
 | createdAt | DateTime | default now( |
 | updatedAt | DateTime | auto-updated |
 
@@ -1664,6 +2136,8 @@ Constraints/indexes: `@@index([vehicleId, filledAt])`
 | mainPhotoOfWanted | WantedPerson? | nullable, FK → WantedPerson |
 | trafficDriverPhoto | TrafficDriver? | nullable, FK → TrafficDriver |
 | trafficEvidence | TrafficEvidence? | nullable, FK → TrafficEvidence |
+| cashDeposit | TrafficDeposit? | nullable, FK → TrafficDeposit |
+| cashDiscrepancy | TrafficCashDiscrepancy? | nullable, FK → TrafficCashDiscrepancy |
 | trafficVehicleDocument | TrafficVehicleDocument? | nullable, FK → TrafficVehicleDocument |
 
 Constraints/indexes: `@@index([entityType, entityId])`, `@@index([caseId])`
@@ -2224,6 +2698,8 @@ Constraints/indexes: `@@index([status])`, `@@index([stationId, issuedAt])`, `@@i
 | notes | String? | nullable, FK → String |
 | createdAt | DateTime | default now( |
 | receipt | TrafficReceipt? | nullable, FK → TrafficReceipt |
+| cashTransaction | TrafficCashTransaction? | nullable, FK → TrafficCashTransaction |
+| depositItems | TrafficDepositItem[] | 1→N relation |
 
 Constraints/indexes: `@@unique([method, transactionReference])`, `@@index([fineId])`, `@@index([paidAt])`
 
@@ -2265,6 +2741,252 @@ Constraints/indexes: `@@index([fineId])`
 
 Constraints/indexes: `@@index([controlId])`
 
+### TrafficCashRegister
+
+The electronic cash register of a collecting agent. One OPEN register per agent (partial unique index).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| agentId | String | FK → String |
+| agent | User | FK → User |
+| agentBadge | String? | nullable, FK → String |
+| stationId | String | FK → String |
+| station | Station | FK → Station |
+| regionId | String | FK → String |
+| region | Region | FK → Region |
+| status | TrafficCashRegisterStatus | enum, default OPEN |
+| openedAt | DateTime | default now( |
+| openingBalanceFcfa | Int | default 0 |
+| closedAt | DateTime? | nullable |
+| closedById | String? | nullable, FK → String |
+| closedBy | User? | nullable, FK → User |
+| blockedAt | DateTime? | nullable |
+| blockedById | String? | nullable, FK → String |
+| blockedBy | User? | nullable, FK → User |
+| blockReason | String? | nullable, FK → String |
+| notes | String? | nullable, FK → String |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+| transactions | TrafficCashTransaction[] | 1→N relation |
+| closure | TrafficDailyClosure? | nullable, FK → TrafficDailyClosure |
+| collection | TrafficRevenueCollection? | nullable, FK → TrafficRevenueCollection |
+| deposits | TrafficDeposit[] | 1→N relation |
+| discrepancies | TrafficCashDiscrepancy[] | 1→N relation |
+
+Constraints/indexes: `@@index([agentId, status])`, `@@index([stationId, openedAt])`, `@@index([regionId, openedAt])`
+
+### TrafficCashTransaction
+
+One line per payment collected into a register. `paymentId` is unique: a payment can never be counted twice.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| registerId | String | FK → String |
+| register | TrafficCashRegister | FK → TrafficCashRegister |
+| paymentId | String | unique, FK → String |
+| payment | TrafficPayment | FK → TrafficPayment |
+| amountFcfa | Int |  |
+| method | TrafficPaymentMethod | enum |
+| recordedAt | DateTime | default now( |
+| voidedAt | DateTime? | nullable |
+
+Constraints/indexes: `@@index([registerId])`
+
+### TrafficDailyClosure
+
+Daily closing statement (état journalier des recettes): frozen at closing, append-only.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| registerId | String | unique, FK → String |
+| register | TrafficCashRegister | FK → TrafficCashRegister |
+| paymentsCount | Int |  |
+| finesTotalFcfa | Int |  |
+| collectedFcfa | Int |  |
+| cashFcfa | Int |  |
+| electronicFcfa | Int |  |
+| mobileMoneyFcfa | Int |  |
+| otherFcfa | Int |  |
+| amountToDepositFcfa | Int |  |
+| receiptNumbers | Json |  |
+| ticketNumbers | Json |  |
+| closedById | String | FK → String |
+| closedBy | User | FK → User |
+| closedAt | DateTime | default now( |
+| notes | String? | nullable, FK → String |
+| collection | TrafficRevenueCollection? | nullable, FK → TrafficRevenueCollection |
+
+### TrafficRevenueCollection
+
+The revenue a closed register owes to the administration, and how much of it has been deposited / validated.
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| registerId | String | unique, FK → String |
+| register | TrafficCashRegister | FK → TrafficCashRegister |
+| closureId | String | unique, FK → String |
+| closure | TrafficDailyClosure | FK → TrafficDailyClosure |
+| agentId | String | FK → String |
+| agent | User | FK → User |
+| stationId | String | FK → String |
+| station | Station | FK → Station |
+| regionId | String | FK → String |
+| region | Region | FK → Region |
+| periodFrom | DateTime |  |
+| periodTo | DateTime |  |
+| collectedFcfa | Int |  |
+| depositedFcfa | Int | default 0 |
+| validatedFcfa | Int | default 0 |
+| status | TrafficCollectionStatus | enum, default TO_DEPOSIT |
+| verifiedById | String? | nullable, FK → String |
+| verifiedBy | User? | nullable, FK → User |
+| verifiedAt | DateTime? | nullable |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+| deposits | TrafficDeposit[] | 1→N relation |
+| reconciliation | TrafficReconciliation? | nullable, FK → TrafficReconciliation |
+| discrepancies | TrafficCashDiscrepancy[] | 1→N relation |
+
+Constraints/indexes: `@@index([stationId, createdAt])`, `@@index([regionId, createdAt])`, `@@index([agentId])`
+
+### TrafficDeposit
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| collectionId | String | FK → String |
+| collection | TrafficRevenueCollection | FK → TrafficRevenueCollection |
+| registerId | String | FK → String |
+| register | TrafficCashRegister | FK → TrafficCashRegister |
+| agentId | String | FK → String |
+| agent | User | FK → User |
+| agentBadge | String? | nullable, FK → String |
+| stationId | String | FK → String |
+| station | Station | FK → Station |
+| regionId | String | FK → String |
+| region | Region | FK → Region |
+| periodFrom | DateTime |  |
+| periodTo | DateTime |  |
+| collectedFcfa | Int |  |
+| amountDueFcfa | Int |  |
+| amountDepositedFcfa | Int |  |
+| method | TrafficDepositMethod | enum |
+| slipNumber | String? | nullable, FK → String |
+| reference | String? | nullable, FK → String |
+| recipient | String? | nullable, FK → String |
+| depositedAt | DateTime |  |
+| depositedById | String | FK → String |
+| depositedBy | User | FK → User |
+| receivedById | String? | nullable, FK → String |
+| receivedBy | User? | nullable, FK → User |
+| observations | String? | nullable, FK → String |
+| attachmentDocumentId | String? | unique, nullable, FK → String |
+| attachmentDocument | Document? | nullable, FK → Document |
+| status | TrafficDepositStatus | enum, default SUBMITTED |
+| attempt | Int | default 1 |
+| previousDepositId | String? | nullable, FK → String |
+| reviewedById | String? | nullable, FK → String |
+| reviewedBy | User? | nullable, FK → User |
+| reviewedAt | DateTime? | nullable |
+| reviewNote | String? | nullable, FK → String |
+| validatedById | String? | nullable, FK → String |
+| validatedBy | User? | nullable, FK → User |
+| validatedAt | DateTime? | nullable |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+| items | TrafficDepositItem[] | 1→N relation |
+| slip | TrafficDepositReceipt? | nullable, FK → TrafficDepositReceipt |
+
+Constraints/indexes: `@@index([collectionId])`, `@@index([status])`, `@@index([stationId, depositedAt])`, `@@index([regionId, depositedAt])`
+
+### TrafficDepositItem
+
+Snapshot of the payments covered by a deposit (traceability: PV → fine → payment → receipt → deposit).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| depositId | String | FK → String |
+| deposit | TrafficDeposit | FK → TrafficDeposit |
+| paymentId | String | FK → String |
+| payment | TrafficPayment | FK → TrafficPayment |
+| amountFcfa | Int |  |
+
+Constraints/indexes: `@@unique([depositId, paymentId])`
+
+### TrafficDepositReceipt
+
+Bordereau de versement des recettes (append-only, verifiable by QR code).
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| verificationToken | String | unique, FK → String |
+| depositId | String | unique, FK → String |
+| deposit | TrafficDeposit | FK → TrafficDeposit |
+| contentHash | String | FK → String |
+| issuedAt | DateTime | default now( |
+| issuedById | String | FK → String |
+| issuedBy | User | FK → User |
+
+### TrafficReconciliation
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| collectionId | String | unique, FK → String |
+| collection | TrafficRevenueCollection | FK → TrafficRevenueCollection |
+| collectedFcfa | Int |  |
+| depositedFcfa | Int |  |
+| validatedFcfa | Int |  |
+| gapFcfa | Int |  |
+| status | TrafficReconciliationStatus | enum, default PENDING |
+| computedAt | DateTime | default now( |
+| decidedById | String? | nullable, FK → String |
+| decidedBy | User? | nullable, FK → User |
+| decidedAt | DateTime? | nullable |
+| note | String? | nullable, FK → String |
+| updatedAt | DateTime | auto-updated |
+| discrepancies | TrafficCashDiscrepancy[] | 1→N relation |
+
+### TrafficCashDiscrepancy
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| id | String | PK, FK → String, default cuid( |
+| number | String | unique, FK → String |
+| reconciliationId | String | FK → String |
+| reconciliation | TrafficReconciliation | FK → TrafficReconciliation |
+| collectionId | String | FK → String |
+| collection | TrafficRevenueCollection | FK → TrafficRevenueCollection |
+| registerId | String | FK → String |
+| register | TrafficCashRegister | FK → TrafficCashRegister |
+| agentId | String | FK → String |
+| agent | User | FK → User |
+| amountFcfa | Int |  |
+| reason | String? | nullable, FK → String |
+| justification | String? | nullable, FK → String |
+| attachmentDocumentId | String? | unique, nullable, FK → String |
+| attachmentDocument | Document? | nullable, FK → Document |
+| status | TrafficDiscrepancyStatus | enum, default OPEN |
+| validatedById | String? | nullable, FK → String |
+| validatedBy | User? | nullable, FK → User |
+| validatedAt | DateTime? | nullable |
+| createdAt | DateTime | default now( |
+| updatedAt | DateTime | auto-updated |
+
+Constraints/indexes: `@@index([status])`, `@@index([agentId])`
+
 
 ## Enumerations
 
@@ -2272,13 +2994,32 @@ Constraints/indexes: `@@index([controlId])`
 - **ScopeLevel**: NATIONAL, REGIONAL, DEPARTMENTAL, STATION, OWN
 - **CommuneType**: COMMUNE, SOUS_PREFECTURE, ARRONDISSEMENT
 - **LocalityType**: QUARTIER, VILLAGE, CANTON, LOCALITE
-- **StationType**: HEADQUARTERS, PROVINCIAL_DIRECTION, DEPARTMENTAL_DIRECTION, CENTRAL_STATION, STATION, POST, UNIT, BRIGADE, SPECIAL_UNIT
+- **StationType**: HEADQUARTERS, DELEGATION, PROVINCIAL_DIRECTION, DEPARTMENTAL_DIRECTION, CENTRAL_STATION, STATION, POST, UNIT, BRIGADE, SPECIAL_UNIT
 - **StationStatus**: ACTIVE, INACTIVE, UNDER_CONSTRUCTION, PLANNED
 - **DepartmentType**: COMMAND, INVESTIGATION, PATROL, TRAFFIC, FORENSICS, INTELLIGENCE, CUSTODY, LOGISTICS, ADMINISTRATION, SPECIAL
 - **RankCategory**: COMMISSIONER, OFFICER, INSPECTOR, NON_COMMISSIONED, CONSTABLE, CIVILIAN
 - **Gender**: MALE, FEMALE, OTHER, UNKNOWN
 - **DutyStatus**: ON_DUTY, OFF_DUTY, ON_LEAVE, TRAINING, SUSPENDED, RETIRED, DECEASED
+- **AdministrativeStatus**: ACTIVE, SECONDED, AT_DISPOSAL, SUSPENDED, RETIRED, CEASED, DECEASED
+- **CareerEventType**: RECRUITMENT, APPOINTMENT, PROMOTION, ADVANCEMENT, FUNCTION_CHANGE, TRANSFER, SECONDMENT, AT_DISPOSAL, REINSTATEMENT, RETIREMENT, CESSATION, SUSPENSION
+- **TransferStatus**: PROPOSED, HR_APPROVED, APPROVED, EXECUTED, REJECTED, CANCELLED
+- **TransferOrigin**: MANUAL, AUTOMATIC
+- **AttendanceStatus**: PRESENT, LATE, ABSENT, ON_LEAVE, PERMISSION, UNAVAILABLE
+- **LeaveType**: ANNUAL, EXCEPTIONAL, PERMISSION, ABSENCE_AUTHORIZATION, UNAVAILABILITY
+- **LeaveStatus**: REQUESTED, APPROVED, REJECTED, CANCELLED
+- **DisciplineStatus**: OPEN, IN_PROCEDURE, DECIDED, CLOSED
+- **DisciplineStepKind**: NOTIFICATION, HEARING, REPORT, NOTE
+- **SanctionKind**: NO_ACTION, WARNING, REPRIMAND, SUSPENSION, DISMISSAL
+- **DistinctionKind**: COMMENDATION, CITATION, MEDAL, REWARD
+- **HrDocumentKind**: ASSIGNMENT_DECISION, APPOINTMENT_ORDER, TRANSFER_DECISION, WORK_CERTIFICATE, TRAINING_DOCUMENT, ADMIN_FILE, DISCIPLINARY_DOCUMENT, SERVICE_NOTE
+- **HrDocumentSource**: GENERATED, UPLOADED
+- **PayComponentKind**: BONUS, ALLOWANCE, BENEFIT, DEDUCTION
+- **PayCalculation**: FIXED, PERCENT_OF_BASE
+- **PayApprovalStatus**: PENDING, ACTIVE, REJECTED
+- **PayRunStatus**: DRAFT, VALIDATED
+- **RotationAlertKind**: UPCOMING, DUE
 - **TrainingStatus**: PLANNED, IN_PROGRESS, COMPLETED, FAILED, CANCELLED
+- **TrainingKind**: INITIAL, CONTINUING, INTERNSHIP, SPECIALIZED
 - **MaritalStatus**: SINGLE, MARRIED, DIVORCED, WIDOWED, UNKNOWN
 - **IdentifierType**: NATIONAL_ID, PASSPORT, DRIVER_LICENSE, VOTER_CARD, RESIDENCE_PERMIT, BIRTH_CERTIFICATE, OTHER
 - **RelationshipType**: SPOUSE, PARENT, CHILD, SIBLING, RELATIVE, ASSOCIATE, EMPLOYER, EMPLOYEE, NEIGHBOUR, OTHER
@@ -2322,7 +3063,7 @@ Constraints/indexes: `@@index([controlId])`
 - **FuelType**: PETROL, DIESEL, ELECTRIC, HYBRID, OTHER
 - **MaintenanceType**: SERVICE, REPAIR, INSPECTION, TIRES, BODYWORK, OTHER
 - **MaintenanceStatus**: SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED
-- **DocumentEntity**: CASE, COMPLAINT, EVIDENCE, PERSON, ARREST, WARRANT, INCIDENT, PATROL, OPERATION, VEHICLE, OFFICER, STATEMENT, INTERVIEW, INVESTIGATION, REPORT, WANTED_PERSON, TRAFFIC_CONTROL, TRAFFIC_TICKET, TRAFFIC_DRIVER, TRAFFIC_VEHICLE, GENERAL
+- **DocumentEntity**: CASE, COMPLAINT, EVIDENCE, PERSON, ARREST, WARRANT, INCIDENT, PATROL, OPERATION, VEHICLE, OFFICER, STATEMENT, INTERVIEW, INVESTIGATION, REPORT, WANTED_PERSON, TRAFFIC_CONTROL, TRAFFIC_TICKET, TRAFFIC_DRIVER, TRAFFIC_VEHICLE, TRAFFIC_DEPOSIT, GENERAL
 - **DocumentCategory**: PHOTO, SCAN, FORM, REPORT, AUDIO, VIDEO, IDENTITY, LEGAL, OTHER
 - **Classification**: INTERNAL, CONFIDENTIAL, RESTRICTED, SECRET
 - **ReportType**: CASE, INVESTIGATION, ARREST, EVIDENCE, INCIDENT, PATROL, STATION, STATISTICAL
@@ -2345,3 +3086,9 @@ Constraints/indexes: `@@index([controlId])`
 - **TrafficPaymentMethod**: CASH, ELECTRONIC, MOBILE_MONEY, BANK_TRANSFER, OTHER
 - **TrafficPaymentStatus**: COMPLETED, VOIDED
 - **TrafficEvidenceKind**: PHOTO, VIDEO, DOCUMENT
+- **TrafficCashRegisterStatus**: OPEN, CLOSED, PENDING_DEPOSIT, DEPOSITED, VALIDATED, BLOCKED
+- **TrafficCollectionStatus**: TO_DEPOSIT, PARTIALLY_DEPOSITED, DEPOSITED, VALIDATED
+- **TrafficDepositStatus**: SUBMITTED, VERIFIED, JUSTIFICATION_REQUESTED, VALIDATED, REJECTED
+- **TrafficDepositMethod**: BANK, TREASURY, CENTRAL_CASH, MOBILE_MONEY, OTHER
+- **TrafficReconciliationStatus**: PENDING, CONFORME, GAP_TO_JUSTIFY, VALIDATED, REJECTED
+- **TrafficDiscrepancyStatus**: OPEN, JUSTIFIED, VALIDATED, REJECTED

@@ -181,6 +181,22 @@ model User {
   backups                    BackupRecord[]
   officerAssignments         OfficerAssignment[]
   trainingsRecorded          Training[]
+  careerEventsRecorded       CareerEvent[]
+  rotationExceptionsCreated  RotationException[]
+  leavesRequested            LeaveRequest[]             @relation("LeaveRequestedBy")
+  leavesDecided              LeaveRequest[]             @relation("LeaveDecidedBy")
+  disciplineOpened           DisciplinaryCase[]         @relation("DisciplineOpenedBy")
+  disciplineDecided          DisciplinaryCase[]         @relation("DisciplineDecidedBy")
+  hrDocumentsCreated         HrDocument[]
+  payElementsRequested       OfficerPayElement[]        @relation("PayElementRequestedBy")
+  payElementsValidated       OfficerPayElement[]        @relation("PayElementValidatedBy")
+  payScaleCreated            PayScaleEntry[]            @relation("PayScaleCreatedBy")
+  payScaleValidated          PayScaleEntry[]            @relation("PayScaleValidatedBy")
+  payRunsGenerated           PayRun[]                   @relation("PayRunGeneratedBy")
+  payRunsValidated           PayRun[]                   @relation("PayRunValidatedBy")
+  transfersProposed          TransferRequest[]          @relation("TransferProposedBy")
+  transfersReviewed          TransferRequest[]          @relation("TransferReviewedBy")
+  transfersValidated         TransferRequest[]          @relation("TransferValidatedBy")
   maintenanceRecorded        MaintenanceRecord[]
   fuelLogs                   FuelLog[]
   fingerprintsCaptured       FingerprintRecord[]        @relation("BiometricCapturedBy")
@@ -422,6 +438,7 @@ model Locality {
 
 enum StationType {
   HEADQUARTERS
+  DELEGATION
   PROVINCIAL_DIRECTION
   DEPARTMENTAL_DIRECTION
   CENTRAL_STATION
@@ -494,6 +511,11 @@ model Station {
   cashRegisters      TrafficCashRegister[]
   cashCollections    TrafficRevenueCollection[]
   cashDeposits       TrafficDeposit[]
+  transfersFrom      TransferRequest[]          @relation("TransferFrom")
+  transfersTo        TransferRequest[]          @relation("TransferTo")
+  attendance         AttendanceRecord[]
+  leaveRequests      LeaveRequest[]
+  hrDocuments        HrDocument[]
 
   @@index([regionId])
   @@index([adminDepartmentId])
@@ -553,6 +575,7 @@ model Rank {
   isActive    Boolean             @default(true)
   officers    Officer[]
   assignments OfficerAssignment[]
+  payScale    PayScaleEntry[]
 }
 
 enum Gender {
@@ -600,6 +623,29 @@ model Officer {
   updatedAt    DateTime    @updatedAt
   deletedAt    DateTime?
 
+  // --- HR dossier (module RH) ---
+  birthPlace           String?
+  maritalStatus        MaritalStatus?
+  photoPath            String?
+  corpsId              String?
+  corps                Corps?               @relation(fields: [corpsId], references: [id])
+  administrativeStatus AdministrativeStatus @default(ACTIVE)
+  serviceStartDate     DateTime?
+  /// Date of taking up the current post (drives the 12-month rotation, phase 5).
+  currentPostSince     DateTime?
+  careerEvents         CareerEvent[]
+  transferRequests     TransferRequest[]
+  rotationExceptions   RotationException[]
+  rotationAlerts       RotationAlert[]
+  attendance           AttendanceRecord[]
+  leaveRequests        LeaveRequest[]
+  skills               OfficerSkill[]
+  disciplinaryCases    DisciplinaryCase[]
+  distinctions         Distinction[]
+  hrDocuments          HrDocument[]
+  payElements          OfficerPayElement[]
+  payLines             PayRunLine[]
+
   commandsStation     Station?            @relation("StationCommander")
   headsDepartment     Department?         @relation("DepartmentHead")
   assignments         OfficerAssignment[]
@@ -617,6 +663,7 @@ model Officer {
   @@index([stationId])
   @@index([departmentId])
   @@index([lastName, firstName])
+  @@index([currentPostSince])
 }
 
 model OfficerAssignment {
@@ -642,6 +689,517 @@ model OfficerAssignment {
   @@index([officerId, startDate])
 }
 
+/// Corps of the Police nationale (referential, editable by HR administrators).
+model Corps {
+  id       String    @id @default(cuid())
+  code     String    @unique
+  name     String
+  isActive Boolean   @default(true)
+  officers Officer[]
+}
+
+enum AdministrativeStatus {
+  ACTIVE
+  SECONDED
+  AT_DISPOSAL
+  SUSPENDED
+  RETIRED
+  CEASED
+  DECEASED
+}
+
+enum CareerEventType {
+  RECRUITMENT
+  APPOINTMENT
+  PROMOTION
+  ADVANCEMENT
+  FUNCTION_CHANGE
+  TRANSFER
+  SECONDMENT
+  AT_DISPOSAL
+  REINSTATEMENT
+  RETIREMENT
+  CESSATION
+  SUSPENSION
+}
+
+/// Append-only career history of an officer (every change of grade, function, status or posting).
+model CareerEvent {
+  id             String                @id @default(cuid())
+  officerId      String
+  officer        Officer               @relation(fields: [officerId], references: [id])
+  type           CareerEventType
+  effectiveDate  DateTime
+  reference      String
+  reason         String?
+  fromRankId     String?
+  toRankId       String?
+  fromPositionId String?
+  toPositionId   String?
+  fromStationId  String?
+  toStationId    String?
+  fromStatus     AdministrativeStatus?
+  toStatus       AdministrativeStatus?
+  recordedById   String?
+  recordedBy     User?                 @relation(fields: [recordedById], references: [id])
+  createdAt      DateTime              @default(now())
+
+  @@index([officerId, effectiveDate])
+  @@index([type, effectiveDate])
+}
+
+enum TransferStatus {
+  PROPOSED
+  HR_APPROVED
+  APPROVED
+  EXECUTED
+  REJECTED
+  CANCELLED
+}
+
+enum TransferOrigin {
+  MANUAL
+  AUTOMATIC
+}
+
+/// Posting change (mutation) going through the validation circuit: proposal -> HR review -> validation by the
+/// competent authority -> decision -> execution on the dossier. Nothing moves an officer before APPROVED.
+model TransferRequest {
+  id               String         @id @default(cuid())
+  number           String         @unique
+  officerId        String
+  officer          Officer        @relation(fields: [officerId], references: [id])
+  fromStationId    String
+  fromStation      Station        @relation("TransferFrom", fields: [fromStationId], references: [id])
+  fromDepartmentId String?
+  toStationId      String
+  toStation        Station        @relation("TransferTo", fields: [toStationId], references: [id])
+  toDepartmentId   String?
+  toPositionId     String?
+  effectiveDate    DateTime
+  reason           String
+  origin           TransferOrigin @default(MANUAL)
+  status           TransferStatus @default(PROPOSED)
+  proposedById     String?
+  proposedBy       User?          @relation("TransferProposedBy", fields: [proposedById], references: [id])
+  reviewedById     String?
+  reviewedBy       User?          @relation("TransferReviewedBy", fields: [reviewedById], references: [id])
+  reviewedAt       DateTime?
+  reviewNote       String?
+  validatedById    String?
+  validatedBy      User?          @relation("TransferValidatedBy", fields: [validatedById], references: [id])
+  validatedAt      DateTime?
+  validationNote   String?
+  decisionNumber   String?        @unique
+  executedAt       DateTime?
+  closeReason      String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([officerId])
+  @@index([status, createdAt])
+  @@index([fromStationId])
+  @@index([toStationId])
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+  ON_LEAVE
+  PERMISSION
+  UNAVAILABLE
+}
+
+/// One row per officer and day. LEAVE-derived rows (leaveId set) are generated by an approved leave and cannot be edited by roll-call.
+model AttendanceRecord {
+  id           String           @id @default(cuid())
+  officerId    String
+  officer      Officer          @relation(fields: [officerId], references: [id])
+  stationId    String
+  station      Station          @relation(fields: [stationId], references: [id])
+  date         DateTime         @db.Date
+  status       AttendanceStatus
+  lateMinutes  Int?
+  note         String?
+  leaveId      String?
+  recordedById String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([officerId, date])
+  @@index([stationId, date])
+  @@index([date, status])
+}
+
+enum LeaveType {
+  ANNUAL
+  EXCEPTIONAL
+  PERMISSION
+  ABSENCE_AUTHORIZATION
+  UNAVAILABILITY
+}
+
+enum LeaveStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+/// Leave, permission, authorised absence or unavailability: request -> approval by a hierarchical authority -> attendance generated.
+model LeaveRequest {
+  id            String      @id @default(cuid())
+  number        String      @unique
+  officerId     String
+  officer       Officer     @relation(fields: [officerId], references: [id])
+  stationId     String
+  station       Station     @relation(fields: [stationId], references: [id])
+  type          LeaveType
+  startDate     DateTime    @db.Date
+  endDate       DateTime    @db.Date
+  days          Int
+  reason        String?
+  status        LeaveStatus @default(REQUESTED)
+  requestedById String?
+  requestedBy   User?       @relation("LeaveRequestedBy", fields: [requestedById], references: [id])
+  decidedById   String?
+  decidedBy     User?       @relation("LeaveDecidedBy", fields: [decidedById], references: [id])
+  decidedAt     DateTime?
+  decisionNote  String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([officerId, startDate])
+  @@index([status, createdAt])
+  @@index([stationId, status])
+}
+
+enum DisciplineStatus {
+  OPEN
+  IN_PROCEDURE
+  DECIDED
+  CLOSED
+}
+
+enum DisciplineStepKind {
+  NOTIFICATION
+  HEARING
+  REPORT
+  NOTE
+}
+
+enum SanctionKind {
+  NO_ACTION
+  WARNING
+  REPRIMAND
+  SUSPENSION
+  DISMISSAL
+}
+
+/// Disciplinary procedure. Strictly confidential: every read is audited and needs hr:discipline_view.
+model DisciplinaryCase {
+  id             String             @id @default(cuid())
+  number         String             @unique
+  officerId      String
+  officer        Officer            @relation(fields: [officerId], references: [id])
+  stationId      String
+  facts          String
+  factsDate      DateTime           @db.Date
+  status         DisciplineStatus   @default(OPEN)
+  openedById     String?
+  openedBy       User?              @relation("DisciplineOpenedBy", fields: [openedById], references: [id])
+  sanction       SanctionKind?
+  sanctionStart  DateTime?          @db.Date
+  sanctionEnd    DateTime?          @db.Date
+  sanctionActive Boolean            @default(false)
+  decisionNumber String?            @unique
+  decisionReason String?
+  decidedById    String?
+  decidedBy      User?              @relation("DisciplineDecidedBy", fields: [decidedById], references: [id])
+  decidedAt      DateTime?
+  closedAt       DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  steps          DisciplinaryStep[]
+
+  @@index([officerId])
+  @@index([status])
+  @@index([stationId])
+}
+
+model DisciplinaryStep {
+  id           String             @id @default(cuid())
+  caseId       String
+  case         DisciplinaryCase   @relation(fields: [caseId], references: [id])
+  kind         DisciplineStepKind
+  date         DateTime           @db.Date
+  note         String
+  recordedById String?
+  createdAt    DateTime           @default(now())
+
+  @@index([caseId, date])
+}
+
+enum DistinctionKind {
+  COMMENDATION
+  CITATION
+  MEDAL
+  REWARD
+}
+
+model Distinction {
+  id           String          @id @default(cuid())
+  officerId    String
+  officer      Officer         @relation(fields: [officerId], references: [id])
+  kind         DistinctionKind
+  title        String
+  reason       String?
+  reference    String?
+  awardedAt    DateTime        @db.Date
+  recordedById String?
+  createdAt    DateTime        @default(now())
+
+  @@index([officerId, awardedAt])
+}
+
+enum HrDocumentKind {
+  ASSIGNMENT_DECISION
+  APPOINTMENT_ORDER
+  TRANSFER_DECISION
+  WORK_CERTIFICATE
+  TRAINING_DOCUMENT
+  ADMIN_FILE
+  DISCIPLINARY_DOCUMENT
+  SERVICE_NOTE
+}
+
+enum HrDocumentSource {
+  GENERATED
+  UPLOADED
+}
+
+/// Central HR document space. GENERATED documents keep a frozen content snapshot (rendered to PDF or Word on demand);
+/// UPLOADED ones keep the stored file. CONFIDENTIAL documents need hr:discipline_view.
+model HrDocument {
+  id           String           @id @default(cuid())
+  number       String           @unique
+  kind         HrDocumentKind
+  title        String
+  source       HrDocumentSource
+  confidential Boolean          @default(false)
+  officerId    String?
+  officer      Officer?         @relation(fields: [officerId], references: [id])
+  stationId    String?
+  station      Station?         @relation(fields: [stationId], references: [id])
+  relatedType  String?
+  relatedId    String?
+  snapshot     Json?
+  storagePath  String?
+  fileName     String?
+  mimeType     String?
+  sizeBytes    Int?
+  sha256       String?
+  createdById  String?
+  createdBy    User?            @relation(fields: [createdById], references: [id])
+  createdAt    DateTime         @default(now())
+
+  @@index([officerId, createdAt])
+  @@index([kind, createdAt])
+  @@index([stationId])
+}
+
+enum PayComponentKind {
+  BONUS
+  ALLOWANCE
+  BENEFIT
+  DEDUCTION
+}
+
+enum PayCalculation {
+  FIXED
+  PERCENT_OF_BASE
+}
+
+enum PayApprovalStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
+enum PayRunStatus {
+  DRAFT
+  VALIDATED
+}
+
+/// Referential of pay elements other than the base salary: bonuses (primes), allowances (indemnités), benefits in kind
+/// (avantages) and deductions (retenues). FIXED = FCFA per month; PERCENT_OF_BASE = whole percent of the base salary.
+model PayComponent {
+  id           String              @id @default(cuid())
+  code         String              @unique
+  name         String
+  kind         PayComponentKind
+  calculation  PayCalculation      @default(FIXED)
+  defaultValue Int                 @default(0)
+  description  String?
+  isActive     Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  elements     OfficerPayElement[]
+}
+
+/// Base monthly salary (FCFA) of a rank from a date. Changes are requested then validated by someone else; history is kept.
+model PayScaleEntry {
+  id            String            @id @default(cuid())
+  rankId        String
+  rank          Rank              @relation(fields: [rankId], references: [id])
+  amount        Int
+  effectiveFrom DateTime          @db.Date
+  status        PayApprovalStatus @default(PENDING)
+  createdById   String?
+  createdBy     User?             @relation("PayScaleCreatedBy", fields: [createdById], references: [id])
+  validatedById String?
+  validatedBy   User?             @relation("PayScaleValidatedBy", fields: [validatedById], references: [id])
+  validatedAt   DateTime?
+  note          String?
+  createdAt     DateTime          @default(now())
+
+  @@unique([rankId, effectiveFrom])
+  @@index([rankId, status, effectiveFrom])
+}
+
+/// A pay element granted to an officer for a period. Becomes effective only after validation by a person other than the requester.
+model OfficerPayElement {
+  id            String            @id @default(cuid())
+  officerId     String
+  officer       Officer           @relation(fields: [officerId], references: [id])
+  componentId   String
+  component     PayComponent      @relation(fields: [componentId], references: [id])
+  value         Int?
+  startDate     DateTime          @db.Date
+  endDate       DateTime?         @db.Date
+  status        PayApprovalStatus @default(PENDING)
+  reason        String
+  decisionRef   String?
+  requestedById String?
+  requestedBy   User?             @relation("PayElementRequestedBy", fields: [requestedById], references: [id])
+  validatedById String?
+  validatedBy   User?             @relation("PayElementValidatedBy", fields: [validatedById], references: [id])
+  validatedAt   DateTime?
+  note          String?
+  endReason     String?
+  createdAt     DateTime          @default(now())
+
+  @@index([officerId, status])
+  @@index([status, createdAt])
+}
+
+/// Monthly pay statement (état récapitulatif) of the whole force. Frozen once validated; it is a statement for the
+/// financial services, the system never moves money.
+model PayRun {
+  id               String       @id @default(cuid())
+  period           String       @unique
+  status           PayRunStatus @default(DRAFT)
+  generatedById    String?
+  generatedBy      User?        @relation("PayRunGeneratedBy", fields: [generatedById], references: [id])
+  validatedById    String?
+  validatedBy      User?        @relation("PayRunValidatedBy", fields: [validatedById], references: [id])
+  validatedAt      DateTime?
+  exportedAt       DateTime?
+  exportCount      Int          @default(0)
+  officers         Int          @default(0)
+  suspendedCount   Int          @default(0)
+  excludedNoScale  Int          @default(0)
+  excludedStatus   Int          @default(0)
+  totalBase        BigInt       @default(0)
+  totalGross       BigInt       @default(0)
+  totalDeductions  BigInt       @default(0)
+  totalNet         BigInt       @default(0)
+  suspendedPercent Int          @default(100)
+  createdAt        DateTime     @default(now())
+  lines            PayRunLine[]
+}
+
+model PayRunLine {
+  id         String               @id @default(cuid())
+  runId      String
+  run        PayRun               @relation(fields: [runId], references: [id], onDelete: Cascade)
+  officerId  String
+  officer    Officer              @relation(fields: [officerId], references: [id])
+  rankId     String
+  stationId  String
+  regionId   String
+  status     AdministrativeStatus
+  base       Int
+  gross      Int
+  deductions Int
+  net        Int
+  detail     Json
+
+  @@unique([runId, officerId])
+  @@index([officerId])
+  @@index([runId, rankId])
+  @@index([runId, regionId])
+}
+
+/// Competence referential and the competences held by officers (granted by evaluated trainings).
+model Skill {
+  id       String         @id @default(cuid())
+  code     String         @unique
+  name     String
+  isActive Boolean        @default(true)
+  holders  OfficerSkill[]
+}
+
+model OfficerSkill {
+  id         String    @id @default(cuid())
+  officerId  String
+  officer    Officer   @relation(fields: [officerId], references: [id])
+  skillId    String
+  skill      Skill     @relation(fields: [skillId], references: [id])
+  level      Int
+  acquiredAt DateTime
+  expiresAt  DateTime?
+  trainingId String?
+  training   Training? @relation(fields: [trainingId], references: [id])
+
+  @@unique([officerId, skillId])
+}
+
+/// Administrative exception: the officer is skipped by the automatic rotation while it is active.
+model RotationException {
+  id          String    @id @default(cuid())
+  officerId   String
+  officer     Officer   @relation(fields: [officerId], references: [id])
+  reason      String
+  startsAt    DateTime
+  endsAt      DateTime?
+  createdById String?
+  createdBy   User?     @relation(fields: [createdById], references: [id])
+  endedAt     DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([officerId])
+}
+
+enum RotationAlertKind {
+  UPCOMING
+  DUE
+}
+
+/// Idempotence ledger of the automatic rotation: one UPCOMING and one DUE alert per officer and post tenure.
+model RotationAlert {
+  id         String            @id @default(cuid())
+  officerId  String
+  officer    Officer           @relation(fields: [officerId], references: [id])
+  kind       RotationAlertKind
+  postSince  DateTime
+  transferId String?
+  createdAt  DateTime          @default(now())
+
+  @@unique([officerId, postSince, kind])
+  @@index([kind, createdAt])
+}
+
 /// Fonction (post/duty title) referential, e.g. Commissaire, Chef de service, Officier de police judiciaire.
 model Position {
   id          String              @id @default(cuid())
@@ -661,25 +1219,38 @@ enum TrainingStatus {
   CANCELLED
 }
 
+enum TrainingKind {
+  INITIAL
+  CONTINUING
+  INTERNSHIP
+  SPECIALIZED
+}
+
 /// Training / certification record of an officer.
 model Training {
-  id            String         @id @default(cuid())
-  officerId     String
-  officer       Officer        @relation(fields: [officerId], references: [id])
-  title         String
-  provider      String?
-  category      String?
-  startDate     DateTime
-  endDate       DateTime?
-  status        TrainingStatus @default(PLANNED)
-  result        String?
-  certificateNo String?
-  expiresAt     DateTime?
-  notes         String?
-  recordedById  String?
-  recordedBy    User?          @relation(fields: [recordedById], references: [id])
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                  String         @id @default(cuid())
+  officerId           String
+  officer             Officer        @relation(fields: [officerId], references: [id])
+  title               String
+  provider            String?
+  category            String?
+  startDate           DateTime
+  endDate             DateTime?
+  status              TrainingStatus @default(PLANNED)
+  result              String?
+  certificateNo       String?
+  expiresAt           DateTime?
+  notes               String?
+  recordedById        String?
+  recordedBy          User?          @relation(fields: [recordedById], references: [id])
+  kind                TrainingKind   @default(CONTINUING)
+  score               Float?
+  passed              Boolean?
+  evaluatedAt         DateTime?
+  certificateIssuedAt DateTime?
+  skillsGranted       OfficerSkill[]
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
   @@index([officerId, startDate])
   @@index([status])

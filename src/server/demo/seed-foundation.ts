@@ -5,8 +5,7 @@
 import { prisma } from "@/server/db";
 import { env } from "@/server/env";
 import { hashPassword } from "@/server/auth/password";
-import { PERMISSION_CATALOG } from "@/server/rbac/permissions";
-import { CASH_DEFAULT_GRANTS, SYSTEM_ROLES, TRAFFIC_DEFAULT_GRANTS } from "@/server/rbac/roles";
+import { syncPermissionCatalog, syncSystemRoles } from "@/server/rbac/sync";
 import { DEMO_ACCOUNTS } from "@/server/demo/accounts";
 import { seedTerritory } from "@/server/demo/seed-territory";
 import { seedOperations } from "@/server/demo/seed-operations";
@@ -16,66 +15,6 @@ import { seedWanted } from "@/server/demo/seed-wanted";
 import { syncTrafficCatalog } from "@/server/traffic/catalog";
 import { seedTraffic } from "@/server/demo/seed-traffic";
 import { seedCash } from "@/server/demo/seed-cash";
-
-export async function syncPermissionCatalog() {
-  for (const [code, description] of PERMISSION_CATALOG) {
-    const [module, action] = code.split(":");
-    await prisma.permission.upsert({ where: { code }, update: { module, action, description }, create: { code, module, action, description } });
-  }
-  return PERMISSION_CATALOG.length;
-}
-
-/** Creates missing system roles and (re)applies their default permission sets. Custom roles are untouched. */
-export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {}) {
-  const perms = await prisma.permission.findMany({ select: { id: true, code: true } });
-  const byCode = new Map(perms.map((p) => [p.code, p.id]));
-  for (const def of SYSTEM_ROLES) {
-    const role = await prisma.role.upsert({
-      where: { code: def.code },
-      update: { name: def.name, description: def.description, isSystem: true, requiresMfa: def.requiresMfa, scopeLevel: def.scopeLevel },
-      create: { code: def.code, name: def.name, description: def.description, scopeLevel: def.scopeLevel, requiresMfa: def.requiresMfa, isSystem: true },
-    });
-    const existing = await prisma.rolePermission.count({ where: { roleId: role.id } });
-    if (existing === 0 || opts.resetPermissions) {
-      await prisma.rolePermission.deleteMany({ where: { roleId: role.id } });
-      await prisma.rolePermission.createMany({ data: def.permissions.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
-    }
-  }
-  await grantTrafficDefaultsOnce(byCode);
-  await grantCashDefaultsOnce(byCode);
-  return SYSTEM_ROLES.length;
-}
-
-/**
- * Databases seeded before the traffic module already have their system roles populated, and
- * `syncSystemRoles` never touches an existing permission set. Grant the traffic defaults ONCE
- * (marked in SystemSetting) so later manual changes by an administrator are respected.
- */
-async function grantTrafficDefaultsOnce(byCode: Map<string, string>) {
-  const KEY = "rbac.traffic_defaults_applied";
-  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
-  const roles = await prisma.role.findMany({ where: { isSystem: true }, select: { id: true, code: true } });
-  for (const role of roles) {
-    const grants = TRAFFIC_DEFAULT_GRANTS[role.code] ?? [];
-    if (!grants.length) continue;
-    await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
-  }
-  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions par défaut du module circulation ont été accordées aux rôles système." } });
-}
-
-/** Same one-time additive grant for the revenue module (`cash:*`), plus `audit:view` where the revenue audit trail is required. */
-async function grantCashDefaultsOnce(byCode: Map<string, string>) {
-  const KEY = "rbac.cash_defaults_applied";
-  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
-  const roles = await prisma.role.findMany({ where: { isSystem: true }, select: { id: true, code: true } });
-  for (const role of roles) {
-    const grants = [...(CASH_DEFAULT_GRANTS[role.code] ?? [])];
-    if (role.code === "TRAFFIC_SUPERVISOR" || role.code === "TRAFFIC_PAYMENT_MANAGER") grants.push("audit:view");
-    if (!grants.length) continue;
-    await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
-  }
-  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions par défaut du module recettes et versements ont été accordées aux rôles système." } });
-}
 
 export async function seedOrganization() {
   return prisma.organization.upsert({ where: { code: "NPS" }, update: {}, create: { code: "NPS", name: "Police Nationale du Tchad", shortName: "PNT", description: "Organisation nationale (démonstration SIGPN-T)." } });
@@ -112,6 +51,14 @@ export async function seedDemoAccounts() {
   return created;
 }
 
+/** HR defaults for officers created by the seeds (idempotent, only fills what is empty): corps by rank category, service start, post tenure start, recruitment event. */
+export async function backfillHrDefaults() {
+  await prisma.$executeRawUnsafe(`UPDATE "Officer" o SET "corpsId" = CASE r."category" WHEN 'COMMISSIONER' THEN 'corps_commissaires' WHEN 'OFFICER' THEN 'corps_officiers' WHEN 'INSPECTOR' THEN 'corps_inspecteurs' WHEN 'NON_COMMISSIONED' THEN 'corps_grades' WHEN 'CONSTABLE' THEN 'corps_agents' ELSE 'corps_civils' END FROM "Rank" r WHERE r."id" = o."rankId" AND o."corpsId" IS NULL AND EXISTS (SELECT 1 FROM "Corps" WHERE "id" = 'corps_agents')`);
+  await prisma.$executeRawUnsafe(`UPDATE "Officer" SET "serviceStartDate" = "hiredAt" WHERE "serviceStartDate" IS NULL AND "hiredAt" IS NOT NULL`);
+  await prisma.$executeRawUnsafe(`UPDATE "Officer" o SET "currentPostSince" = COALESCE((SELECT max(a."startDate") FROM "OfficerAssignment" a WHERE a."officerId" = o."id" AND a."endDate" IS NULL), o."hiredAt") WHERE o."currentPostSince" IS NULL`);
+  await prisma.$executeRawUnsafe(`INSERT INTO "CareerEvent" ("id", "officerId", "type", "effectiveDate", "reference", "reason", "toRankId", "toStationId", "toStatus") SELECT 'ce_' || md5(o."id" || 'recruitment'), o."id", 'RECRUITMENT', o."hiredAt", 'HISTORIQUE', 'Imported from the hiring date on record', o."rankId", o."stationId", 'ACTIVE' FROM "Officer" o WHERE o."hiredAt" IS NOT NULL AND NOT EXISTS (SELECT 1 FROM "CareerEvent" e WHERE e."officerId" = o."id" AND e."type" = 'RECRUITMENT')`);
+}
+
 export async function seedFoundation() {
   const permissions = await syncPermissionCatalog();
   const roles = await syncSystemRoles();
@@ -125,6 +72,7 @@ export async function seedFoundation() {
   const wanted = await seedWanted();
   const traffic = await seedTraffic();
   const cash = await seedCash();
+  await backfillHrDefaults();
   await prisma.auditLog.create({ data: { actorLabel: "system", action: "SEED_FOUNDATION", module: "system", summary: `Seed: ${permissions} permissions, ${roles} roles, ${territory.provinces} provinces, ${territory.stations} demo structures, ${territory.officers} new demo officers, ${users} new demo users, ${ops.persons} persons, ${ops.complaints} complaints, ${ops.cases} cases, ${field.zones} zones, ${field.vehicles} vehicles, ${field.patrols} patrols, ${field.incidents} incidents, ${biometric.fingerprintEnrolled} fingerprints, ${biometric.faceEnrolled} face templates, ${biometric.searches} biometric searches, ${biometric.plates} plate detections, ${wanted.created} wanted notices, ${wanted.warrants} warrants, ${trafficCatalog.violations} traffic offences imported, ${traffic.controls} traffic controls (${traffic.tickets} PV, ${traffic.fines} fines, ${traffic.payments} payments)` } });
   return { permissions, roles, users, territory, ops, field, biometric, wanted, trafficCatalog, traffic, cash };
 }

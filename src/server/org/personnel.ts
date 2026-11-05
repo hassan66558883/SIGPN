@@ -69,6 +69,7 @@ export async function setOfficerPosition(actor: Actor, officerId: string, positi
 
 export const trainingSchema = z.object({
   officerId: z.string().min(1),
+  kind: z.enum(["INITIAL", "CONTINUING", "INTERNSHIP", "SPECIALIZED"]).default("CONTINUING"),
   title: z.string().trim().min(2).max(200),
   provider: optionalText(120),
   category: optionalText(60),
@@ -95,7 +96,7 @@ export async function createTraining(actor: Actor, input: TrainingInput, ctx: Re
   const o = await getOfficer(actor, input.officerId);
   if (input.endDate && input.endDate < input.startDate) throw new BusinessError("End date cannot precede the start date.");
   const t = await prisma.training.create({
-    data: { officerId: o.id, title: input.title, provider: nul(input.provider), category: nul(input.category), startDate: input.startDate, endDate: input.endDate, status: input.status as TrainingStatus, result: nul(input.result), certificateNo: nul(input.certificateNo), expiresAt: input.expiresAt, notes: nul(input.notes), recordedById: actor.id },
+    data: { officerId: o.id, kind: input.kind, title: input.title, provider: nul(input.provider), category: nul(input.category), startDate: input.startDate, endDate: input.endDate, status: input.status as TrainingStatus, result: nul(input.result), certificateNo: nul(input.certificateNo), expiresAt: input.expiresAt, notes: nul(input.notes), recordedById: actor.id },
   });
   await logAudit({ actor, action: "TRAINING_RECORDED", module: "officers", entityType: "Training", entityId: t.id, entityLabel: `${o.badgeNumber} · ${t.title}`, summary: `Training "${t.title}" (${t.status}) recorded for ${o.badgeNumber}`, after: t, context: ctx });
   return t;

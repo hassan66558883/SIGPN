@@ -83,6 +83,11 @@ const INVESTIGATIVE_WRITE: Permission[] = [
 ];
 
 const COMMAND: Permission[] = [
+  "hr:view",
+  "hr:transfer_propose",
+  "hr:attendance_record",
+  "hr:leave_request",
+  "hr:leave_approve",
   "complaints:review",
   "complaints:assign",
   "complaints:convert",
@@ -116,6 +121,12 @@ const COMMAND: Permission[] = [
   "users:manage_sessions",
 ];
 
+/** Human resources: HR service (dossiers) and HR director (dossiers + career decisions). */
+const HR_SERVICE: Permission[] = ["dashboard:view", "org:view", "officers:view", "officers:manage", "hr:view", "hr:manage", "hr:transfer_propose", "hr:transfer_review", "hr:attendance_record", "hr:leave_request", "hr:training_manage", "hr:document_issue", "statistics:view", "documents:view", "apikeys:manage_own"];
+const HR_DIRECTION: Permission[] = [...HR_SERVICE, "hr:leave_approve", "hr:discipline_view", "hr:discipline_manage", "hr:career", "reports:view", "reports:generate", "audit:view"];
+
+const PAYROLL_BASE: Permission[] = ["dashboard:view", "org:view", "officers:view", "hr:view", "hr:pay_view", "apikeys:manage_own"];
+
 export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
   {
     code: "SUPER_ADMIN",
@@ -123,7 +134,8 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     description: "Full access to every module, including security and system administration.",
     scopeLevel: "NATIONAL",
     requiresMfa: true,
-    permissions: PERMISSIONS,
+    // Separation of duties: the system administrator does not see or change pay data; dedicated payroll roles exist.
+    permissions: PERMISSIONS.filter((p) => !p.startsWith("hr:pay_")),
   },
   {
     code: "NATIONAL_COMMANDER",
@@ -131,7 +143,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     description: "National oversight: reads everything, approves warrants, wanted notices, operations and reports.",
     scopeLevel: "NATIONAL",
     requiresMfa: true,
-    permissions: [...READ_ALL, ...COMMAND, "cases:archive", "audit:view", ...TRAFFIC_SUPERVISION],
+    permissions: [...READ_ALL, ...COMMAND, "hr:transfer_validate", "hr:discipline_view", "hr:discipline_manage", "hr:discipline_decide", "cases:archive", "audit:view", ...TRAFFIC_SUPERVISION],
   },
   {
     code: "REGIONAL_COMMANDER",
@@ -139,7 +151,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     description: "Commands all stations of a region.",
     scopeLevel: "REGIONAL",
     requiresMfa: true,
-    permissions: [...READ_ALL, ...INVESTIGATIVE_WRITE, ...COMMAND, "cases:archive", "warrants:execute", "org:manage", ...TRAFFIC_SUPERVISION, ...TRAFFIC_FIELD],
+    permissions: [...READ_ALL, ...INVESTIGATIVE_WRITE, ...COMMAND, "hr:transfer_validate", "hr:discipline_view", "hr:discipline_manage", "hr:discipline_decide", "cases:archive", "warrants:execute", "org:manage", ...TRAFFIC_SUPERVISION, ...TRAFFIC_FIELD],
   },
   {
     code: "DEPARTMENTAL_COMMANDER",
@@ -147,7 +159,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     description: "Commands the police structures of one administrative department.",
     scopeLevel: "DEPARTMENTAL",
     requiresMfa: true,
-    permissions: [...READ_ALL, ...INVESTIGATIVE_WRITE, ...COMMAND, "warrants:execute", "vehicles:manage", "maintenance:manage", "evidence:manage_locations", ...TRAFFIC_SUPERVISION, ...TRAFFIC_FIELD],
+    permissions: [...READ_ALL, ...INVESTIGATIVE_WRITE, ...COMMAND, "hr:transfer_validate", "warrants:execute", "vehicles:manage", "maintenance:manage", "evidence:manage_locations", ...TRAFFIC_SUPERVISION, ...TRAFFIC_FIELD],
   },
   {
     code: "STATION_COMMANDER",
@@ -251,7 +263,39 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     description: "National administration of the police information system: users, organization and every traffic function, without system security or backup settings.",
     scopeLevel: "NATIONAL",
     requiresMfa: true,
-    permissions: [...READ_ALL, ...COMMAND, "cases:archive", "audit:view", "org:manage", ...TRAFFIC_ALL, ...CASH_READ],
+    permissions: [...READ_ALL, ...COMMAND, "cases:archive", "audit:view", "org:manage", "hr:auto_assign_config", ...TRAFFIC_ALL, ...CASH_READ],
+  },
+  {
+    code: "HR_DIRECTOR",
+    name: "HR Director",
+    description: "Direction des ressources humaines: HR dossiers and career decisions (promotion, appointment, status, retirement) for the whole police.",
+    scopeLevel: "NATIONAL",
+    requiresMfa: true,
+    permissions: HR_DIRECTION,
+  },
+  {
+    code: "HR_PAYROLL",
+    name: "Payroll Officer",
+    description: "Pay and benefits: requests pay scale changes and pay elements and generates the monthly statements. Cannot validate or export (separation of duties).",
+    scopeLevel: "NATIONAL",
+    requiresMfa: true,
+    permissions: [...PAYROLL_BASE, "hr:pay_manage"],
+  },
+  {
+    code: "HR_PAYROLL_CONTROL",
+    name: "Payroll Controller",
+    description: "Pay control: validates pay scale changes, pay elements and monthly statements, and exports them to the financial services. Cannot create the data it validates.",
+    scopeLevel: "NATIONAL",
+    requiresMfa: true,
+    permissions: [...PAYROLL_BASE, "hr:pay_validate", "hr:pay_export"],
+  },
+  {
+    code: "HR_OFFICER",
+    name: "HR Service Officer",
+    description: "Human resources service: maintains HR dossiers; cannot record career decisions.",
+    scopeLevel: "NATIONAL",
+    requiresMfa: true,
+    permissions: HR_SERVICE,
   },
   {
     code: "OFFICER",
@@ -316,5 +360,8 @@ export const TRAFFIC_DEFAULT_GRANTS: Record<string, readonly Permission[]> = Obj
 
 /** `cash:*` permissions granted by default to each system role (applied once to already-seeded databases). */
 export const CASH_DEFAULT_GRANTS: Record<string, readonly Permission[]> = Object.fromEntries(SYSTEM_ROLES.map((r) => [r.code, r.permissions.filter((p) => p.startsWith("cash:"))]));
+
+/** `hr:*` permissions granted by default to each system role (applied once to already-seeded databases). */
+export const HR_DEFAULT_GRANTS: Record<string, readonly Permission[]> = Object.fromEntries(SYSTEM_ROLES.map((r) => [r.code, r.permissions.filter((p) => p.startsWith("hr:"))]));
 
 export const ROLE_CODES = SYSTEM_ROLES.map((r) => r.code);

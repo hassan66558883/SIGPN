@@ -2,6 +2,57 @@
 
 All notable changes to SIGPN-T (Système Intégré de Gestion Numérique de la Police Nationale du Tchad, formerly TPMS). Dates are ISO (UTC+1, N'Djamena).
 
+## [Unreleased] — 2026-11-05 — « RH, phase 3 : dossier individuel et carrière »
+
+### Added
+- HR dossier (birth place, marital status, corps, administrative status, service dates), append-only career history, `hr:*` permissions, roles `HR_DIRECTOR` / `HR_OFFICER`, HR menu and pages (FR/AR), REST API `/api/v1/hr/*`, station type `DELEGATION` (see `docs/RESSOURCES_HUMAINES.md`).
+- Migration `20261105170000_hr_dossier_career` (additive; backfills corps and recruitment events).
+
+## [0.7.0] — 2026-11-06 — « Module Ressources humaines »
+
+Release of the HR module (phases 3 to 10 and section 8 below). Production start-up now synchronises permissions, system roles and the 23 official provinces at every boot and can create the first administrator once from `BOOTSTRAP_ADMIN_*`; the HR scheduler and bootstrap variables are in `deploy/docker-compose.yml`. Guides: `docs/RH_GUIDE_EXPLOITATION.md`, `docs/RH_RAPPORT_FINAL.md`.
+
+## [Unreleased] — 2026-11-06 — « RH, section 8 : solde et avantages »
+
+### Added
+- Pay scale, pay-element referential (bonuses, allowances, benefits in kind, deductions), elements granted to officers, monthly pay statements (draft regenerable, validated frozen), CSV export for the financial services, officer self-service; permissions `hr:pay_*` held only by the dedicated roles `HR_PAYROLL` and `HR_PAYROLL_CONTROL` (not by the system administrator); separation of duties on every validation; migration `20261106100000_hr_pay`. See `docs/RESSOURCES_HUMAINES.md`.
+
+## [Unreleased] — 2026-11-05 — « RH, phase 9 : charge et sécurisation »
+
+### Added
+- HR integrity checks (`npm run hr:check`, `GET /api/v1/hr/integrity`), CSV import of dossiers (`npm run hr:import`, dry run by default), load-test tools (`scripts/hr-loadgen.ts`, `scripts/hr-bench.ts`), route security tests.
+
+### Fixed
+- Automatic assignment stopped after the first 500 officers (keyset paging now); new dossiers get HR defaults (post tenure, corps, recruitment event); open transfers are cancelled when an officer leaves the service; demo officers are never hired before 20.
+
+## [Unreleased] — 2026-11-05 — « RH, phase 8 : tableaux de bord et statistiques »
+
+### Added
+- HR dashboard (workforce by rank / délégation / structure / sex, tenure at post, transfers, promotions, retirement forecast, promotions pending, training, absences) with period, délégation, structure and rank filters, drill-down to dossiers, CSV export; `GET /api/v1/hr/stats*`; configurable retirement age and promotion seniority. See `docs/RESSOURCES_HUMAINES.md`.
+
+## [Unreleased] — 2026-11-05 — « RH, phase 7 : discipline, documents et photo »
+
+### Added
+- Confidential disciplinary procedure (audited reads, rights of the defence, four-eyes, suspension with automatic reinstatement, dismissal), distinctions, central HR document space with frozen content rendered to PDF and Word (`docx` dependency), content-verified uploads, identity photo; permissions `hr:discipline_*`, `hr:document_issue`; migration `20261105210000_hr_discipline_documents`. See `docs/RESSOURCES_HUMAINES.md`.
+
+## [Unreleased] — 2026-11-05 — « RH, phase 6 : présences, congés et formations »
+
+### Added
+- Daily roll-call and presence statistics; leave, permission, absence and unavailability requests with approval, balance and attendance generation; training kinds, final evaluation, competences and certificate PDF; permissions `hr:attendance_record`, `hr:leave_request`, `hr:leave_approve`, `hr:training_manage`; migration `20261105200000_hr_attendance_training`. See `docs/RESSOURCES_HUMAINES.md`.
+
+## [Unreleased] — 2026-11-05 — « RH, phase 5 : affectation automatique après une durée au poste »
+
+### Added
+- AFFECTATION_AUTOMATIQUE (off by default) with configurable duration, categories, excluded functions, rules, validation authorities, administrative exceptions and pilot structures; idempotent engine, internal scheduler (`src/instrumentation.ts`) and `npm run hr:rotation`; permission `hr:auto_assign_config`; migration `20261105190000_hr_rotation`. See `docs/RESSOURCES_HUMAINES.md`.
+
+## [Unreleased] — 2026-11-05 — « RH, phase 4 : mutations et circuit de validation »
+
+### Added
+- Transfer requests with the circuit proposal → HR examination → validation by the competent authority → decision (PDF) → execution; permissions `hr:transfer_*`; migration `20261105180000_hr_transfers` (one open transfer per officer, decision required, no deletion). See `docs/RESSOURCES_HUMAINES.md`.
+
+### Changed
+- `assignOfficer` no longer changes the station of an officer directly: a change of structure requires a validated transfer.
+
 ## [0.6.0] — 2026-09-27 — « Gestion des recettes et versements »
 
 ### Added

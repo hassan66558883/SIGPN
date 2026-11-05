@@ -88,6 +88,23 @@ export const NAVIGATION: NavSection[] = [
     ],
   },
   {
+    titleKey: "hr.section",
+    items: [
+      { href: "/hr", labelKey: "nav.hr.overview", permission: "hr:view", icon: "◆" },
+      { href: "/hr/dossiers", labelKey: "nav.hr.dossiers", permission: "hr:view", icon: "▤" },
+      { href: "/hr/transfers", labelKey: "nav.hr.transfers", permission: "hr:view", icon: "⇄" },
+      { href: "/hr/rotation", labelKey: "nav.hr.rotation", permission: "hr:view", icon: "↻" },
+      { href: "/hr/attendance", labelKey: "nav.hr.attendance", permission: "hr:view", icon: "✓" },
+      { href: "/hr/leaves", labelKey: "nav.hr.leaves", permission: "hr:view", icon: "☀" },
+      { href: "/hr/training", labelKey: "nav.hr.training", permission: "hr:view", icon: "✎" },
+      { href: "/hr/documents", labelKey: "nav.hr.documents", permission: "hr:view", icon: "▭" },
+      { href: "/hr/discipline", labelKey: "nav.hr.discipline", permission: "hr:discipline_view", icon: "⚖" },
+      { href: "/hr/leaves/mine", labelKey: "nav.hr.myLeaves", permission: "dashboard:view", icon: "☺" },
+      { href: "/hr/pay", labelKey: "nav.hr.pay", permission: "hr:pay_view", icon: "₣" },
+      { href: "/hr/pay/mine", labelKey: "nav.hr.myPay", permission: "dashboard:view", icon: "◔" },
+    ],
+  },
+  {
     titleKey: "nav.section.administration",
     items: [
       { href: "/admin/organization", labelKey: "nav.organization", permission: "org:view", icon: "⌂" },

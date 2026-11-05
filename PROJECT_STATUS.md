@@ -1,6 +1,10 @@
 # PROJECT STATUS — SIGPN-T — Système Intégré de Gestion Numérique de la Police Nationale du Tchad (formerly TPMS)
 
-_Last updated: 2026-09-26 (SIGPN-T rename + traffic offences and fines module; incidents/patrols, biometric/forensic identification, evidence & custody, wanted persons and the Arabic language switch were delivered between 2026-09-12 and 2026-09-25 — see CHANGELOG and git history)_
+_Last updated: 2026-11-06 (HR module; earlier: SIGPN-T rename + traffic offences and fines module; incidents/patrols, biometric/forensic identification, evidence & custody, wanted persons and the Arabic language switch were delivered between 2026-09-12 and 2026-09-25 — see CHANGELOG and git history)_
+
+### Latest delivery — Module Ressources humaines (2026-11-05 / 06, branche `feature/rh-police`)
+
+Delivered and tested on the existing application: HR dossiers and career history, transfers with a validation circuit, automatic assignment after a duration at post (off by default), attendance and leave, training and competences, confidential discipline, HR document space (PDF and Word), dashboards and statistics, payroll and benefits (scale, elements, monthly statements, export), production bootstrap, import tool, integrity checks, load test at 14,118 officers. Regression: **117 unit / 144 integration / 16 security** tests green; 22 integrity checks clean. Guides: `docs/RH_GUIDE_EXPLOITATION.md`, `docs/RH_RAPPORT_FINAL.md` (traceability to the specification, limits, decisions left to the Direction), `docs/RESSOURCES_HUMAINES.md` (business rules). The branch is not merged; the repository has no remote.
 
 ### Latest delivery — Gestion des infractions routières et des amendes (2026-09-26)
 

@@ -3,7 +3,7 @@
 import { ActionForm, SubmitButton } from "@/components/forms";
 import { Field, Select } from "@/components/ui";
 import { useLocale, useT } from "@/components/i18n-provider";
-import { TRAINING_STATUS, optionsOf } from "@/lib/labels";
+import { TRAINING_KIND, TRAINING_STATUS, optionsOf } from "@/lib/labels";
 import { createPositionAction, createTrainingAction, setOfficerPositionAction, updatePositionAction, updateTrainingStatusAction } from "@/server/org/actions";
 
 type Opt = { id: string; label: string };
@@ -69,6 +69,9 @@ export function TrainingForm({ officerId }: { officerId: string }) {
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label={t("training.name")} htmlFor="tr-title" required error={s.fieldErrors?.title} className="sm:col-span-2">
               <input id="tr-title" name="title" className="input" required minLength={2} maxLength={200} />
+            </Field>
+            <Field label={t("hr.tr.kind")} htmlFor="tr-kind">
+              <Select id="tr-kind" name="kind" defaultValue="CONTINUING" options={optionsOf(TRAINING_KIND, locale)} />
             </Field>
             <Field label={t("training.provider")} htmlFor="tr-prov">
               <input id="tr-prov" name="provider" className="input" maxLength={120} />

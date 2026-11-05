@@ -6,6 +6,8 @@ import { BusinessError, NotFoundError } from "@/server/errors";
 import { canManageRegion, inScope, stationDescendantIds, type Actor } from "@/server/auth/dal";
 import type { RequestContext } from "@/server/request-context";
 import { notify } from "@/server/notifications";
+import { cancelOpenTransfers } from "@/server/hr/transfer-cleanup";
+import { defaultCorpsId } from "@/server/hr/corps";
 import { CHILD_STATION_TYPES, type AdminDepartmentInput, type AssignmentInput, type CommuneInput, type DepartmentInput, type LocalityInput, type OfficerInput, type OrganizationInput, type RankInput, type RegionInput, type StationInput } from "@/server/org/schemas";
 
 const nul = (v: string | undefined | null) => (v ? v : null);
@@ -380,12 +382,17 @@ export async function createOfficer(actor: Actor, input: OfficerInput, ctx: Requ
         stationId: station.id,
         departmentId,
         hiredAt: input.hiredAt,
+        // HR dossier defaults: the post tenure starts with the initial posting, the corps follows the rank category
+        serviceStartDate: input.hiredAt,
+        currentPostSince: input.hiredAt ?? new Date(),
+        corpsId: await defaultCorpsId(input.rankId, tx),
         specialties: nul(input.specialties),
         notes: nul(input.notes),
       },
       select: officerSelect,
     });
     await tx.officerAssignment.create({ data: { officerId: created.id, stationId: station.id, departmentId, rankId: input.rankId, position: null, startDate: input.hiredAt ?? new Date(), reason: "Initial posting", createdById: actor.id } });
+    if (input.hiredAt) await tx.careerEvent.create({ data: { officerId: created.id, type: "RECRUITMENT", effectiveDate: input.hiredAt, reference: "CREATION", reason: "Dossier created", toRankId: input.rankId, toStationId: station.id, toStatus: "ACTIVE", recordedById: actor.id } });
     await logAudit({ actor, action: "OFFICER_CREATED", module: "officers", entityType: "Officer", entityId: created.id, entityLabel: created.badgeNumber, summary: `Officer ${created.badgeNumber} ${created.firstName} ${created.lastName} created at ${station.name}`, after: created, context: ctx }, tx);
     return created;
   });
@@ -409,6 +416,7 @@ export async function assignOfficer(actor: Actor, input: AssignmentInput, ctx: R
   const before = await getOfficer(actor, input.officerId);
   const { station, departmentId } = await validateOfficerPlacement({ rankId: nul(input.rankId) ?? before.rankId, stationId: input.stationId, departmentId: input.departmentId });
   assertOfficerScope(actor, { stationId: station.id, regionId: station.regionId });
+  if (station.id !== before.stationId) throw new BusinessError("A change of station is a transfer: use the validated transfer circuit (Human resources → Transfers).", "STATE");
   const rankId = nul(input.rankId) ?? before.rankId;
   if (input.startDate.getTime() > Date.now() + 86_400_000 * 366) throw new BusinessError("Start date is too far in the future.");
   if (before.commandsStation && before.commandsStation.id !== station.id) throw new BusinessError("This officer commands a station; appoint another commander before transferring them.", "STATE");
@@ -443,6 +451,7 @@ export async function setDutyStatus(actor: Actor, officerId: string, dutyStatus:
     const r = await tx.officer.updateMany({ where: { id: officerId, dutyStatus: before.dutyStatus }, data: { dutyStatus, ...(terminal ? { isActive: false } : {}) } });
     if (r.count !== 1) throw new BusinessError("The record was modified concurrently. Reload and retry.", "CONFLICT");
     if (terminal) {
+      await cancelOpenTransfers(tx, officerId, `Officer left the service (${dutyStatus})`, actor, ctx);
       await tx.officerAssignment.updateMany({ where: { officerId, endDate: null }, data: { endDate: new Date(), reason: dutyStatus } });
       await tx.station.updateMany({ where: { commanderId: officerId }, data: { commanderId: null } });
       await tx.department.updateMany({ where: { headId: officerId }, data: { headId: null } });
@@ -457,6 +466,7 @@ export async function deactivateOfficer(actor: Actor, officerId: string, reason:
   if (!before.isActive) throw new BusinessError("This officer is already inactive.", "STATE");
   await prisma.$transaction(async (tx) => {
     await tx.officer.update({ where: { id: officerId }, data: { isActive: false, dutyStatus: before.dutyStatus === "DECEASED" ? "DECEASED" : "OFF_DUTY" } });
+    await cancelOpenTransfers(tx, officerId, "Officer deactivated", actor, ctx);
     await tx.officerAssignment.updateMany({ where: { officerId, endDate: null }, data: { endDate: new Date(), reason: nul(reason) ?? "Deactivated" } });
     await tx.station.updateMany({ where: { commanderId: officerId }, data: { commanderId: null } });
     await tx.department.updateMany({ where: { headId: officerId }, data: { headId: null } });
