@@ -184,6 +184,14 @@ export async function seedDemoAccounts() {
   return created;
 }
 
+/** HR defaults for officers created by the seeds (idempotent, only fills what is empty): corps by rank category, service start, post tenure start, recruitment event. */
+export async function backfillHrDefaults() {
+  await prisma.$executeRawUnsafe(`UPDATE "Officer" o SET "corpsId" = CASE r."category" WHEN 'COMMISSIONER' THEN 'corps_commissaires' WHEN 'OFFICER' THEN 'corps_officiers' WHEN 'INSPECTOR' THEN 'corps_inspecteurs' WHEN 'NON_COMMISSIONED' THEN 'corps_grades' WHEN 'CONSTABLE' THEN 'corps_agents' ELSE 'corps_civils' END FROM "Rank" r WHERE r."id" = o."rankId" AND o."corpsId" IS NULL AND EXISTS (SELECT 1 FROM "Corps" WHERE "id" = 'corps_agents')`);
+  await prisma.$executeRawUnsafe(`UPDATE "Officer" SET "serviceStartDate" = "hiredAt" WHERE "serviceStartDate" IS NULL AND "hiredAt" IS NOT NULL`);
+  await prisma.$executeRawUnsafe(`UPDATE "Officer" o SET "currentPostSince" = COALESCE((SELECT max(a."startDate") FROM "OfficerAssignment" a WHERE a."officerId" = o."id" AND a."endDate" IS NULL), o."hiredAt") WHERE o."currentPostSince" IS NULL`);
+  await prisma.$executeRawUnsafe(`INSERT INTO "CareerEvent" ("id", "officerId", "type", "effectiveDate", "reference", "reason", "toRankId", "toStationId", "toStatus") SELECT 'ce_' || md5(o."id" || 'recruitment'), o."id", 'RECRUITMENT', o."hiredAt", 'HISTORIQUE', 'Imported from the hiring date on record', o."rankId", o."stationId", 'ACTIVE' FROM "Officer" o WHERE o."hiredAt" IS NOT NULL AND NOT EXISTS (SELECT 1 FROM "CareerEvent" e WHERE e."officerId" = o."id" AND e."type" = 'RECRUITMENT')`);
+}
+
 export async function seedFoundation() {
   const permissions = await syncPermissionCatalog();
   const roles = await syncSystemRoles();
@@ -197,6 +205,7 @@ export async function seedFoundation() {
   const wanted = await seedWanted();
   const traffic = await seedTraffic();
   const cash = await seedCash();
+  await backfillHrDefaults();
   await prisma.auditLog.create({ data: { actorLabel: "system", action: "SEED_FOUNDATION", module: "system", summary: `Seed: ${permissions} permissions, ${roles} roles, ${territory.provinces} provinces, ${territory.stations} demo structures, ${territory.officers} new demo officers, ${users} new demo users, ${ops.persons} persons, ${ops.complaints} complaints, ${ops.cases} cases, ${field.zones} zones, ${field.vehicles} vehicles, ${field.patrols} patrols, ${field.incidents} incidents, ${biometric.fingerprintEnrolled} fingerprints, ${biometric.faceEnrolled} face templates, ${biometric.searches} biometric searches, ${biometric.plates} plate detections, ${wanted.created} wanted notices, ${wanted.warrants} warrants, ${trafficCatalog.violations} traffic offences imported, ${traffic.controls} traffic controls (${traffic.tickets} PV, ${traffic.fines} fines, ${traffic.payments} payments)` } });
   return { permissions, roles, users, territory, ops, field, biometric, wanted, trafficCatalog, traffic, cash };
 }

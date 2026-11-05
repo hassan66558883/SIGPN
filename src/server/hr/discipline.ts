@@ -10,6 +10,7 @@ import type { RequestContext } from "@/server/request-context";
 import { getOfficer } from "@/server/org/service";
 import { nextNumber } from "@/server/sequences";
 import { dateInput, optionalDate, optionalText } from "@/server/action-utils";
+import { cancelOpenTransfers } from "@/server/hr/transfer-cleanup";
 
 const DAY = 86_400_000;
 const nul = (v: string | undefined | null) => (v ? v : null);
@@ -139,7 +140,10 @@ export async function decideCase(actor: Actor, input: DecisionInput, ctx: Reques
       data: { status: closeNow ? "CLOSED" : "DECIDED", sanction: input.sanction, sanctionStart: start, sanctionEnd: end, decisionNumber, decisionReason: input.reason, decidedById: actor.id, decidedAt: now, closedAt: closeNow ? now : null },
     });
     if (u.count !== 1) throw new BusinessError("The record was modified concurrently. Reload and retry.", "CONFLICT");
-    if (input.sanction === "DISMISSAL") await dismissOfficer(tx, c.officerId, decisionNumber!, input.reason, actor.id);
+    if (input.sanction === "DISMISSAL") {
+      await dismissOfficer(tx, c.officerId, decisionNumber!, input.reason, actor.id);
+      await cancelOpenTransfers(tx, c.officerId, "Officer dismissed", actor, ctx);
+    }
     await logAudit({ actor, action: "HR_DISCIPLINE_DECIDED", module: "hr", entityType: "DisciplinaryCase", entityId: c.id, entityLabel: c.number, summary: `Disciplinary file ${c.number} decided: ${input.sanction}${decisionNumber ? ` (${decisionNumber})` : ""}`, after: { sanction: input.sanction, start, end }, context: ctx }, tx);
   });
   await applyDueDiscipline(actor, ctx); // a suspension that starts today takes effect now

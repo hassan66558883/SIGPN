@@ -64,12 +64,15 @@ before(async () => {
   assert.ok(original && "enabled" in original, "settings readable");
   await save({ enabled: false });
   for (const k of ["A", "B", "D"] as const) off[k] = await newOfficer(k);
+  // new dossiers start their post tenure at hiring (2001): reset it so that only the officers a test dates explicitly are eligible
+  await pool.query(`UPDATE "Officer" SET "currentPostSince"=now() WHERE id = ANY($1)`, [Object.values(off)]);
 });
 
 after(async () => {
   await call("admin", "/api/v1/hr/rotation/settings", "PUT", original);
   // Direct SQL (not the API): the cleanup must not depend on the rate limiter, which the test itself exercises heavily.
   const ids = Object.values(off);
+  await pool.query(`UPDATE "TransferRequest" SET status='CANCELLED', "closeReason"='Test clean-up' WHERE "officerId" = ANY($1) AND status IN ('PROPOSED','HR_APPROVED','APPROVED')`, [ids]);
   await pool.query(`UPDATE "OfficerAssignment" SET "endDate"=now() WHERE "officerId" = ANY($1) AND "endDate" IS NULL`, [ids]);
   await pool.query(`UPDATE "Officer" SET "isActive"=false, "dutyStatus"='RETIRED', "administrativeStatus"='RETIRED' WHERE id = ANY($1)`, [ids]);
   await pool.query(`UPDATE "Station" SET status='INACTIVE', "isActive"=false WHERE id = ANY($1)`, [[st.T1, st.T2]]);

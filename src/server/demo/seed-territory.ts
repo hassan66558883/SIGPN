@@ -194,9 +194,11 @@ export async function seedTerritory() {
       const gender = ["Fatimé", "Achta", "Zara", "Aïcha", "Khadidja", "Hawa", "Mariam", "Amné", "Halimé", "Ndilbé", "Clarisse", "Kaltouma"].includes(firstName) ? "FEMALE" : "MALE";
       const dep = st.departments.length ? st.departments[i % st.departments.length] : null;
       const rk = i === 0 ? profile[0] : profile[Math.min(profile.length - 1, 1 + Math.floor(rand() * (profile.length - 1)))];
-      const hired = new Date(2005 + Math.floor(rand() * 18), Math.floor(rand() * 12), 1 + Math.floor(rand() * 27));
+      const birthYear = 1970 + Math.floor(rand() * 28);
+      const birth = new Date(birthYear, Math.floor(rand() * 12), 1 + Math.floor(rand() * 27));
+      const hired = new Date(Math.max(2005 + Math.floor(rand() * 18), birthYear + 20), Math.floor(rand() * 12), 1 + Math.floor(rand() * 27)); // never hired before 20
       const o = await prisma.officer.create({
-        data: { badgeNumber: badge, firstName, lastName, gender, dateOfBirth: new Date(1970 + Math.floor(rand() * 28), Math.floor(rand() * 12), 1 + Math.floor(rand() * 27)), phone: `+235 6${String(10000000 + Math.floor(rand() * 89999999)).slice(0, 7)}`, rankId: rankId(rk), stationId: st.id, departmentId: dep?.id ?? null, hiredAt: hired, dutyStatus: rand() < 0.85 ? "ON_DUTY" : rand() < 0.5 ? "OFF_DUTY" : "ON_LEAVE" },
+        data: { badgeNumber: badge, firstName, lastName, gender, dateOfBirth: birth, serviceStartDate: hired, currentPostSince: hired, phone: `+235 6${String(10000000 + Math.floor(rand() * 89999999)).slice(0, 7)}`, rankId: rankId(rk), stationId: st.id, departmentId: dep?.id ?? null, hiredAt: hired, dutyStatus: rand() < 0.85 ? "ON_DUTY" : rand() < 0.5 ? "OFF_DUTY" : "ON_LEAVE" },
       });
       await prisma.officerAssignment.create({ data: { officerId: o.id, stationId: st.id, departmentId: dep?.id ?? null, rankId: o.rankId, startDate: hired, reason: "Affectation initiale (DEMO)" } });
       if (i === 0 && !st.commanderId) await prisma.station.update({ where: { id: st.id }, data: { commanderId: o.id } });

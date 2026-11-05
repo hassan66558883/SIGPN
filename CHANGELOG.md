@@ -8,6 +8,14 @@ All notable changes to SIGPN-T (Système Intégré de Gestion Numérique de la P
 - HR dossier (birth place, marital status, corps, administrative status, service dates), append-only career history, `hr:*` permissions, roles `HR_DIRECTOR` / `HR_OFFICER`, HR menu and pages (FR/AR), REST API `/api/v1/hr/*`, station type `DELEGATION` (see `docs/RESSOURCES_HUMAINES.md`).
 - Migration `20261105170000_hr_dossier_career` (additive; backfills corps and recruitment events).
 
+## [Unreleased] — 2026-11-05 — « RH, phase 9 : charge et sécurisation »
+
+### Added
+- HR integrity checks (`npm run hr:check`, `GET /api/v1/hr/integrity`), CSV import of dossiers (`npm run hr:import`, dry run by default), load-test tools (`scripts/hr-loadgen.ts`, `scripts/hr-bench.ts`), route security tests.
+
+### Fixed
+- Automatic assignment stopped after the first 500 officers (keyset paging now); new dossiers get HR defaults (post tenure, corps, recruitment event); open transfers are cancelled when an officer leaves the service; demo officers are never hired before 20.
+
 ## [Unreleased] — 2026-11-05 — « RH, phase 8 : tableaux de bord et statistiques »
 
 ### Added

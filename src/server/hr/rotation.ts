@@ -110,20 +110,22 @@ export async function runRotation(opts: { actor?: Actor | null; trigger: "MANUAL
   const eligible: Prisma.OfficerWhereInput = { ...dueWhere, rotationExceptions: { none: activeException(now) }, transferRequests: { none: { status: { in: [...OPEN] } } }, rotationAlerts: { none: { kind: "DUE" } } };
   const PAGE = 500;
   const MAX_SCANNED = 20_000; // 14 000 officers fit; a hard bound protects the server
-  let cursor: string | undefined;
+  let last: { since: Date; id: string } | null = null; // keyset position: officers get their DUE alert while we page, so a row cursor would vanish from the filtered set
   let scanned = 0;
   let plan: Awaited<ReturnType<typeof buildDestinationPlanner>> | null = null;
-  scan: while (scanned < MAX_SCANNED) {
-    // Officers without any possible destination stay "eligible" run after run: page through them instead of re-reading the same oldest rows.
-    const page = await prisma.officer.findMany({
-      where: eligible,
+  const fetchPage = (after: { since: Date; id: string } | null) =>
+    prisma.officer.findMany({
+      where: after ? { AND: [eligible, { OR: [{ currentPostSince: { gt: after.since } }, { currentPostSince: after.since, id: { gt: after.id } }] }] } : eligible,
       orderBy: [{ currentPostSince: "asc" }, { id: "asc" }],
       take: PAGE,
-      ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
       select: { id: true, badgeNumber: true, stationId: true, departmentId: true, currentPostSince: true, station: { select: { id: true, type: true, regionId: true } } },
     });
+  type PageRow = Awaited<ReturnType<typeof fetchPage>>[number];
+  scan: while (scanned < MAX_SCANNED) {
+    // Officers without any possible destination stay "eligible" run after run: page through them instead of re-reading the same oldest rows.
+    const page: PageRow[] = await fetchPage(last);
     if (!page.length) break;
-    cursor = page[page.length - 1].id;
+    last = { since: page[page.length - 1].currentPostSince!, id: page[page.length - 1].id };
     scanned += page.length;
     plan ??= await buildDestinationPlanner(cfg);
     await plan.loadHistory(page.map((o) => o.id));

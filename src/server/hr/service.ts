@@ -7,6 +7,7 @@ import { inScope, scopeWhere, type Actor } from "@/server/auth/dal";
 import type { RequestContext } from "@/server/request-context";
 import { getOfficer } from "@/server/org/service";
 import type { CareerEventInput, DossierInput } from "@/server/hr/schemas";
+import { cancelOpenTransfers } from "@/server/hr/transfer-cleanup";
 
 const nul = (v: string | undefined | null) => (v ? v : null);
 
@@ -208,6 +209,7 @@ export async function recordCareerEvent(actor: Actor, input: CareerEventInput, c
     if (officerData.positionId) await tx.officerAssignment.updateMany({ where: { officerId: o.id, endDate: null }, data: { positionId: officerData.positionId, position: positionLabel ?? null } });
     if (officerData.rankId) await tx.officerAssignment.updateMany({ where: { officerId: o.id, endDate: null }, data: { rankId: officerData.rankId } });
     await tx.officer.update({ where: { id: o.id }, data: officerData });
+    if (type === "RETIREMENT" || type === "CESSATION") await cancelOpenTransfers(tx, o.id, `Officer left the service (${type})`, actor, ctx);
     const event = await tx.careerEvent.create({
       data: {
         officerId: o.id,

@@ -22,6 +22,8 @@
     "test:integration": "tsx --test --test-concurrency=1 tests/integration/*.test.ts",
     "test:security": "tsx --test tests/security/*.test.ts",
     "hr:rotation": "tsx scripts/hr-rotation.ts",
+    "hr:check": "tsx scripts/hr-check.ts",
+    "hr:import": "tsx scripts/hr-import.ts",
     "traffic:import": "tsx scripts/import-traffic-violations.ts"
   },
   "dependencies": {
