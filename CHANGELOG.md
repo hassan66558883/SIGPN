@@ -8,6 +8,11 @@ All notable changes to SIGPN-T (Système Intégré de Gestion Numérique de la P
 - HR dossier (birth place, marital status, corps, administrative status, service dates), append-only career history, `hr:*` permissions, roles `HR_DIRECTOR` / `HR_OFFICER`, HR menu and pages (FR/AR), REST API `/api/v1/hr/*`, station type `DELEGATION` (see `docs/RESSOURCES_HUMAINES.md`).
 - Migration `20261105170000_hr_dossier_career` (additive; backfills corps and recruitment events).
 
+## [Unreleased] — 2026-11-06 — « RH, section 8 : solde et avantages »
+
+### Added
+- Pay scale, pay-element referential (bonuses, allowances, benefits in kind, deductions), elements granted to officers, monthly pay statements (draft regenerable, validated frozen), CSV export for the financial services, officer self-service; permissions `hr:pay_*` held only by the dedicated roles `HR_PAYROLL` and `HR_PAYROLL_CONTROL` (not by the system administrator); separation of duties on every validation; migration `20261106100000_hr_pay`. See `docs/RESSOURCES_HUMAINES.md`.
+
 ## [Unreleased] — 2026-11-05 — « RH, phase 9 : charge et sécurisation »
 
 ### Added

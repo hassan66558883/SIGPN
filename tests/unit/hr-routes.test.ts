@@ -24,6 +24,8 @@ const SERVICE_CHECKED = new Set([
   "leaves/[id]/[action]/route.ts", // decide needs hr:leave_approve; cancel: requester / officer / approver
   "transfers/[id]/[action]/route.ts", // review / validate / execute / cancel: permission + four-eyes + scope in the service
   "discipline/[id]/[action]/route.ts", // step needs hr:discipline_manage, decide needs hr:discipline_decide (service)
+  "pay/elements/[id]/[action]/route.ts", // decide needs hr:pay_validate (not the requester), end needs hr:pay_manage (service)
+  "pay/me/route.ts", // self-service: only the connected officer's own validated lines
 ]);
 
 const files = routeFiles(ROOT).map((f) => path.relative(ROOT, f).split(path.sep).join("/"));

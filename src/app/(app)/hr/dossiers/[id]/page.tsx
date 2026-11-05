@@ -8,18 +8,21 @@ import { leaveBalance, officerLeaves } from "@/server/hr/attendance";
 import { officerCompetences } from "@/server/hr/training";
 import { listDistinctions, officerDisciplineSummary } from "@/server/hr/discipline";
 import { listDocuments } from "@/server/hr/documents";
+import { listComponents, officerPay } from "@/server/hr/pay";
 import { MANUAL_CAREER_EVENTS } from "@/server/hr/schemas";
 import { getRequestContext } from "@/server/request-context";
 import { listPositions } from "@/server/org/personnel";
 import { orgReferences } from "@/server/org/queries";
 import { NotFoundError } from "@/server/errors";
 import { Alert, Badge, ButtonLink, Card, DL, EmptyState, PageHeader, Table } from "@/components/ui";
-import { ADMINISTRATIVE_STATUS, CAREER_EVENT_TYPE, DISCIPLINE_STATUS, DISTINCTION_KIND, GENDER, HR_DOCUMENT_KIND, SANCTION_KIND, LEAVE_STATUS, LEAVE_TYPE, MARITAL_STATUS, RANK_CATEGORY, TRAINING_KIND, TRAINING_STATUS, labelOf } from "@/lib/labels";
+import { ADMINISTRATIVE_STATUS, CAREER_EVENT_TYPE, PAY_APPROVAL, DISCIPLINE_STATUS, DISTINCTION_KIND, GENDER, HR_DOCUMENT_KIND, SANCTION_KIND, LEAVE_STATUS, LEAVE_TYPE, MARITAL_STATUS, RANK_CATEGORY, TRAINING_KIND, TRAINING_STATUS, labelOf } from "@/lib/labels";
 import { fmtDate, toInputDate } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
 import { CareerEventForm, DossierForm } from "../../hr-forms";
 import { EndExceptionForm, ExceptionForm } from "../../rotation/rotation-forms";
 import { DistinctionForm } from "../../discipline/discipline-forms";
+import { ElementRequestForm, EndElementForm } from "../../pay/pay-forms";
+import { fmtFcfa } from "@/lib/traffic-format";
 import { IssueForOfficerForm, PhotoForm, UploadForm } from "../../documents/documents-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -41,7 +44,9 @@ export default async function DossierPage({ params }: PageProps<"/hr/dossiers/[i
   const canCareer = actor.permissions.has("hr:career");
   const terminal = ["RETIRED", "CEASED", "DECEASED"].includes(o.administrativeStatus);
   const canDiscipline = actor.permissions.has("hr:discipline_view");
+  const canPay = actor.permissions.has("hr:pay_view");
   const [history, corps, positions, refs, exceptions, leaves, balance, comp, distinctions, cases, docs] = await Promise.all([careerHistory(id), listCorps(), canCareer ? listPositions() : Promise.resolve([]), canCareer ? orgReferences(actor) : Promise.resolve(null), listExceptions(id), officerLeaves(actor, id), leaveBalance(id), officerCompetences(actor, id), listDistinctions(actor, id), canDiscipline ? officerDisciplineSummary(actor, id) : Promise.resolve([]), listDocuments(actor, { officerId: id, pageSize: 6 })]);
+  const [pay, payComponents] = canPay ? await Promise.all([officerPay(actor, id, await getRequestContext()), listComponents(actor)]) : [null, []];
   const st = labelOf(ADMINISTRATIVE_STATUS, o.administrativeStatus, locale);
   const change = (e: (typeof history)[number]) => {
     if (e.toRank) return `${e.fromRank ?? "—"} → ${e.toRank}`;
@@ -207,6 +212,43 @@ export default async function DossierPage({ params }: PageProps<"/hr/dossiers/[i
                     {t("hr.dis.new")}
                   </ButtonLink>
                 </div>
+              ) : null}
+            </Card>
+          ) : null}
+          {canPay && pay ? (
+            <Card title={t("hr.pay.dossierTitle")}>
+              <p className="mb-2 text-sm">
+                {t("hr.pay.monthlyBase")} : <span className="font-mono font-semibold">{pay.baseSalary !== null ? fmtFcfa(pay.baseSalary) : "—"}</span>
+              </p>
+              {pay.elements.length === 0 ? (
+                <p className="text-sm text-slate">{t("hr.pay.noElements")}</p>
+              ) : (
+                <ul className="space-y-2 text-sm">
+                  {pay.elements.map((e) => (
+                    <li key={e.id} className="flex flex-wrap items-center gap-2">
+                      <Badge tone={labelOf(PAY_APPROVAL, e.status, locale).tone}>{labelOf(PAY_APPROVAL, e.status, locale).label}</Badge>
+                      <span>{e.component.name}</span>
+                      <span className="font-mono text-xs text-slate">{e.component.calculation === "FIXED" ? fmtFcfa(e.value ?? e.component.defaultValue) : `${e.value ?? e.component.defaultValue} %`}</span>
+                      <span className="text-xs text-slate">
+                        {fmtDate(e.startDate, locale)} → {e.endDate ? fmtDate(e.endDate, locale) : "∞"}
+                      </span>
+                      {e.status === "ACTIVE" && !e.endDate && actor.permissions.has("hr:pay_manage") ? <EndElementForm id={e.id} /> : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {pay.lines.length ? (
+                <p className="mt-3 text-xs text-slate">
+                  {t("hr.pay.lastLine", { p: pay.lines[0].run.period, n: fmtFcfa(pay.lines[0].net) })}
+                </p>
+              ) : null}
+              {actor.permissions.has("hr:pay_manage") ? (
+                <details className="mt-3">
+                  <summary className="cursor-pointer text-xs font-semibold text-blue">{t("hr.pay.requestElement")}</summary>
+                  <div className="mt-2">
+                    <ElementRequestForm officerId={o.id} components={payComponents.map((c) => ({ value: c.id, label: c.name, calc: c.calculation, def: c.defaultValue }))} />
+                  </div>
+                </details>
               ) : null}
             </Card>
           ) : null}

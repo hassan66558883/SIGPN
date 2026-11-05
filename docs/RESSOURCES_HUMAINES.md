@@ -148,3 +148,30 @@ Les deux paramètres (âge de retraite, ancienneté de promotion) sont réglés 
 **Tests ajoutés :** `tests/unit/hr-routes.test.ts` (37), `tests/unit/hr-rotation-paging.test.ts` (1), `tests/integration/hr-security.test.ts` (9). Le test de limite d'écriture utilise un compte réservé (`analyst`) afin de ne pas épuiser le quota des autres tests.
 
 **Non fait / limites** : mesure avec un seul serveur et sans réseau (à refaire sur la cible de production, avec les 23 délégations connectées en parallèle) ; pas de chiffrement des champs personnels au niveau colonne (les secrets d'authentification le sont déjà) ; pas de balayage antivirus des fichiers téléversés ; la gestion de la solde et des avantages (section 8 du cahier des charges) n'a pas encore été réalisée.
+
+## Section 8 — Solde et avantages (fait, après la phase 9)
+
+**Principe.** Le système tient la **grille de solde**, les **éléments de rémunération** accordés aux agents, produit les **états de solde mensuels** et les **exporte** vers les services financiers. Il **ne verse aucune somme**. Tous les montants sont en FCFA entiers.
+
+**Séparation des tâches et droits d'accès spécifiques.** Quatre permissions propres (`hr:pay_view`, `hr:pay_manage`, `hr:pay_validate`, `hr:pay_export`) que **ne détient aucun rôle existant**, y compris l'administrateur système (le garde-fou « on n'accorde pas ce qu'on ne détient pas » l'empêche aussi de s'en attribuer) :
+- **Agent de la solde** (`HR_PAYROLL`) : demande les changements de grille et d'éléments, génère les états. Ne valide ni n'exporte.
+- **Contrôleur de la solde** (`HR_PAYROLL_CONTROL`) : valide et exporte. Ne crée pas ce qu'il valide.
+- Comptes de démonstration `payroll.officer` et `payroll.control` (MFA requise, périmètre national). **Personne ne valide sa propre demande**, même en cumulant les deux droits (vérifié par test).
+- Les routes de solde ne sont pas dans `hr:view` : le dossier RH ne contient aucune donnée de solde. Chaque consultation individuelle (agent, lignes d'un état, éléments, état) est **journalisée** ; l'export est compté et journalisé.
+- **Libre-service** : un agent lié à un compte voit uniquement ses propres lignes validées (« Ma solde »).
+
+**Données (migration `20261106100000_hr_pay`).**
+- `PayScaleEntry` : solde de base mensuelle d'un grade à partir d'une date ; demandée puis validée ; jamais supprimée ni modifiée une fois décidée (trigger).
+- `PayComponent` : référentiel des éléments — prime, indemnité, avantage en nature, retenue — en montant fixe ou en pourcentage entier de la base. Six **modèles** sont fournis avec une valeur 0 : **les montants relèvent de la Direction, pas du logiciel**.
+- `OfficerPayElement` : élément accordé à un agent sur une période (valeur propre facultative) ; effectif seulement après validation par une autre personne ; chevauchement refusé ; fin motivée.
+- `PayRun` / `PayRunLine` : état mensuel de toute la force. **Un brouillon se régénère ; un état validé est figé** (triggers : lignes et totaux immuables, suppression interdite, seuls les compteurs d'export évoluent). Contraintes SQL : montants positifs, `net = brut − retenues`.
+
+**Règles de calcul (`src/lib/pay-calc.ts`, testées unitairement).** Primes et indemnités s'ajoutent à la base ; un pourcentage s'applique à la base **réellement versée** ; un **avantage en nature** est valorisé et exporté mais n'entre ni dans le brut ni dans le net ; les retenues ne peuvent jamais dépasser le brut (plafonnées et signalées) ; un agent **suspendu** reçoit une part de sa base et de ses montants fixes (50 % par défaut, `PUT /api/v1/hr/pay/settings`) ; sont exclus les agents détachés, mis à disposition ou sortis du service, ainsi que ceux dont le grade n'a pas de grille validée (comptés et signalés, jamais payés à zéro en silence). Le calcul se fait à l'état de l'agent au moment de la génération (grade, statut) et aux éléments effectifs à la fin du mois ; **pas de prorata** pour un changement en cours de mois.
+
+**Export.** `GET /api/v1/hr/pay/runs/:id/export` : CSV (matricule, nom, grade, structure, statut, base, primes, indemnités, brut, retenues, net, valeur des avantages), **uniquement pour un état validé**, protégé contre l'injection de formules (`=`, `+`, `-`, `@`), journalisé et compté.
+
+**API :** `GET /api/v1/hr/pay`, `…/pay/settings`, `…/pay/scale` (+ `POST`, `…/scale/:id/decide`), `…/pay/components` (+ `PUT :id`), `…/pay/elements` (+ `POST`, `…/elements/:id/{decide|end}`), `…/pay/runs` (+ `POST`), `…/runs/:id`, `…/runs/:id/lines`, `…/runs/:id/validate`, `…/runs/:id/export`, `…/pay/officers/:id`, `…/pay/me`. **Interface :** « Solde et avantages » (état des lieux, grille, éléments, éléments accordés avec validation, états mensuels avec totaux par grade et par délégation et lignes individuelles), carte « Rémunération » sur le dossier (visible avec `hr:pay_view`) et « Ma solde ». FR/AR. Les contrôles de cohérence couvrent désormais les états (totaux = somme des lignes), la séparation des tâches et les éléments actifs sans validateur.
+
+**Tests :** `tests/unit/pay-calc.test.ts` (8), `tests/integration/hr-pay.test.ts` (8 : accès par rôle, référentiel, grille et quatre yeux, éléments, état mensuel aux montants exacts, exclusions, remplacement du brouillon, gel de l'état validé par triggers, export et neutralisation des formules, confidentialité et audit, libre-service, paramètre de suspension) ; les 21 nouvelles routes sont dans les tests de sécurité de toute l'API RH. Pages vérifiées dans le navigateur.
+
+**À décider par la Direction avant usage réel :** les grilles par grade, les éléments et leurs montants, la part de solde pendant une suspension (50 % supposé), le traitement des agents détachés / mis à disposition (exclus ici), les cotisations et retenues légales (non préchargées), l'éventuel prorata en cours de mois, et le format exact attendu par les services financiers (le CSV fourni est un format neutre).

@@ -48,6 +48,7 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
   await grantHrRotationDefaultsOnce(byCode);
   await grantHrPhase6DefaultsOnce(byCode);
   await grantHrPhase7DefaultsOnce(byCode);
+  await grantHrPayDefaultsOnce(byCode);
   return SYSTEM_ROLES.length;
 }
 
@@ -147,6 +148,19 @@ async function grantHrPhase7DefaultsOnce(byCode: Map<string, string>) {
     await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
   }
   await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions discipline et documents RH ont été accordées aux rôles système." } });
+}
+
+/** Payroll permissions (`hr:pay_*`), granted once to already-seeded databases: only the dedicated payroll roles hold them. */
+async function grantHrPayDefaultsOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.hr_pay_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const roles = await prisma.role.findMany({ where: { isSystem: true }, select: { id: true, code: true } });
+  for (const role of roles) {
+    const grants = (HR_DEFAULT_GRANTS[role.code] ?? []).filter((c) => c.startsWith("hr:pay_"));
+    if (!grants.length) continue;
+    await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
+  }
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions de solde ont été accordées aux rôles de paie dédiés." } });
 }
 
 export async function seedOrganization() {

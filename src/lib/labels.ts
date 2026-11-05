@@ -198,6 +198,29 @@ export const HR_DOCUMENT_KIND: LabelMap = {
   SERVICE_NOTE: def("Note de service", "مذكرة خدمة", "warning"),
 };
 
+export const PAY_KIND: LabelMap = {
+  BONUS: def("Prime", "علاوة", "success"),
+  ALLOWANCE: def("Indemnité", "تعويض", "info"),
+  BENEFIT: def("Avantage en nature", "منفعة عينية", "violet"),
+  DEDUCTION: def("Retenue", "اقتطاع", "danger"),
+};
+
+export const PAY_CALCULATION: LabelMap = {
+  FIXED: def("Montant fixe (FCFA)", "مبلغ ثابت (فرنك)", "neutral"),
+  PERCENT_OF_BASE: def("% de la solde de base", "٪ من الأجر الأساسي", "neutral"),
+};
+
+export const PAY_APPROVAL: LabelMap = {
+  PENDING: def("En attente de validation", "في انتظار المصادقة", "warning"),
+  ACTIVE: def("Validé", "مصادق عليه", "success"),
+  REJECTED: def("Rejeté", "مرفوض", "danger"),
+};
+
+export const PAY_RUN_STATUS: LabelMap = {
+  DRAFT: def("Brouillon", "مسودة", "warning"),
+  VALIDATED: def("Validé", "مصادق عليه", "success"),
+};
+
 export const DEPARTMENT_TYPE: LabelMap = {
   COMMAND: def("Commandement", "القيادة", "violet"),
   INVESTIGATION: def("Enquêtes", "التحقيقات", "info"),

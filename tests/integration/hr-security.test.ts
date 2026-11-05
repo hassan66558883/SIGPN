@@ -94,6 +94,27 @@ const ROUTES: { method: string; path: string; body?: () => unknown }[] = [
   { method: "GET", path: "/api/v1/hr/stats/settings" },
   { method: "PUT", path: "/api/v1/hr/stats/settings", body: () => ({ retirementAge: 60, promotionMinYears: 3 }) },
   { method: "GET", path: "/api/v1/hr/integrity" },
+  // payroll (strictly separated: the dedicated payroll roles only)
+  { method: "GET", path: "/api/v1/hr/pay" },
+  { method: "GET", path: "/api/v1/hr/pay/settings" },
+  { method: "PUT", path: "/api/v1/hr/pay/settings", body: () => ({ suspendedPayPercent: 50 }) },
+  { method: "GET", path: "/api/v1/hr/pay/scale" },
+  { method: "POST", path: "/api/v1/hr/pay/scale", body: () => ({ rankId: ID, amount: 100000, effectiveFrom: "2026-01-01" }) },
+  { method: "POST", path: `/api/v1/hr/pay/scale/${ID}/decide`, body: () => ({ decision: "APPROVE" }) },
+  { method: "GET", path: "/api/v1/hr/pay/components" },
+  { method: "POST", path: "/api/v1/hr/pay/components", body: () => ({ code: "ZZ_TEST", name: "Test", kind: "BONUS", calculation: "FIXED", defaultValue: 1 }) },
+  { method: "PUT", path: `/api/v1/hr/pay/components/${ID}`, body: () => ({ code: "ZZ_TEST", name: "Test", kind: "BONUS", calculation: "FIXED", defaultValue: 1 }) },
+  { method: "GET", path: "/api/v1/hr/pay/elements" },
+  { method: "POST", path: "/api/v1/hr/pay/elements", body: () => ({ officerId: ID, componentId: ID, startDate: "2026-01-01", reason: "Test reason" }) },
+  { method: "POST", path: `/api/v1/hr/pay/elements/${ID}/decide`, body: () => ({ decision: "APPROVE" }) },
+  { method: "POST", path: `/api/v1/hr/pay/elements/${ID}/end`, body: () => ({ reason: "Test reason" }) },
+  { method: "GET", path: "/api/v1/hr/pay/runs" },
+  { method: "POST", path: "/api/v1/hr/pay/runs", body: () => ({ period: "2026-01" }) },
+  { method: "GET", path: `/api/v1/hr/pay/runs/${ID}` },
+  { method: "GET", path: `/api/v1/hr/pay/runs/${ID}/lines` },
+  { method: "POST", path: `/api/v1/hr/pay/runs/${ID}/validate` },
+  { method: "GET", path: `/api/v1/hr/pay/runs/${ID}/export` },
+  { method: "GET", path: `/api/v1/hr/pay/officers/${ID}` },
 ];
 
 before(async () => {
@@ -129,6 +150,13 @@ test("an account without any HR permission gets nothing from any HR route", asyn
   }
 });
 
+test("self-service pay: unauthenticated 401; an account without officer record sees an empty list, never anybody else's pay", async () => {
+  assert.equal((await raw(null, "/api/v1/hr/pay/me")).status, 401);
+  const r = await call("desk.post1", "/api/v1/hr/pay/me");
+  assert.equal(r.res.status, 200);
+  assert.deepEqual(r.json.data, []);
+});
+
 test("a station commander cannot reach any privileged HR write", async () => {
   const forbidden: [string, string, unknown?][] = [
     ["PUT", `/api/v1/hr/dossiers/${officerId}`, { firstName: "X", lastName: "Y" }],
@@ -143,6 +171,10 @@ test("a station commander cannot reach any privileged HR write", async () => {
     ["POST", "/api/v1/hr/distinctions", { officerId, kind: "MEDAL", title: "Medal", awardedAt: today() }],
     ["GET", "/api/v1/hr/discipline"],
     ["GET", "/api/v1/hr/integrity"],
+    ["GET", "/api/v1/hr/pay"],
+    ["POST", "/api/v1/hr/pay/runs", { period: "2026-01" }],
+    ["POST", "/api/v1/hr/pay/scale", { rankId: officerId, amount: 100000, effectiveFrom: "2026-01-01" }],
+    ["GET", "/api/v1/hr/pay/runs/x/export"],
   ];
   for (const [m, p, b] of forbidden) assert.equal((await call("chief.cs1", p, m, b)).res.status, 403, `${m} ${p}`);
   // and the settings were not changed behind the 403

@@ -188,6 +188,12 @@ model User {
   disciplineOpened           DisciplinaryCase[]         @relation("DisciplineOpenedBy")
   disciplineDecided          DisciplinaryCase[]         @relation("DisciplineDecidedBy")
   hrDocumentsCreated         HrDocument[]
+  payElementsRequested       OfficerPayElement[]        @relation("PayElementRequestedBy")
+  payElementsValidated       OfficerPayElement[]        @relation("PayElementValidatedBy")
+  payScaleCreated            PayScaleEntry[]            @relation("PayScaleCreatedBy")
+  payScaleValidated          PayScaleEntry[]            @relation("PayScaleValidatedBy")
+  payRunsGenerated           PayRun[]                   @relation("PayRunGeneratedBy")
+  payRunsValidated           PayRun[]                   @relation("PayRunValidatedBy")
   transfersProposed          TransferRequest[]          @relation("TransferProposedBy")
   transfersReviewed          TransferRequest[]          @relation("TransferReviewedBy")
   transfersValidated         TransferRequest[]          @relation("TransferValidatedBy")
@@ -569,6 +575,7 @@ model Rank {
   isActive    Boolean             @default(true)
   officers    Officer[]
   assignments OfficerAssignment[]
+  payScale    PayScaleEntry[]
 }
 
 enum Gender {
@@ -636,6 +643,8 @@ model Officer {
   disciplinaryCases    DisciplinaryCase[]
   distinctions         Distinction[]
   hrDocuments          HrDocument[]
+  payElements          OfficerPayElement[]
+  payLines             PayRunLine[]
 
   commandsStation     Station?            @relation("StationCommander")
   headsDepartment     Department?         @relation("DepartmentHead")
@@ -998,6 +1007,138 @@ model HrDocument {
   @@index([officerId, createdAt])
   @@index([kind, createdAt])
   @@index([stationId])
+}
+
+enum PayComponentKind {
+  BONUS
+  ALLOWANCE
+  BENEFIT
+  DEDUCTION
+}
+
+enum PayCalculation {
+  FIXED
+  PERCENT_OF_BASE
+}
+
+enum PayApprovalStatus {
+  PENDING
+  ACTIVE
+  REJECTED
+}
+
+enum PayRunStatus {
+  DRAFT
+  VALIDATED
+}
+
+/// Referential of pay elements other than the base salary: bonuses (primes), allowances (indemnités), benefits in kind
+/// (avantages) and deductions (retenues). FIXED = FCFA per month; PERCENT_OF_BASE = whole percent of the base salary.
+model PayComponent {
+  id           String              @id @default(cuid())
+  code         String              @unique
+  name         String
+  kind         PayComponentKind
+  calculation  PayCalculation      @default(FIXED)
+  defaultValue Int                 @default(0)
+  description  String?
+  isActive     Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  elements     OfficerPayElement[]
+}
+
+/// Base monthly salary (FCFA) of a rank from a date. Changes are requested then validated by someone else; history is kept.
+model PayScaleEntry {
+  id            String            @id @default(cuid())
+  rankId        String
+  rank          Rank              @relation(fields: [rankId], references: [id])
+  amount        Int
+  effectiveFrom DateTime          @db.Date
+  status        PayApprovalStatus @default(PENDING)
+  createdById   String?
+  createdBy     User?             @relation("PayScaleCreatedBy", fields: [createdById], references: [id])
+  validatedById String?
+  validatedBy   User?             @relation("PayScaleValidatedBy", fields: [validatedById], references: [id])
+  validatedAt   DateTime?
+  note          String?
+  createdAt     DateTime          @default(now())
+
+  @@unique([rankId, effectiveFrom])
+  @@index([rankId, status, effectiveFrom])
+}
+
+/// A pay element granted to an officer for a period. Becomes effective only after validation by a person other than the requester.
+model OfficerPayElement {
+  id            String            @id @default(cuid())
+  officerId     String
+  officer       Officer           @relation(fields: [officerId], references: [id])
+  componentId   String
+  component     PayComponent      @relation(fields: [componentId], references: [id])
+  value         Int?
+  startDate     DateTime          @db.Date
+  endDate       DateTime?         @db.Date
+  status        PayApprovalStatus @default(PENDING)
+  reason        String
+  decisionRef   String?
+  requestedById String?
+  requestedBy   User?             @relation("PayElementRequestedBy", fields: [requestedById], references: [id])
+  validatedById String?
+  validatedBy   User?             @relation("PayElementValidatedBy", fields: [validatedById], references: [id])
+  validatedAt   DateTime?
+  note          String?
+  endReason     String?
+  createdAt     DateTime          @default(now())
+
+  @@index([officerId, status])
+  @@index([status, createdAt])
+}
+
+/// Monthly pay statement (état récapitulatif) of the whole force. Frozen once validated; it is a statement for the
+/// financial services, the system never moves money.
+model PayRun {
+  id               String       @id @default(cuid())
+  period           String       @unique
+  status           PayRunStatus @default(DRAFT)
+  generatedById    String?
+  generatedBy      User?        @relation("PayRunGeneratedBy", fields: [generatedById], references: [id])
+  validatedById    String?
+  validatedBy      User?        @relation("PayRunValidatedBy", fields: [validatedById], references: [id])
+  validatedAt      DateTime?
+  exportedAt       DateTime?
+  exportCount      Int          @default(0)
+  officers         Int          @default(0)
+  suspendedCount   Int          @default(0)
+  excludedNoScale  Int          @default(0)
+  excludedStatus   Int          @default(0)
+  totalBase        BigInt       @default(0)
+  totalGross       BigInt       @default(0)
+  totalDeductions  BigInt       @default(0)
+  totalNet         BigInt       @default(0)
+  suspendedPercent Int          @default(100)
+  createdAt        DateTime     @default(now())
+  lines            PayRunLine[]
+}
+
+model PayRunLine {
+  id         String               @id @default(cuid())
+  runId      String
+  run        PayRun               @relation(fields: [runId], references: [id], onDelete: Cascade)
+  officerId  String
+  officer    Officer              @relation(fields: [officerId], references: [id])
+  rankId     String
+  stationId  String
+  regionId   String
+  status     AdministrativeStatus
+  base       Int
+  gross      Int
+  deductions Int
+  net        Int
+  detail     Json
+
+  @@unique([runId, officerId])
+  @@index([officerId])
+  @@index([runId, rankId])
+  @@index([runId, regionId])
 }
 
 /// Competence referential and the competences held by officers (granted by evaluated trainings).

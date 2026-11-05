@@ -125,6 +125,8 @@ const COMMAND: Permission[] = [
 const HR_SERVICE: Permission[] = ["dashboard:view", "org:view", "officers:view", "officers:manage", "hr:view", "hr:manage", "hr:transfer_propose", "hr:transfer_review", "hr:attendance_record", "hr:leave_request", "hr:training_manage", "hr:document_issue", "statistics:view", "documents:view", "apikeys:manage_own"];
 const HR_DIRECTION: Permission[] = [...HR_SERVICE, "hr:leave_approve", "hr:discipline_view", "hr:discipline_manage", "hr:career", "reports:view", "reports:generate", "audit:view"];
 
+const PAYROLL_BASE: Permission[] = ["dashboard:view", "org:view", "officers:view", "hr:view", "hr:pay_view", "apikeys:manage_own"];
+
 export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
   {
     code: "SUPER_ADMIN",
@@ -132,7 +134,8 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     description: "Full access to every module, including security and system administration.",
     scopeLevel: "NATIONAL",
     requiresMfa: true,
-    permissions: PERMISSIONS,
+    // Separation of duties: the system administrator does not see or change pay data; dedicated payroll roles exist.
+    permissions: PERMISSIONS.filter((p) => !p.startsWith("hr:pay_")),
   },
   {
     code: "NATIONAL_COMMANDER",
@@ -269,6 +272,22 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     scopeLevel: "NATIONAL",
     requiresMfa: true,
     permissions: HR_DIRECTION,
+  },
+  {
+    code: "HR_PAYROLL",
+    name: "Payroll Officer",
+    description: "Pay and benefits: requests pay scale changes and pay elements and generates the monthly statements. Cannot validate or export (separation of duties).",
+    scopeLevel: "NATIONAL",
+    requiresMfa: true,
+    permissions: [...PAYROLL_BASE, "hr:pay_manage"],
+  },
+  {
+    code: "HR_PAYROLL_CONTROL",
+    name: "Payroll Controller",
+    description: "Pay control: validates pay scale changes, pay elements and monthly statements, and exports them to the financial services. Cannot create the data it validates.",
+    scopeLevel: "NATIONAL",
+    requiresMfa: true,
+    permissions: [...PAYROLL_BASE, "hr:pay_validate", "hr:pay_export"],
   },
   {
     code: "HR_OFFICER",

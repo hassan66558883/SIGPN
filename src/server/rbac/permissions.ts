@@ -162,6 +162,10 @@ export const PERMISSION_CATALOG = [
   ["hr:discipline_manage", "Open disciplinary cases and record the steps of the procedure"],
   ["hr:discipline_decide", "Decide the sanction of a disciplinary case within scope"],
   ["hr:document_issue", "Generate HR documents (certificates, orders, service notes) and upload supporting files"],
+  ["hr:pay_view", "View pay scales, pay elements and pay statements (strictly confidential, every read is audited)"],
+  ["hr:pay_manage", "Request pay scale changes and pay elements, generate monthly pay statements"],
+  ["hr:pay_validate", "Validate pay scale changes, pay elements and pay statements (never one's own request)"],
+  ["hr:pay_export", "Export a validated pay statement to the financial services"],
   // self-service
   ["apikeys:manage_own", "Create/revoke own API keys"],
 ] as const;
