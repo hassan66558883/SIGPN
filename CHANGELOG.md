@@ -8,6 +8,10 @@ All notable changes to SIGPN-T (Système Intégré de Gestion Numérique de la P
 - HR dossier (birth place, marital status, corps, administrative status, service dates), append-only career history, `hr:*` permissions, roles `HR_DIRECTOR` / `HR_OFFICER`, HR menu and pages (FR/AR), REST API `/api/v1/hr/*`, station type `DELEGATION` (see `docs/RESSOURCES_HUMAINES.md`).
 - Migration `20261105170000_hr_dossier_career` (additive; backfills corps and recruitment events).
 
+## [0.7.0] — 2026-11-06 — « Module Ressources humaines »
+
+Release of the HR module (phases 3 to 10 and section 8 below). Production start-up now synchronises permissions, system roles and the 23 official provinces at every boot and can create the first administrator once from `BOOTSTRAP_ADMIN_*`; the HR scheduler and bootstrap variables are in `deploy/docker-compose.yml`. Guides: `docs/RH_GUIDE_EXPLOITATION.md`, `docs/RH_RAPPORT_FINAL.md`.
+
 ## [Unreleased] — 2026-11-06 — « RH, section 8 : solde et avantages »
 
 ### Added

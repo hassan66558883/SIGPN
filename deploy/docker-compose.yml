@@ -46,6 +46,13 @@ services:
       STT_PROVIDER: ${STT_PROVIDER:-simulated}
       STT_API_KEY: ${STT_API_KEY:-}
       TRUST_PROXY: "1"
+      # HR module: in-process scheduler (automatic assignment, end of disciplinary suspensions). Set HR_SCHEDULER=off to run `hr:rotation` from cron instead.
+      HR_SCHEDULER: ${HR_SCHEDULER:-on}
+      HR_SCHEDULER_INTERVAL_MINUTES: ${HR_SCHEDULER_INTERVAL_MINUTES:-60}
+      # First start only: creates the first system administrator when none exists (password change + MFA enrolment forced). Remove afterwards.
+      BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
     volumes:
       - uploads:/data/uploads
       - backups:/data/backups

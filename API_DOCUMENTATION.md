@@ -110,3 +110,79 @@ Records outside the scope answer 404 (no existence leak). Master-data writes (pr
 | `reconciliations` | GET | `cash:view` |
 | `stats`, `reports/{kind}` (`json|csv|pdf`), `search` | GET | `cash:reports` / `cash:view` |
 | `/api/v1/public/verify/deposit/{token}` | GET (public) | — |
+
+## Ressources humaines (`/api/v1/hr/*`)
+
+Généré à partir du code (69 opérations). Toutes passent par `withApi` : authentification (session ou clé d'API), en-tête CSRF pour les sessions, limitation de débit (240 lectures / 60 écritures par minute et par compte), journalisation des refus. Les réponses suivent la convention `{ data, meta? }` / `{ error }`. Voir `docs/RESSOURCES_HUMAINES.md` pour les règles métier.
+
+| Méthode | Chemin | Permission | Description |
+| --- | --- | --- | --- |
+| GET | `/api/v1/hr/attendance` | `hr:view` | the roll-call sheet of a structure for a day (default: today). |
+| PUT | `/api/v1/hr/attendance` | `hr:attendance_record` | record the roll-call (PRESENT / LATE / ABSENT) of a structure for a day. |
+| GET | `/api/v1/hr/attendance/stats` | `hr:view` | presence statistics inside the caller's scope (default: last 30 days). |
+| POST | `/api/v1/hr/career-events` | `hr:career` | record a career decision (promotion, appointment, status, retirement…). |
+| GET | `/api/v1/hr/discipline` | `hr:discipline_view` | disciplinary files in scope (confidential; the access is audited). |
+| POST | `/api/v1/hr/discipline` | `hr:discipline_manage` | open a disciplinary file. |
+| GET | `/api/v1/hr/discipline/:id` | `hr:discipline_view` | the full file with its steps (every read is audited). |
+| POST | `/api/v1/hr/discipline/:id/:action` | `(contrôlée par le service)` | record a step of the procedure, or decide the sanction (each re-checks its permission and scope). |
+| GET | `/api/v1/hr/distinctions` | `hr:view` | distinctions and rewards of an officer. |
+| POST | `/api/v1/hr/distinctions` | `hr:manage` | record a distinction or reward. |
+| GET | `/api/v1/hr/documents` | `hr:view` | the central HR document space inside the caller's scope (confidential ones only with hr:discipline_view). |
+| POST | `/api/v1/hr/documents` | `hr:document_issue` | generate a document (certificate, order, decision, note…); its content is frozen, PDF and Word are rendered on demand. |
+| GET | `/api/v1/hr/documents/:id` | `hr:view` | document metadata (the content is downloaded through /file). |
+| GET | `/api/v1/hr/documents/:id/file` | `hr:view` | generated documents in PDF or Word, uploaded ones as stored. Audited. |
+| POST | `/api/v1/hr/documents/upload` | `hr:document_issue` | POST /api/v1/hr/documents/upload (multipart: file, kind, title, officerId?, confidential?) — supporting file; the type is verified on the content. |
+| GET | `/api/v1/hr/dossiers` | `hr:view` | HR dossiers inside the caller's territorial scope. |
+| GET | `/api/v1/hr/dossiers/:id` | `hr:view` | dossier and career history (the read is audited). |
+| PUT | `/api/v1/hr/dossiers/:id` | `hr:manage` | update identity and administrative data. |
+| GET | `/api/v1/hr/dossiers/:id/competences` | `hr:view` | training history and competences of an officer. |
+| GET | `/api/v1/hr/dossiers/:id/photo` | `hr:view` | identity photo (scope-checked). |
+| POST | `/api/v1/hr/dossiers/:id/photo` | `hr:manage` | POST /api/v1/hr/dossiers/:id/photo (multipart: file) — JPEG or PNG up to 2 MB, verified on the content. |
+| GET | `/api/v1/hr/integrity` | `audit:view` | consistency checks of the HR data (national audit access only). |
+| GET | `/api/v1/hr/leaves` | `hr:view` | leave, permission and absence requests inside the caller's scope. |
+| POST | `/api/v1/hr/leaves` | `(contrôlée par le service)` | file a request (for oneself, or for an officer in scope with hr:leave_request). |
+| POST | `/api/v1/hr/leaves/:id/:action` | `(contrôlée par le service)` | each service re-checks permission, scope and the "not your own request" rule. |
+| GET | `/api/v1/hr/leaves/balance` | `(contrôlée par le service)` | annual leave balance (own balance by default). |
+| GET | `/api/v1/hr/leaves/settings` | `hr:view` | annual leave entitlement. |
+| PUT | `/api/v1/hr/leaves/settings` | `system:settings` | change the annual entitlement (system settings permission). |
+| GET | `/api/v1/hr/pay` | `hr:pay_view` | pay overview: last statements and pending validations (confidential). |
+| GET | `/api/v1/hr/pay/components` | `hr:pay_view` | referential of pay elements (bonuses, allowances, benefits, deductions). |
+| POST | `/api/v1/hr/pay/components` | `hr:pay_manage` | POST /api/v1/hr/pay/components |
+| PUT | `/api/v1/hr/pay/components/:id` | `hr:pay_manage` | change a pay element (applies to future statements only; the code is immutable). |
+| GET | `/api/v1/hr/pay/elements` | `hr:pay_view` | pay elements granted to officers (the access is audited). |
+| POST | `/api/v1/hr/pay/elements` | `hr:pay_manage` | request a pay element for an officer (effective only once another person validates it). |
+| POST | `/api/v1/hr/pay/elements/:id/:action` | `(contrôlée par le service)` | decide needs hr:pay_validate (not the requester), end needs hr:pay_manage (each service checks). |
+| GET | `/api/v1/hr/pay/me` | `(contrôlée par le service)` | the connected officer's own validated pay lines (self-service; nothing else is reachable). |
+| GET | `/api/v1/hr/pay/officers/:id` | `hr:pay_view` | pay elements and validated statement lines of one officer (audited). |
+| GET | `/api/v1/hr/pay/runs` | `hr:pay_view` | monthly pay statements. |
+| POST | `/api/v1/hr/pay/runs` | `hr:pay_manage` | generate (or regenerate a draft) pay statement of the whole force. |
+| GET | `/api/v1/hr/pay/runs/:id` | `hr:pay_view` | totals and breakdown by rank and délégation (audited). |
+| GET | `/api/v1/hr/pay/runs/:id/export` | `hr:pay_export` | CSV of a validated statement for the financial services (counted and audited). |
+| GET | `/api/v1/hr/pay/runs/:id/lines` | `hr:pay_view` | individual lines of a statement (audited). |
+| POST | `/api/v1/hr/pay/runs/:id/validate` | `hr:pay_validate` | validate (and freeze) a statement; never by the person who generated it. |
+| GET | `/api/v1/hr/pay/scale` | `hr:pay_view` | base salary of each rank (current, upcoming, pending, history). |
+| POST | `/api/v1/hr/pay/scale` | `hr:pay_manage` | request a base salary for a rank from a date (pending until another person validates it). |
+| POST | `/api/v1/hr/pay/scale/:id/decide` | `hr:pay_validate` | validate or reject (never one's own request). |
+| GET | `/api/v1/hr/pay/settings` | `hr:pay_view` | share of pay during a disciplinary suspension. |
+| PUT | `/api/v1/hr/pay/settings` | `hr:pay_manage` | PUT /api/v1/hr/pay/settings |
+| GET | `/api/v1/hr/rotation` | `hr:view` | AFFECTATION_AUTOMATIQUE status, parameters, last run and upcoming/due officers in scope. |
+| POST | `/api/v1/hr/rotation/exceptions` | `hr:manage` | exempt an officer from the automatic rotation (administrative exception). |
+| POST | `/api/v1/hr/rotation/exceptions/:id/end` | `hr:manage` | POST /api/v1/hr/rotation/exceptions/:id/end |
+| POST | `/api/v1/hr/rotation/run` | `hr:transfer_review` | run one pass now (no-op while the feature is disabled). |
+| GET | `/api/v1/hr/rotation/settings` | `hr:view` | GET /api/v1/hr/rotation/settings |
+| PUT | `/api/v1/hr/rotation/settings` | `hr:auto_assign_config` | activate/deactivate AFFECTATION_AUTOMATIQUE and set its parameters. |
+| GET | `/api/v1/hr/skills` | `hr:view` | competence referential. |
+| POST | `/api/v1/hr/skills` | `hr:training_manage` | add a competence. |
+| GET | `/api/v1/hr/stats` | `hr:view` | HR statistics inside the caller's scope (stock figures today, flow figures over the period). |
+| GET | `/api/v1/hr/stats/export` | `hr:view` | the same figures as a CSV file (audited). |
+| GET | `/api/v1/hr/stats/settings` | `hr:view` | retirement age and promotion seniority used by the statistics. |
+| PUT | `/api/v1/hr/stats/settings` | `system:settings` | change them (system settings permission). |
+| GET | `/api/v1/hr/trainings` | `hr:view` | trainings of officers inside the caller's scope. |
+| GET | `/api/v1/hr/trainings/:id/certificate` | `hr:view` | the attestation PDF (only once issued; audited). |
+| POST | `/api/v1/hr/trainings/:id/certificate` | `hr:training_manage` | issue the attestation of a passed training. |
+| POST | `/api/v1/hr/trainings/:id/evaluate` | `hr:training_manage` | final evaluation; grants competences on success. |
+| GET | `/api/v1/hr/transfers` | `hr:view` | transfers whose origin or destination is in the caller's scope. |
+| POST | `/api/v1/hr/transfers` | `hr:transfer_propose` | propose a transfer (enters the validation circuit; nothing moves yet). |
+| GET | `/api/v1/hr/transfers/:id` | `hr:view` | GET /api/v1/hr/transfers/:id |
+| POST | `/api/v1/hr/transfers/:id/:action` | `(contrôlée par le service)` | the circuit steps. Each service re-checks its own permission, the four-eyes rule and the scope; nothing here trusts the caller. |
+| GET | `/api/v1/hr/transfers/:id/decision` | `hr:view` | the decision, only once the competent authority validated (audited). |
