@@ -18,7 +18,7 @@ function NavList({ sections, onNavigate }: { sections: SidebarSection[]; onNavig
           {section.title ? <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-widest text-white/45">{section.title}</p> : null}
           <ul className="space-y-0.5">
             {section.items.map((item) => {
-              const active = pathname === item.href || (item.href !== "/dashboard" && item.href !== "/traffic" && item.href !== "/traffic/cash" && pathname.startsWith(`${item.href}/`));
+              const active = pathname === item.href || (item.href !== "/dashboard" && item.href !== "/traffic" && item.href !== "/traffic/cash" && item.href !== "/hr" && pathname.startsWith(`${item.href}/`));
               return (
                 <li key={item.href}>
                   <Link

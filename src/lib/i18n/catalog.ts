@@ -22,6 +22,8 @@ export const ROLE_NAMES_FR: Record<string, string> = {
   FORENSIC_OFFICER: "Agent de police scientifique",
   PROSECUTOR: "Procureur",
   POLICE_ADMIN: "Administrateur police",
+  HR_DIRECTOR: "Directeur des ressources humaines",
+  HR_OFFICER: "Agent du service RH",
   OFFICER: "Officier de police",
   TRAFFIC_OFFICER: "Agent de circulation",
   TRAFFIC_CONTROL_AGENT: "Agent de contrôle routier",
@@ -49,6 +51,8 @@ export const ROLE_NAMES_AR: Record<string, string> = {
   FORENSIC_OFFICER: "ضابط الأدلة الجنائية",
   PROSECUTOR: "وكيل النيابة",
   POLICE_ADMIN: "مسؤول إدارة الشرطة",
+  HR_DIRECTOR: "مدير الموارد البشرية",
+  HR_OFFICER: "موظف مصلحة الموارد البشرية",
   OFFICER: "ضابط شرطة",
   TRAFFIC_OFFICER: "عون المرور",
   TRAFFIC_CONTROL_AGENT: "عون المراقبة الطرقية",
@@ -75,6 +79,8 @@ export const ROLE_DESCRIPTIONS_FR: Record<string, string> = {
   BIOMETRIC_OFFICER: "Effectue les recherches d'empreintes, de visage, de voix et de plaques (ANPR) et enregistre la vérification par l'enquêteur.",
   FORENSIC_OFFICER: "Gère les pièces à conviction et la chaîne de possession ; enregistre les gabarits biométriques et effectue des recherches d'empreintes.",
   PROSECUTOR: "Supervision judiciaire : lecture seule des affaires, pièces et activité biométrique, y compris les dossiers sensibles et confidentiels.",
+  HR_DIRECTOR: "Direction des ressources humaines : dossiers RH et décisions de carrière (nomination, promotion, statut, retraite) pour toute la police.",
+  HR_OFFICER: "Service des ressources humaines : tient à jour les dossiers RH ; ne peut pas enregistrer de décisions de carrière.",
   POLICE_ADMIN: "Administration nationale du système d'information de la police : utilisateurs, organisation et toutes les fonctions de circulation routière, hors paramètres de sécurité système et sauvegardes.",
   OFFICER: "Officier de police (OPJ) : enregistre les contrôles routiers et les PV, tient à jour les fiches conducteurs et véhicules, enregistre les personnes.",
   TRAFFIC_OFFICER: "Agent de la police de la circulation : contrôles routiers, procès-verbal électronique, photos de preuve, fiches conducteurs et véhicules.",
@@ -102,6 +108,8 @@ export const ROLE_DESCRIPTIONS_AR: Record<string, string> = {
   BIOMETRIC_OFFICER: "يجري عمليات البحث بالبصمات والوجه والصوت واللوحات (ANPR) ويسجل تحقق المحقق.",
   FORENSIC_OFFICER: "يدير الأدلة وسلسلة الحيازة؛ يسجل القوالب البيومترية ويجري عمليات البحث بالبصمات.",
   PROSECUTOR: "إشراف قضائي: قراءة فقط للقضايا والأدلة والنشاط البيومتري، بما في ذلك الملفات الحساسة والسرية.",
+  HR_DIRECTOR: "مديرية الموارد البشرية: الملفات الإدارية وقرارات المسار المهني (التعيين، الترقية، الوضعية، التقاعد) لكامل الشرطة.",
+  HR_OFFICER: "مصلحة الموارد البشرية: تحدّث الملفات الإدارية ولا تسجّل قرارات المسار المهني.",
   POLICE_ADMIN: "إدارة وطنية لنظام معلومات الشرطة: المستخدمون والتنظيم وجميع وظائف المرور الطرقي، دون إعدادات أمان النظام والنسخ الاحتياطي.",
   OFFICER: "ضابط شرطة (ضابط شرطة قضائية): يسجل المراقبات الطرقية ومحاضر المخالفات، ويحدّث بطاقات السائقين والمركبات، ويسجل الأشخاص.",
   TRAFFIC_OFFICER: "عون شرطة المرور: المراقبات الطرقية، محضر المخالفة الإلكتروني، صور الإثبات، بطاقات السائقين والمركبات.",
@@ -252,6 +260,9 @@ export const PERMISSION_DESCRIPTIONS_FR: Record<string, string> = {
   "cash:reconcile": "Gérer les rapprochements et traiter les écarts de caisse",
   "cash:reports": "Consulter et exporter les rapports financiers et le tableau de bord des recettes",
   "cash:block": "Bloquer ou débloquer la caisse d'un agent",
+  "hr:view": "Consulter les dossiers RH et l'historique de carrière dans le périmètre",
+  "hr:manage": "Modifier le dossier RH d'un policier (identité, corps, données administratives)",
+  "hr:career": "Enregistrer les décisions de carrière : nomination, promotion, changement de fonction, statut, retraite",
 };
 
 export const PERMISSION_DESCRIPTIONS_AR: Record<string, string> = {
@@ -382,6 +393,9 @@ export const PERMISSION_DESCRIPTIONS_AR: Record<string, string> = {
   "cash:reconcile": "إدارة المطابقات ومعالجة فوارق الصندوق",
   "cash:reports": "الاطلاع على التقارير المالية ولوحة الإيرادات وتصديرها",
   "cash:block": "حظر صندوق عون أو رفع الحظر عنه",
+  "hr:view": "الاطلاع على الملفات الإدارية للموارد البشرية والمسار المهني ضمن النطاق",
+  "hr:manage": "تعديل الملف الإداري لشرطي (الهوية، السلك، البيانات الإدارية)",
+  "hr:career": "تسجيل قرارات المسار المهني: التعيين، الترقية، تغيير الوظيفة، الوضعية، التقاعد",
 };
 
 export function permissionDescription(code: string, stored: string, locale: Locale): string {

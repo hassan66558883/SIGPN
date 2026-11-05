@@ -83,6 +83,7 @@ const INVESTIGATIVE_WRITE: Permission[] = [
 ];
 
 const COMMAND: Permission[] = [
+  "hr:view",
   "complaints:review",
   "complaints:assign",
   "complaints:convert",
@@ -115,6 +116,10 @@ const COMMAND: Permission[] = [
   "users:reset_password",
   "users:manage_sessions",
 ];
+
+/** Human resources: HR service (dossiers) and HR director (dossiers + career decisions). */
+const HR_SERVICE: Permission[] = ["dashboard:view", "org:view", "officers:view", "officers:manage", "hr:view", "hr:manage", "statistics:view", "documents:view", "apikeys:manage_own"];
+const HR_DIRECTION: Permission[] = [...HR_SERVICE, "hr:career", "reports:view", "reports:generate", "audit:view"];
 
 export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
   {
@@ -254,6 +259,22 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     permissions: [...READ_ALL, ...COMMAND, "cases:archive", "audit:view", "org:manage", ...TRAFFIC_ALL, ...CASH_READ],
   },
   {
+    code: "HR_DIRECTOR",
+    name: "HR Director",
+    description: "Direction des ressources humaines: HR dossiers and career decisions (promotion, appointment, status, retirement) for the whole police.",
+    scopeLevel: "NATIONAL",
+    requiresMfa: true,
+    permissions: HR_DIRECTION,
+  },
+  {
+    code: "HR_OFFICER",
+    name: "HR Service Officer",
+    description: "Human resources service: maintains HR dossiers; cannot record career decisions.",
+    scopeLevel: "NATIONAL",
+    requiresMfa: true,
+    permissions: HR_SERVICE,
+  },
+  {
     code: "OFFICER",
     name: "Police Officer",
     description: "Police officer (OPJ): records traffic controls and PV, maintains driver and vehicle records, registers persons.",
@@ -316,5 +337,8 @@ export const TRAFFIC_DEFAULT_GRANTS: Record<string, readonly Permission[]> = Obj
 
 /** `cash:*` permissions granted by default to each system role (applied once to already-seeded databases). */
 export const CASH_DEFAULT_GRANTS: Record<string, readonly Permission[]> = Object.fromEntries(SYSTEM_ROLES.map((r) => [r.code, r.permissions.filter((p) => p.startsWith("cash:"))]));
+
+/** `hr:*` permissions granted by default to each system role (applied once to already-seeded databases). */
+export const HR_DEFAULT_GRANTS: Record<string, readonly Permission[]> = Object.fromEntries(SYSTEM_ROLES.map((r) => [r.code, r.permissions.filter((p) => p.startsWith("hr:"))]));
 
 export const ROLE_CODES = SYSTEM_ROLES.map((r) => r.code);

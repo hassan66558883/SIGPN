@@ -77,6 +77,7 @@ export const SEVERITY: LabelMap = {
 
 export const STATION_TYPE: LabelMap = {
   HEADQUARTERS: def("Direction générale", "الإدارة العامة", "violet"),
+  DELEGATION: def("Délégation de police", "مندوبية الشرطة", "violet"),
   PROVINCIAL_DIRECTION: def("Direction provinciale", "المديرية الإقليمية", "violet"),
   DEPARTMENTAL_DIRECTION: def("Direction départementale", "المديرية المحافظاتية", "info"),
   CENTRAL_STATION: def("Commissariat central", "المركز المركزي", "info"),
@@ -85,6 +86,30 @@ export const STATION_TYPE: LabelMap = {
   UNIT: def("Unité", "وحدة", "neutral"),
   BRIGADE: def("Brigade", "لواء", "neutral"),
   SPECIAL_UNIT: def("Unité spéciale", "وحدة خاصة", "warning"),
+};
+
+export const ADMINISTRATIVE_STATUS: LabelMap = {
+  ACTIVE: def("En activité", "في الخدمة", "success"),
+  SECONDED: def("Détaché", "ملحق", "info"),
+  AT_DISPOSAL: def("Mis à disposition", "موضوع تحت التصرف", "info"),
+  SUSPENDED: def("Suspendu", "موقوف", "warning"),
+  RETIRED: def("Retraité", "متقاعد", "neutral"),
+  CEASED: def("Cessation de service", "انتهاء الخدمة", "neutral"),
+  DECEASED: def("Décédé", "متوفى", "neutral"),
+};
+
+export const CAREER_EVENT_TYPE: LabelMap = {
+  RECRUITMENT: def("Recrutement", "توظيف", "info"),
+  APPOINTMENT: def("Nomination", "تعيين", "info"),
+  PROMOTION: def("Promotion de grade", "ترقية في الرتبة", "success"),
+  ADVANCEMENT: def("Avancement", "ترقية في الدرجة", "success"),
+  FUNCTION_CHANGE: def("Changement de fonction", "تغيير الوظيفة", "info"),
+  TRANSFER: def("Mutation", "نقل", "violet"),
+  SECONDMENT: def("Détachement", "إلحاق", "warning"),
+  AT_DISPOSAL: def("Mise à disposition", "وضع تحت التصرف", "warning"),
+  REINSTATEMENT: def("Réintégration", "إعادة إدماج", "success"),
+  RETIREMENT: def("Départ à la retraite", "إحالة على التقاعد", "neutral"),
+  CESSATION: def("Cessation de service", "إنهاء الخدمة", "danger"),
 };
 
 export const DEPARTMENT_TYPE: LabelMap = {

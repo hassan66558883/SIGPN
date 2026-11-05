@@ -181,6 +181,7 @@ model User {
   backups                    BackupRecord[]
   officerAssignments         OfficerAssignment[]
   trainingsRecorded          Training[]
+  careerEventsRecorded       CareerEvent[]
   maintenanceRecorded        MaintenanceRecord[]
   fuelLogs                   FuelLog[]
   fingerprintsCaptured       FingerprintRecord[]        @relation("BiometricCapturedBy")
@@ -422,6 +423,7 @@ model Locality {
 
 enum StationType {
   HEADQUARTERS
+  DELEGATION
   PROVINCIAL_DIRECTION
   DEPARTMENTAL_DIRECTION
   CENTRAL_STATION
@@ -600,6 +602,18 @@ model Officer {
   updatedAt    DateTime    @updatedAt
   deletedAt    DateTime?
 
+  // --- HR dossier (module RH) ---
+  birthPlace           String?
+  maritalStatus        MaritalStatus?
+  photoPath            String?
+  corpsId              String?
+  corps                Corps?               @relation(fields: [corpsId], references: [id])
+  administrativeStatus AdministrativeStatus @default(ACTIVE)
+  serviceStartDate     DateTime?
+  /// Date of taking up the current post (drives the 12-month rotation, phase 5).
+  currentPostSince     DateTime?
+  careerEvents         CareerEvent[]
+
   commandsStation     Station?            @relation("StationCommander")
   headsDepartment     Department?         @relation("DepartmentHead")
   assignments         OfficerAssignment[]
@@ -640,6 +654,64 @@ model OfficerAssignment {
   createdAt    DateTime    @default(now())
 
   @@index([officerId, startDate])
+}
+
+/// Corps of the Police nationale (referential, editable by HR administrators).
+model Corps {
+  id       String    @id @default(cuid())
+  code     String    @unique
+  name     String
+  isActive Boolean   @default(true)
+  officers Officer[]
+}
+
+enum AdministrativeStatus {
+  ACTIVE
+  SECONDED
+  AT_DISPOSAL
+  SUSPENDED
+  RETIRED
+  CEASED
+  DECEASED
+}
+
+enum CareerEventType {
+  RECRUITMENT
+  APPOINTMENT
+  PROMOTION
+  ADVANCEMENT
+  FUNCTION_CHANGE
+  TRANSFER
+  SECONDMENT
+  AT_DISPOSAL
+  REINSTATEMENT
+  RETIREMENT
+  CESSATION
+}
+
+/// Append-only career history of an officer (every change of grade, function, status or posting).
+model CareerEvent {
+  id             String                @id @default(cuid())
+  officerId      String
+  officer        Officer               @relation(fields: [officerId], references: [id])
+  type           CareerEventType
+  effectiveDate  DateTime
+  reference      String
+  reason         String?
+  fromRankId     String?
+  toRankId       String?
+  fromPositionId String?
+  toPositionId   String?
+  fromStationId  String?
+  toStationId    String?
+  fromStatus     AdministrativeStatus?
+  toStatus       AdministrativeStatus?
+  recordedById   String?
+  recordedBy     User?                 @relation(fields: [recordedById], references: [id])
+  createdAt      DateTime              @default(now())
+
+  @@index([officerId, effectiveDate])
+  @@index([type, effectiveDate])
 }
 
 /// Fonction (post/duty title) referential, e.g. Commissaire, Chef de service, Officier de police judiciaire.

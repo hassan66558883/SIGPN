@@ -146,6 +146,10 @@ export const PERMISSION_CATALOG = [
   ["cash:reconcile", "Manage reconciliations and process cash discrepancies"],
   ["cash:reports", "View and export financial revenue reports and the revenue dashboard"],
   ["cash:block", "Block or unblock an agent's cash register"],
+  // human resources (dossiers, career)
+  ["hr:view", "View HR dossiers and career history within scope"],
+  ["hr:manage", "Edit the HR dossier of an officer (identity, corps, administrative data)"],
+  ["hr:career", "Record career decisions: appointment, promotion, change of function, status, retirement"],
   // self-service
   ["apikeys:manage_own", "Create/revoke own API keys"],
 ] as const;

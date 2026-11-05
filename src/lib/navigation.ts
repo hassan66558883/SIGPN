@@ -88,6 +88,13 @@ export const NAVIGATION: NavSection[] = [
     ],
   },
   {
+    titleKey: "hr.section",
+    items: [
+      { href: "/hr", labelKey: "nav.hr.overview", permission: "hr:view", icon: "◆" },
+      { href: "/hr/dossiers", labelKey: "nav.hr.dossiers", permission: "hr:view", icon: "▤" },
+    ],
+  },
+  {
     titleKey: "nav.section.administration",
     items: [
       { href: "/admin/organization", labelKey: "nav.organization", permission: "org:view", icon: "⌂" },

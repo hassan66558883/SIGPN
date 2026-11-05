@@ -2,6 +2,12 @@
 
 All notable changes to SIGPN-T (Système Intégré de Gestion Numérique de la Police Nationale du Tchad, formerly TPMS). Dates are ISO (UTC+1, N'Djamena).
 
+## [Unreleased] — 2026-11-05 — « RH, phase 3 : dossier individuel et carrière »
+
+### Added
+- HR dossier (birth place, marital status, corps, administrative status, service dates), append-only career history, `hr:*` permissions, roles `HR_DIRECTOR` / `HR_OFFICER`, HR menu and pages (FR/AR), REST API `/api/v1/hr/*`, station type `DELEGATION` (see `docs/RESSOURCES_HUMAINES.md`).
+- Migration `20261105170000_hr_dossier_career` (additive; backfills corps and recruitment events).
+
 ## [0.6.0] — 2026-09-27 — « Gestion des recettes et versements »
 
 ### Added

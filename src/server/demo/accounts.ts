@@ -24,6 +24,8 @@ export const DEMO_ACCOUNTS = [
   { username: "forensic.cs1", roleCode: "FORENSIC_OFFICER", roleName: "Forensic Officer", firstName: "Zara", lastName: "Nadjita", hint: "Commissariat Central N'Djamena · MFA required", station: "CS-01" },
   { username: "prosecutor.cs1", roleCode: "PROSECUTOR", roleName: "Prosecutor", firstName: "Youssouf", lastName: "Tahir", hint: "Commissariat Central N'Djamena · MFA required", station: "CS-01" },
   { username: "police.admin", roleCode: "POLICE_ADMIN", roleName: "Police Administrator", firstName: "Abdelaziz", lastName: "Mahamat", hint: "Administrateur police · national · MFA required" },
+  { username: "hr.director", roleCode: "HR_DIRECTOR", roleName: "HR Director", firstName: "Halimé", lastName: "Brahim", hint: "Direction des ressources humaines · national · MFA required" },
+  { username: "hr.service", roleCode: "HR_OFFICER", roleName: "HR Service Officer", firstName: "Tidjani", lastName: "Saleh", hint: "Service RH · national · MFA required" },
   { username: "officer.cs1", roleCode: "OFFICER", roleName: "Police Officer", firstName: "Nodjiel", lastName: "Ngarta", hint: "Officier · Commissariat Central N'Djamena", station: "CS-01" },
   { username: "traffic.cs1", roleCode: "TRAFFIC_OFFICER", roleName: "Traffic Officer", firstName: "Moussa", lastName: "Ali", hint: "Agent de circulation · Commissariat Central N'Djamena", station: "CS-01" },
   { username: "control.cs1", roleCode: "TRAFFIC_CONTROL_AGENT", roleName: "Traffic Control Agent", firstName: "Kadidja", lastName: "Oumar", hint: "Agent de contrôle · Commissariat Central N'Djamena", station: "CS-01" },
