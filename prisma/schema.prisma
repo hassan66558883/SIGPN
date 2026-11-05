@@ -185,6 +185,9 @@ model User {
   rotationExceptionsCreated  RotationException[]
   leavesRequested            LeaveRequest[]             @relation("LeaveRequestedBy")
   leavesDecided              LeaveRequest[]             @relation("LeaveDecidedBy")
+  disciplineOpened           DisciplinaryCase[]         @relation("DisciplineOpenedBy")
+  disciplineDecided          DisciplinaryCase[]         @relation("DisciplineDecidedBy")
+  hrDocumentsCreated         HrDocument[]
   transfersProposed          TransferRequest[]          @relation("TransferProposedBy")
   transfersReviewed          TransferRequest[]          @relation("TransferReviewedBy")
   transfersValidated         TransferRequest[]          @relation("TransferValidatedBy")
@@ -506,6 +509,7 @@ model Station {
   transfersTo        TransferRequest[]          @relation("TransferTo")
   attendance         AttendanceRecord[]
   leaveRequests      LeaveRequest[]
+  hrDocuments        HrDocument[]
 
   @@index([regionId])
   @@index([adminDepartmentId])
@@ -629,6 +633,9 @@ model Officer {
   attendance           AttendanceRecord[]
   leaveRequests        LeaveRequest[]
   skills               OfficerSkill[]
+  disciplinaryCases    DisciplinaryCase[]
+  distinctions         Distinction[]
+  hrDocuments          HrDocument[]
 
   commandsStation     Station?            @relation("StationCommander")
   headsDepartment     Department?         @relation("DepartmentHead")
@@ -704,6 +711,7 @@ enum CareerEventType {
   REINSTATEMENT
   RETIREMENT
   CESSATION
+  SUSPENSION
 }
 
 /// Append-only career history of an officer (every change of grade, function, status or posting).
@@ -856,6 +864,140 @@ model LeaveRequest {
   @@index([officerId, startDate])
   @@index([status, createdAt])
   @@index([stationId, status])
+}
+
+enum DisciplineStatus {
+  OPEN
+  IN_PROCEDURE
+  DECIDED
+  CLOSED
+}
+
+enum DisciplineStepKind {
+  NOTIFICATION
+  HEARING
+  REPORT
+  NOTE
+}
+
+enum SanctionKind {
+  NO_ACTION
+  WARNING
+  REPRIMAND
+  SUSPENSION
+  DISMISSAL
+}
+
+/// Disciplinary procedure. Strictly confidential: every read is audited and needs hr:discipline_view.
+model DisciplinaryCase {
+  id             String             @id @default(cuid())
+  number         String             @unique
+  officerId      String
+  officer        Officer            @relation(fields: [officerId], references: [id])
+  stationId      String
+  facts          String
+  factsDate      DateTime           @db.Date
+  status         DisciplineStatus   @default(OPEN)
+  openedById     String?
+  openedBy       User?              @relation("DisciplineOpenedBy", fields: [openedById], references: [id])
+  sanction       SanctionKind?
+  sanctionStart  DateTime?          @db.Date
+  sanctionEnd    DateTime?          @db.Date
+  sanctionActive Boolean            @default(false)
+  decisionNumber String?            @unique
+  decisionReason String?
+  decidedById    String?
+  decidedBy      User?              @relation("DisciplineDecidedBy", fields: [decidedById], references: [id])
+  decidedAt      DateTime?
+  closedAt       DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  steps          DisciplinaryStep[]
+
+  @@index([officerId])
+  @@index([status])
+  @@index([stationId])
+}
+
+model DisciplinaryStep {
+  id           String             @id @default(cuid())
+  caseId       String
+  case         DisciplinaryCase   @relation(fields: [caseId], references: [id])
+  kind         DisciplineStepKind
+  date         DateTime           @db.Date
+  note         String
+  recordedById String?
+  createdAt    DateTime           @default(now())
+
+  @@index([caseId, date])
+}
+
+enum DistinctionKind {
+  COMMENDATION
+  CITATION
+  MEDAL
+  REWARD
+}
+
+model Distinction {
+  id           String          @id @default(cuid())
+  officerId    String
+  officer      Officer         @relation(fields: [officerId], references: [id])
+  kind         DistinctionKind
+  title        String
+  reason       String?
+  reference    String?
+  awardedAt    DateTime        @db.Date
+  recordedById String?
+  createdAt    DateTime        @default(now())
+
+  @@index([officerId, awardedAt])
+}
+
+enum HrDocumentKind {
+  ASSIGNMENT_DECISION
+  APPOINTMENT_ORDER
+  TRANSFER_DECISION
+  WORK_CERTIFICATE
+  TRAINING_DOCUMENT
+  ADMIN_FILE
+  DISCIPLINARY_DOCUMENT
+  SERVICE_NOTE
+}
+
+enum HrDocumentSource {
+  GENERATED
+  UPLOADED
+}
+
+/// Central HR document space. GENERATED documents keep a frozen content snapshot (rendered to PDF or Word on demand);
+/// UPLOADED ones keep the stored file. CONFIDENTIAL documents need hr:discipline_view.
+model HrDocument {
+  id           String           @id @default(cuid())
+  number       String           @unique
+  kind         HrDocumentKind
+  title        String
+  source       HrDocumentSource
+  confidential Boolean          @default(false)
+  officerId    String?
+  officer      Officer?         @relation(fields: [officerId], references: [id])
+  stationId    String?
+  station      Station?         @relation(fields: [stationId], references: [id])
+  relatedType  String?
+  relatedId    String?
+  snapshot     Json?
+  storagePath  String?
+  fileName     String?
+  mimeType     String?
+  sizeBytes    Int?
+  sha256       String?
+  createdById  String?
+  createdBy    User?            @relation(fields: [createdById], references: [id])
+  createdAt    DateTime         @default(now())
+
+  @@index([officerId, createdAt])
+  @@index([kind, createdAt])
+  @@index([stationId])
 }
 
 /// Competence referential and the competences held by officers (granted by evaluated trainings).

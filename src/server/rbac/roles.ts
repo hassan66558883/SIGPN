@@ -122,8 +122,8 @@ const COMMAND: Permission[] = [
 ];
 
 /** Human resources: HR service (dossiers) and HR director (dossiers + career decisions). */
-const HR_SERVICE: Permission[] = ["dashboard:view", "org:view", "officers:view", "officers:manage", "hr:view", "hr:manage", "hr:transfer_propose", "hr:transfer_review", "hr:attendance_record", "hr:leave_request", "hr:training_manage", "statistics:view", "documents:view", "apikeys:manage_own"];
-const HR_DIRECTION: Permission[] = [...HR_SERVICE, "hr:leave_approve", "hr:career", "reports:view", "reports:generate", "audit:view"];
+const HR_SERVICE: Permission[] = ["dashboard:view", "org:view", "officers:view", "officers:manage", "hr:view", "hr:manage", "hr:transfer_propose", "hr:transfer_review", "hr:attendance_record", "hr:leave_request", "hr:training_manage", "hr:document_issue", "statistics:view", "documents:view", "apikeys:manage_own"];
+const HR_DIRECTION: Permission[] = [...HR_SERVICE, "hr:leave_approve", "hr:discipline_view", "hr:discipline_manage", "hr:career", "reports:view", "reports:generate", "audit:view"];
 
 export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
   {
@@ -140,7 +140,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     description: "National oversight: reads everything, approves warrants, wanted notices, operations and reports.",
     scopeLevel: "NATIONAL",
     requiresMfa: true,
-    permissions: [...READ_ALL, ...COMMAND, "hr:transfer_validate", "cases:archive", "audit:view", ...TRAFFIC_SUPERVISION],
+    permissions: [...READ_ALL, ...COMMAND, "hr:transfer_validate", "hr:discipline_view", "hr:discipline_manage", "hr:discipline_decide", "cases:archive", "audit:view", ...TRAFFIC_SUPERVISION],
   },
   {
     code: "REGIONAL_COMMANDER",
@@ -148,7 +148,7 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     description: "Commands all stations of a region.",
     scopeLevel: "REGIONAL",
     requiresMfa: true,
-    permissions: [...READ_ALL, ...INVESTIGATIVE_WRITE, ...COMMAND, "hr:transfer_validate", "cases:archive", "warrants:execute", "org:manage", ...TRAFFIC_SUPERVISION, ...TRAFFIC_FIELD],
+    permissions: [...READ_ALL, ...INVESTIGATIVE_WRITE, ...COMMAND, "hr:transfer_validate", "hr:discipline_view", "hr:discipline_manage", "hr:discipline_decide", "cases:archive", "warrants:execute", "org:manage", ...TRAFFIC_SUPERVISION, ...TRAFFIC_FIELD],
   },
   {
     code: "DEPARTMENTAL_COMMANDER",

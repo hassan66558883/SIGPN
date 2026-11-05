@@ -158,6 +158,10 @@ export const PERMISSION_CATALOG = [
   ["hr:leave_request", "File leave, permission and absence requests on behalf of officers within scope"],
   ["hr:leave_approve", "Approve or reject leave, permission and absence requests within scope"],
   ["hr:training_manage", "Evaluate trainings, grant competences and issue training certificates"],
+  ["hr:discipline_view", "View disciplinary files (strictly confidential, every read is audited)"],
+  ["hr:discipline_manage", "Open disciplinary cases and record the steps of the procedure"],
+  ["hr:discipline_decide", "Decide the sanction of a disciplinary case within scope"],
+  ["hr:document_issue", "Generate HR documents (certificates, orders, service notes) and upload supporting files"],
   // self-service
   ["apikeys:manage_own", "Create/revoke own API keys"],
 ] as const;

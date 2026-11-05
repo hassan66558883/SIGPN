@@ -8,6 +8,11 @@ All notable changes to SIGPN-T (Système Intégré de Gestion Numérique de la P
 - HR dossier (birth place, marital status, corps, administrative status, service dates), append-only career history, `hr:*` permissions, roles `HR_DIRECTOR` / `HR_OFFICER`, HR menu and pages (FR/AR), REST API `/api/v1/hr/*`, station type `DELEGATION` (see `docs/RESSOURCES_HUMAINES.md`).
 - Migration `20261105170000_hr_dossier_career` (additive; backfills corps and recruitment events).
 
+## [Unreleased] — 2026-11-05 — « RH, phase 7 : discipline, documents et photo »
+
+### Added
+- Confidential disciplinary procedure (audited reads, rights of the defence, four-eyes, suspension with automatic reinstatement, dismissal), distinctions, central HR document space with frozen content rendered to PDF and Word (`docx` dependency), content-verified uploads, identity photo; permissions `hr:discipline_*`, `hr:document_issue`; migration `20261105210000_hr_discipline_documents`. See `docs/RESSOURCES_HUMAINES.md`.
+
 ## [Unreleased] — 2026-11-05 — « RH, phase 6 : présences, congés et formations »
 
 ### Added

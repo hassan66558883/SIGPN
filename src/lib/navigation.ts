@@ -97,6 +97,8 @@ export const NAVIGATION: NavSection[] = [
       { href: "/hr/attendance", labelKey: "nav.hr.attendance", permission: "hr:view", icon: "✓" },
       { href: "/hr/leaves", labelKey: "nav.hr.leaves", permission: "hr:view", icon: "☀" },
       { href: "/hr/training", labelKey: "nav.hr.training", permission: "hr:view", icon: "✎" },
+      { href: "/hr/documents", labelKey: "nav.hr.documents", permission: "hr:view", icon: "▭" },
+      { href: "/hr/discipline", labelKey: "nav.hr.discipline", permission: "hr:discipline_view", icon: "⚖" },
       { href: "/hr/leaves/mine", labelKey: "nav.hr.myLeaves", permission: "dashboard:view", icon: "☺" },
     ],
   },

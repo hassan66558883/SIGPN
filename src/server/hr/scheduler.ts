@@ -1,5 +1,6 @@
 import "server-only";
 import { runRotation } from "@/server/hr/rotation";
+import { applyDueDiscipline } from "@/server/hr/discipline";
 
 /**
  * In-process scheduler of the automatic assignment. Started once per server instance by `src/instrumentation.ts`.
@@ -17,6 +18,9 @@ export function startRotationScheduler() {
     if (running) return;
     running = true;
     try {
+      // Disciplinary suspensions start and end on their dates whatever the rotation switch says.
+      const d = await applyDueDiscipline();
+      if (d.started || d.ended) console.log(`[hr-discipline] ${d.started} suspension(s) started, ${d.ended} ended`);
       const r = await runRotation({ trigger: "SCHEDULER" });
       if (r.enabled && (r.proposals || r.upcomingAlerts || r.executedDue || r.failedExecutions)) console.log(`[hr-rotation] ${r.proposals} proposal(s), ${r.upcomingAlerts} alert(s), ${r.executedDue} executed, ${r.failedExecutions} failed`);
     } catch (e) {

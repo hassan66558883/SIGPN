@@ -270,6 +270,10 @@ export const PERMISSION_DESCRIPTIONS_FR: Record<string, string> = {
   "hr:leave_request": "Déposer des demandes de congé, permission et absence pour les agents du périmètre",
   "hr:leave_approve": "Approuver ou rejeter les demandes de congé, permission et absence du périmètre",
   "hr:training_manage": "Évaluer les formations, accorder des compétences et délivrer des attestations de formation",
+  "hr:discipline_view": "Consulter les dossiers disciplinaires (strictement confidentiel, chaque lecture est journalisée)",
+  "hr:discipline_manage": "Ouvrir des dossiers disciplinaires et enregistrer les étapes de la procédure",
+  "hr:discipline_decide": "Décider la sanction d'un dossier disciplinaire dans le périmètre",
+  "hr:document_issue": "Générer des documents RH (attestations, arrêtés, notes de service) et téléverser des justificatifs",
   "hr:career": "Enregistrer les décisions de carrière : nomination, promotion, changement de fonction, statut, retraite",
 };
 
@@ -411,6 +415,10 @@ export const PERMISSION_DESCRIPTIONS_AR: Record<string, string> = {
   "hr:leave_request": "تقديم طلبات العطل والرخص والغياب لأعوان النطاق",
   "hr:leave_approve": "الموافقة على طلبات العطل والرخص والغياب أو رفضها ضمن النطاق",
   "hr:training_manage": "تقييم التكوينات ومنح الكفاءات وإصدار شهادات التكوين",
+  "hr:discipline_view": "الاطلاع على الملفات التأديبية (سرّية تامة، وتُسجَّل كل قراءة)",
+  "hr:discipline_manage": "فتح ملفات تأديبية وتسجيل مراحل الإجراء",
+  "hr:discipline_decide": "البت في عقوبة ملف تأديبي ضمن النطاق",
+  "hr:document_issue": "إنشاء وثائق الموارد البشرية (شهادات، قرارات، مذكرات خدمة) ورفع المؤيدات",
   "hr:career": "تسجيل قرارات المسار المهني: التعيين، الترقية، تغيير الوظيفة، الوضعية، التقاعد",
 };
 

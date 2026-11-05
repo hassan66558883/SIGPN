@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePermission } from "@/server/auth/dal";
 import { careerHistory, getDossier, listCorps } from "@/server/hr/service";
 import { listExceptions } from "@/server/hr/rotation";
 import { leaveBalance, officerLeaves } from "@/server/hr/attendance";
 import { officerCompetences } from "@/server/hr/training";
+import { listDistinctions, officerDisciplineSummary } from "@/server/hr/discipline";
+import { listDocuments } from "@/server/hr/documents";
 import { MANUAL_CAREER_EVENTS } from "@/server/hr/schemas";
 import { getRequestContext } from "@/server/request-context";
 import { listPositions } from "@/server/org/personnel";
 import { orgReferences } from "@/server/org/queries";
 import { NotFoundError } from "@/server/errors";
 import { Alert, Badge, ButtonLink, Card, DL, EmptyState, PageHeader, Table } from "@/components/ui";
-import { ADMINISTRATIVE_STATUS, CAREER_EVENT_TYPE, GENDER, LEAVE_STATUS, LEAVE_TYPE, MARITAL_STATUS, RANK_CATEGORY, TRAINING_KIND, TRAINING_STATUS, labelOf } from "@/lib/labels";
+import { ADMINISTRATIVE_STATUS, CAREER_EVENT_TYPE, DISCIPLINE_STATUS, DISTINCTION_KIND, GENDER, HR_DOCUMENT_KIND, SANCTION_KIND, LEAVE_STATUS, LEAVE_TYPE, MARITAL_STATUS, RANK_CATEGORY, TRAINING_KIND, TRAINING_STATUS, labelOf } from "@/lib/labels";
 import { fmtDate, toInputDate } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
 import { CareerEventForm, DossierForm } from "../../hr-forms";
 import { EndExceptionForm, ExceptionForm } from "../../rotation/rotation-forms";
+import { DistinctionForm } from "../../discipline/discipline-forms";
+import { IssueForOfficerForm, PhotoForm, UploadForm } from "../../documents/documents-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -35,7 +40,8 @@ export default async function DossierPage({ params }: PageProps<"/hr/dossiers/[i
   const canManage = actor.permissions.has("hr:manage");
   const canCareer = actor.permissions.has("hr:career");
   const terminal = ["RETIRED", "CEASED", "DECEASED"].includes(o.administrativeStatus);
-  const [history, corps, positions, refs, exceptions, leaves, balance, comp] = await Promise.all([careerHistory(id), listCorps(), canCareer ? listPositions() : Promise.resolve([]), canCareer ? orgReferences(actor) : Promise.resolve(null), listExceptions(id), officerLeaves(actor, id), leaveBalance(id), officerCompetences(actor, id)]);
+  const canDiscipline = actor.permissions.has("hr:discipline_view");
+  const [history, corps, positions, refs, exceptions, leaves, balance, comp, distinctions, cases, docs] = await Promise.all([careerHistory(id), listCorps(), canCareer ? listPositions() : Promise.resolve([]), canCareer ? orgReferences(actor) : Promise.resolve(null), listExceptions(id), officerLeaves(actor, id), leaveBalance(id), officerCompetences(actor, id), listDistinctions(actor, id), canDiscipline ? officerDisciplineSummary(actor, id) : Promise.resolve([]), listDocuments(actor, { officerId: id, pageSize: 6 })]);
   const st = labelOf(ADMINISTRATIVE_STATUS, o.administrativeStatus, locale);
   const change = (e: (typeof history)[number]) => {
     if (e.toRank) return `${e.fromRank ?? "—"} → ${e.toRank}`;
@@ -106,8 +112,104 @@ export default async function DossierPage({ params }: PageProps<"/hr/dossiers/[i
                 ]}
               />
             )}
-            <p className="mt-3 text-xs text-slate">{t("hr.dossier.photoLater")}</p>
+            <div className="mt-4 flex items-center gap-4 border-t border-line pt-3">
+              {o.photoPath ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={`/api/v1/hr/dossiers/${o.id}/photo`} alt={`${o.firstName} ${o.lastName}`} className="h-24 w-20 rounded border border-line object-cover" />
+              ) : (
+                <div className="flex h-24 w-20 items-center justify-center rounded border border-dashed border-line text-xs text-slate">{t("hr.doc.noPhoto")}</div>
+              )}
+              {canManage ? <PhotoForm officerId={o.id} /> : null}
+            </div>
           </Card>
+          <Card title={t("hr.dis.distinctions")}>
+            {distinctions.length === 0 ? (
+              <p className="text-sm text-slate">{t("hr.dis.noDistinctions")}</p>
+            ) : (
+              <ul className="space-y-1.5 text-sm">
+                {distinctions.map((d) => (
+                  <li key={d.id} className="flex flex-wrap items-center gap-2">
+                    <Badge tone={labelOf(DISTINCTION_KIND, d.kind, locale).tone}>{labelOf(DISTINCTION_KIND, d.kind, locale).label}</Badge>
+                    <span className="font-semibold">{d.title}</span>
+                    <span className="text-xs text-slate">{fmtDate(d.awardedAt, locale)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {canManage ? (
+              <details className="mt-3">
+                <summary className="cursor-pointer text-xs font-semibold text-blue">{t("hr.dis.addDistinction")}</summary>
+                <div className="mt-2">
+                  <DistinctionForm officerId={o.id} />
+                </div>
+              </details>
+            ) : null}
+          </Card>
+          <Card title={t("hr.doc.title2")}>
+            {docs.items.length === 0 ? (
+              <p className="text-sm text-slate">{t("hr.doc.none")}</p>
+            ) : (
+              <ul className="space-y-1.5 text-sm">
+                {docs.items.map((d) => (
+                  <li key={d.id} className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-xs">{d.number}</span>
+                    <span>{d.title}</span>
+                    <Badge tone={labelOf(HR_DOCUMENT_KIND, d.kind, locale).tone}>{labelOf(HR_DOCUMENT_KIND, d.kind, locale).label}</Badge>
+                    <span className="ms-auto space-x-2 text-xs">
+                      {d.source === "GENERATED" ? (
+                        <>
+                          <a href={`/api/v1/hr/documents/${d.id}/file?format=pdf`} className="text-blue hover:underline">PDF</a>
+                          <a href={`/api/v1/hr/documents/${d.id}/file?format=docx`} className="text-blue hover:underline">Word</a>
+                        </>
+                      ) : (
+                        <a href={`/api/v1/hr/documents/${d.id}/file`} className="text-blue hover:underline">{t("hr.doc.download")}</a>
+                      )}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {actor.permissions.has("hr:document_issue") ? (
+              <div className="mt-3 space-y-3 border-t border-line pt-3">
+                <div className="flex flex-wrap gap-2">
+                  <IssueForOfficerForm officerId={o.id} kind="WORK_CERTIFICATE" />
+                  <IssueForOfficerForm officerId={o.id} kind="ASSIGNMENT_DECISION" />
+                </div>
+                <details>
+                  <summary className="cursor-pointer text-xs font-semibold text-blue">{t("hr.doc.upload")}</summary>
+                  <div className="mt-2">
+                    <UploadForm officerId={o.id} canDiscipline={actor.permissions.has("hr:discipline_manage")} />
+                  </div>
+                </details>
+              </div>
+            ) : null}
+          </Card>
+          {canDiscipline ? (
+            <Card title={t("hr.dis.title")}>
+              {cases.length === 0 ? (
+                <p className="text-sm text-slate">{t("hr.dis.none")}</p>
+              ) : (
+                <ul className="space-y-1.5 text-sm">
+                  {cases.map((c) => (
+                    <li key={c.id} className="flex flex-wrap items-center gap-2">
+                      <Link href={`/hr/discipline/${c.id}`} className="font-mono text-xs text-blue hover:underline">
+                        {c.number}
+                      </Link>
+                      <Badge tone={labelOf(DISCIPLINE_STATUS, c.status, locale).tone}>{labelOf(DISCIPLINE_STATUS, c.status, locale).label}</Badge>
+                      {c.sanction ? <span className="text-xs">{labelOf(SANCTION_KIND, c.sanction, locale).label}</span> : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {actor.permissions.has("hr:discipline_manage") ? (
+                <div className="mt-3">
+                  <ButtonLink href={`/hr/discipline/new?officerId=${o.id}`} size="sm" variant="secondary">
+                    {t("hr.dis.new")}
+                  </ButtonLink>
+                </div>
+              ) : null}
+            </Card>
+          ) : null}
           <Card title={t("hr.tr.dossierTitle")} padded={false}>
             {comp.trainings.length === 0 && comp.skills.length === 0 ? (
               <div className="p-5">

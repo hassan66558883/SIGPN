@@ -110,6 +110,7 @@ export const CAREER_EVENT_TYPE: LabelMap = {
   REINSTATEMENT: def("Réintégration", "إعادة إدماج", "success"),
   RETIREMENT: def("Départ à la retraite", "إحالة على التقاعد", "neutral"),
   CESSATION: def("Cessation de service", "إنهاء الخدمة", "danger"),
+  SUSPENSION: def("Suspension", "إيقاف عن العمل", "warning"),
 };
 
 export const TRANSFER_STATUS: LabelMap = {
@@ -155,6 +156,46 @@ export const TRAINING_KIND: LabelMap = {
   CONTINUING: def("Formation continue", "تكوين مستمر", "neutral"),
   INTERNSHIP: def("Stage professionnel", "تربص مهني", "violet"),
   SPECIALIZED: def("Formation spécialisée", "تكوين متخصص", "warning"),
+};
+
+export const DISCIPLINE_STATUS: LabelMap = {
+  OPEN: def("Ouvert", "مفتوح", "warning"),
+  IN_PROCEDURE: def("En procédure", "قيد الإجراء", "info"),
+  DECIDED: def("Décidé", "تم البت", "violet"),
+  CLOSED: def("Clos", "مغلق", "neutral"),
+};
+
+export const DISCIPLINE_STEP: LabelMap = {
+  NOTIFICATION: def("Notification des griefs", "إبلاغ بالمآخذ", "info"),
+  HEARING: def("Audition / droits de la défense", "استماع / حقوق الدفاع", "success"),
+  REPORT: def("Rapport", "تقرير", "neutral"),
+  NOTE: def("Note", "ملاحظة", "neutral"),
+};
+
+export const SANCTION_KIND: LabelMap = {
+  NO_ACTION: def("Classement sans suite", "حفظ دون عقوبة", "neutral"),
+  WARNING: def("Avertissement", "إنذار", "warning"),
+  REPRIMAND: def("Blâme", "توبيخ", "warning"),
+  SUSPENSION: def("Mise à pied (suspension)", "إيقاف عن العمل", "danger"),
+  DISMISSAL: def("Révocation", "عزل", "danger"),
+};
+
+export const DISTINCTION_KIND: LabelMap = {
+  COMMENDATION: def("Félicitations", "تنويه", "success"),
+  CITATION: def("Citation", "إشادة", "success"),
+  MEDAL: def("Médaille", "وسام", "violet"),
+  REWARD: def("Récompense", "مكافأة", "info"),
+};
+
+export const HR_DOCUMENT_KIND: LabelMap = {
+  ASSIGNMENT_DECISION: def("Décision d'affectation", "مقرر تعيين", "info"),
+  APPOINTMENT_ORDER: def("Arrêté de nomination", "قرار تعيين", "info"),
+  TRANSFER_DECISION: def("Décision de mutation", "مقرر نقل", "violet"),
+  WORK_CERTIFICATE: def("Attestation de travail", "شهادة عمل", "success"),
+  TRAINING_DOCUMENT: def("Document de formation", "وثيقة تكوين", "neutral"),
+  ADMIN_FILE: def("Dossier administratif", "ملف إداري", "neutral"),
+  DISCIPLINARY_DOCUMENT: def("Document disciplinaire", "وثيقة تأديبية", "danger"),
+  SERVICE_NOTE: def("Note de service", "مذكرة خدمة", "warning"),
 };
 
 export const DEPARTMENT_TYPE: LabelMap = {
