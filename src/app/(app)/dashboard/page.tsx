@@ -10,14 +10,24 @@ import { Card, PageHeader, StatCard, EmptyState } from "@/components/ui";
 import { fmtDateTime } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
 import { roleName } from "@/lib/i18n/catalog";
+import { operationalStats } from "@/server/dashboard/stats";
+import { DASH_PERIODS, parsePeriod } from "@/lib/dash-period";
+import { ColumnChart, HBarList, CHART } from "@/components/charts";
+import { INCIDENT_TYPE, labelOf } from "@/lib/labels";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return { title: t("nav.dashboard") };
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: PageProps<"/dashboard">) {
   const actor = await requirePermission("dashboard:view");
+  const sp = await searchParams;
+  const days = parsePeriod(typeof sp.days === "string" ? sp.days : undefined);
+  const national = actor.scopeLevel === "NATIONAL";
+  const regions = national ? await prisma.region.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : [];
+  const regionId = national && typeof sp.region === "string" && regions.some((r) => r.id === sp.region) ? sp.region : undefined;
+  const ops = await operationalStats(actor, { days, regionId });
   const canViewBiometric = actor.permissions.has("biometric:history_view");
   const canViewWanted = actor.permissions.has("wanted:view");
   const canViewTraffic = actor.permissions.has("traffic:dashboard");
@@ -35,6 +45,86 @@ export default async function DashboardPage() {
   return (
     <div>
       <PageHeader eyebrow={t("dash.eyebrow")} title={t("dash.welcome", { name: actor.firstName })} subtitle={`${roleName(actor.roleCode, actor.roleName, locale)} · ${actor.stationName ?? actor.regionName ?? t("dash.nationalScope")}`} />
+      <section aria-label={t("dash.ops.title")} className="mb-8">
+        <form method="get" className="mb-4 flex flex-wrap items-end gap-3">
+          <div>
+            <label htmlFor="dash-days" className="label">{t("dash.ops.period")}</label>
+            <select id="dash-days" name="days" defaultValue={String(ops.days)} className="input">
+              {DASH_PERIODS.map((d) => (
+                <option key={d} value={d}>{t(`dash.ops.p${d}` as "dash.ops.p7")}</option>
+              ))}
+            </select>
+          </div>
+          {national ? (
+            <div>
+              <label htmlFor="dash-region" className="label">{t("dash.ops.region")}</label>
+              <select id="dash-region" name="region" defaultValue={regionId ?? ""} className="input">
+                <option value="">{t("dash.ops.allRegions")}</option>
+                {regions.map((r) => (
+                  <option key={r.id} value={r.id}>{r.name}</option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <p className="pb-2 text-xs text-slate">{t("dash.ops.scopeNote")}</p>
+          )}
+          <button type="submit" className="rounded-md bg-gold px-4 py-2 text-sm font-semibold text-navy hover:brightness-110">{t("dash.ops.apply")}</button>
+        </form>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {ops.officers !== null ? <StatCard label={t("dash.ops.officers")} value={ops.officers.toLocaleString(locale)} tone="info" href="/officers" /> : null}
+          {ops.stations !== null ? <StatCard label={t("dash.ops.stations")} value={ops.stations.toLocaleString(locale)} tone="neutral" /> : null}
+          {ops.incidents !== null ? <StatCard label={`${t("dash.ops.incidents")} · ${t(`dash.ops.p${ops.days}` as "dash.ops.p7")}`} value={ops.incidents.toLocaleString(locale)} tone="warning" href="/incidents" /> : null}
+          {ops.cases !== null ? <StatCard label={t("dash.ops.cases")} value={ops.cases.toLocaleString(locale)} tone="violet" href="/cases" /> : null}
+          {ops.complaints !== null ? <StatCard label={`${t("dash.ops.complaints")} · ${t(`dash.ops.p${ops.days}` as "dash.ops.p7")}`} value={ops.complaints.toLocaleString(locale)} tone="info" href="/complaints" /> : null}
+          {ops.wanted !== null ? <StatCard label={t("dash.ops.wanted")} value={ops.wanted.toLocaleString(locale)} tone="danger" href="/wanted?status=ACTIVE" /> : null}
+        </div>
+        {ops.trend && ops.byType ? (
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <Card title={t("dash.ops.trend")}>
+              <ColumnChart series={[{ name: t("dash.ops.series"), color: CHART.blue, points: ops.trend }]} format={(n) => n.toLocaleString(locale)} title={t("dash.ops.trend")} tableLabel={t("dash.ops.trendTable")} />
+            </Card>
+            <Card title={t("dash.ops.byType")}>
+              <HBarList empty={t("dash.ops.none")} format={(n) => n.toLocaleString(locale)} color={CHART.orange} rows={ops.byType.slice(0, 8).map((r) => ({ label: labelOf(INCIDENT_TYPE, r.type, locale).label, value: r.count }))} />
+            </Card>
+          </div>
+        ) : null}
+        {ops.recentIncidents || ops.recentWanted ? (
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            {ops.recentIncidents ? (
+              <Card title={t("dash.ops.recentIncidents")}>
+                {ops.recentIncidents.length === 0 ? (
+                  <EmptyState>{t("dash.ops.none")}</EmptyState>
+                ) : (
+                  <ul className="divide-y divide-line text-sm">
+                    {ops.recentIncidents.map((i) => (
+                      <li key={i.id} className="py-2">
+                        <Link href={`/incidents/${i.id}`} className="font-semibold text-ink hover:underline">{i.title}</Link>
+                        <p className="text-xs text-slate">{i.number} · {labelOf(INCIDENT_TYPE, i.type, locale).label} · {i.station.name} · {fmtDateTime(i.occurredAt, locale)}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
+            ) : null}
+            {ops.recentWanted ? (
+              <Card title={t("dash.ops.recentWanted")}>
+                {ops.recentWanted.length === 0 ? (
+                  <EmptyState>{t("dash.ops.none")}</EmptyState>
+                ) : (
+                  <ul className="divide-y divide-line text-sm">
+                    {ops.recentWanted.map((w) => (
+                      <li key={w.id} className="py-2">
+                        <Link href={`/wanted/${w.id}`} className="font-semibold text-ink hover:underline">{w.person.lastName} {w.person.firstName}</Link>
+                        <p className="text-xs text-slate">{w.number} · {w.offense} · {fmtDateTime(w.issuedAt, locale)}</p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
+            ) : null}
+          </div>
+        ) : null}
+      </section>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label={t("dash.activeUsers")} value={users} tone="info" href={actor.permissions.has("users:view") ? "/admin/users" : undefined} />
         <StatCard label={t("dash.activeSessions")} value={activeSessions} tone="success" />

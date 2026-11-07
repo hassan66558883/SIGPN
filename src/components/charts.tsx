@@ -7,7 +7,7 @@
  */
 import type { ReactNode } from "react";
 
-export const CHART = { blue: "#2a78d6", orange: "#eb6834", aqua: "#1baf7a", grid: "#e3e8f0", axis: "#5b6675", ink: "#14202e" } as const;
+export const CHART = { blue: "#5aa2f0", orange: "#eb6834", aqua: "#1baf7a", grid: "#24476f", axis: "#b8c7d9", ink: "#ffffff" } as const;
 
 export type Series = { name: string; color: string; points: { label: string; value: number }[] };
 

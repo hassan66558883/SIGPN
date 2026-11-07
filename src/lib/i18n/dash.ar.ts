@@ -1,0 +1,27 @@
+import type { dashFr } from "@/lib/i18n/dash.fr";
+
+export const dashAr: Record<keyof typeof dashFr, string> = {
+  "dash.ops.title": "الوضع العملياتي",
+  "dash.ops.period": "الفترة",
+  "dash.ops.p7": "7 أيام",
+  "dash.ops.p30": "30 يومًا",
+  "dash.ops.p90": "90 يومًا",
+  "dash.ops.p365": "12 شهرًا",
+  "dash.ops.region": "المحافظة",
+  "dash.ops.allRegions": "جميع المحافظات",
+  "dash.ops.apply": "تطبيق",
+  "dash.ops.officers": "الشرطيون في الخدمة",
+  "dash.ops.stations": "الوحدات النشطة",
+  "dash.ops.incidents": "الحوادث",
+  "dash.ops.cases": "التحقيقات الجارية",
+  "dash.ops.complaints": "الشكاوى المستلمة",
+  "dash.ops.wanted": "المطلوبون النشطون",
+  "dash.ops.byType": "الحوادث حسب النوع",
+  "dash.ops.trend": "تطور الحوادث",
+  "dash.ops.trendTable": "الحوادث حسب الفترة",
+  "dash.ops.recentIncidents": "آخر الحوادث",
+  "dash.ops.recentWanted": "آخر المطلوبين",
+  "dash.ops.none": "لا توجد بيانات في هذه الفترة.",
+  "dash.ops.scopeNote": "الأرقام محصورة في نطاقك الإقليمي.",
+  "dash.ops.series": "الحوادث",
+};
