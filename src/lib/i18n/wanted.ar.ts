@@ -1,6 +1,8 @@
 import type { wantedFr } from "@/lib/i18n/wanted.fr";
 
 export const wantedAr: Record<keyof typeof wantedFr, string> = {
+  "wanted.diffusion": "نطاق البث",
+  "wanted.diffusionHint": "الوحدات المستقبِلة للتنبيه عند الموافقة: الجميع (وطني) أو المحافظة أو الوحدة المصدِرة ووحداتها الفرعية.",
   "wanted.kind": "طبيعة الإعلان",
   "wanted.issuingAuthority": "الجهة المصدِرة",
   "wanted.issuingAuthorityHint": "الجهة القضائية أو السلطة التي أصدرت المذكرة أو الطلب.",

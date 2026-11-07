@@ -49,6 +49,9 @@ services:
       # HR module: in-process scheduler (automatic assignment, end of disciplinary suspensions). Set HR_SCHEDULER=off to run `hr:rotation` from cron instead.
       HR_SCHEDULER: ${HR_SCHEDULER:-on}
       HR_SCHEDULER_INTERVAL_MINUTES: ${HR_SCHEDULER_INTERVAL_MINUTES:-60}
+      # National alert network: retries, reminders and escalations (ALERT_SCHEDULER=off + `alerts:maintain` from cron to run it externally).
+      ALERT_SCHEDULER: ${ALERT_SCHEDULER:-on}
+      ALERT_SCHEDULER_INTERVAL_MINUTES: ${ALERT_SCHEDULER_INTERVAL_MINUTES:-1}
       # First start only: creates the first system administrator when none exists (password change + MFA enrolment forced). Remove afterwards.
       BOOTSTRAP_ADMIN_USERNAME: ${BOOTSTRAP_ADMIN_USERNAME:-}
       BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-}

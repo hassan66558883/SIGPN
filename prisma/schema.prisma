@@ -459,6 +459,8 @@ enum StationStatus {
 
 /// Police structure: commissariat, poste, unité, brigade, direction. Posts and units hang under a parent station.
 model Station {
+  alertDeliveries   AlertDelivery[]
+  presence          StationPresence?
   id                String           @id @default(cuid())
   regionId          String
   region            Region           @relation(fields: [regionId], references: [id])
@@ -1451,6 +1453,7 @@ model WantedPerson {
   closedAt            DateTime?
   closureNotes        String?
   kind                WantedKind   @default(SEARCH_WARRANT)
+  diffusionLevel      WantedDiffusion @default(NATIONAL)
   legalBasis          String?
   issuingAuthority    String?
   verifiedById        String?
@@ -1464,6 +1467,7 @@ model WantedPerson {
 
   sightings WantedSighting[]
   vehicles  WantedVehicle[]
+  alerts    NationalAlert[]
   photos    Document[]       @relation("WantedPersonAttachment")
 
   @@index([status])
@@ -3831,4 +3835,97 @@ model TrafficCashDiscrepancy {
 
   @@index([status])
   @@index([agentId])
+}
+
+// ------------------------------------------------------------
+// NATIONAL ALERT NETWORK (SIGPN-T v2.0, section 5)
+// ------------------------------------------------------------
+
+/// Perimeter of diffusion approved for a wanted notice.
+enum WantedDiffusion {
+  NATIONAL
+  REGIONAL
+  LOCAL
+}
+
+enum AlertKind {
+  PUBLISHED
+  UPDATED
+  SUSPENDED
+  REACTIVATED
+  WITHDRAWN
+  EXPIRED
+  CLOSED
+}
+
+enum AlertDeliveryStatus {
+  PENDING
+  DELIVERED
+  READ
+  ACKNOWLEDGED
+  FAILED
+}
+
+/// One national event per approved change of a wanted notice. Immutable (trigger): the durable queue of the network.
+/// `payload` is a minimal snapshot: no investigation detail, informants or case content.
+model NationalAlert {
+  id             String          @id @default(cuid())
+  seq            Int             @unique @default(autoincrement())
+  number         String          @unique
+  kind           AlertKind
+  wantedPersonId String?
+  wantedPerson   WantedPerson?   @relation(fields: [wantedPersonId], references: [id])
+  idempotencyKey String          @unique
+  diffusion      WantedDiffusion
+  sourceStationId String
+  sourceRegionId  String
+  priority       DangerLevel     @default(MEDIUM)
+  title          String
+  payload        Json
+  requiresAck    Boolean         @default(true)
+  isSimulation   Boolean         @default(false)
+  createdById    String
+  createdAt      DateTime        @default(now())
+
+  deliveries AlertDelivery[]
+
+  @@index([wantedPersonId, seq])
+  @@index([createdAt])
+}
+
+/// Delivery of an alert to one unit (station or sub-station) with its receipts. Retried and escalated by the scheduler.
+model AlertDelivery {
+  id              String              @id @default(cuid())
+  alertId         String
+  alert           NationalAlert       @relation(fields: [alertId], references: [id])
+  stationId       String
+  station         Station             @relation(fields: [stationId], references: [id])
+  status          AlertDeliveryStatus @default(PENDING)
+  attempts        Int                 @default(0)
+  nextAttemptAt   DateTime?
+  deliveredAt     DateTime?
+  deliveredById   String?
+  readAt          DateTime?
+  readById        String?
+  ackAt           DateTime?
+  ackById         String?
+  escalatedAt     DateTime?
+  escalationLevel Int                 @default(0)
+  error           String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@unique([alertId, stationId])
+  @@index([stationId, status])
+  @@index([status, nextAttemptAt])
+}
+
+/// Connectivity of a unit: refreshed by the heartbeat of its clients. `simulatedOffline` is the demonstration switch.
+model StationPresence {
+  stationId        String   @id
+  station          Station  @relation(fields: [stationId], references: [id])
+  lastSeenAt       DateTime
+  lastSyncAt       DateTime?
+  lastUserId       String?
+  simulatedOffline Boolean  @default(false)
 }

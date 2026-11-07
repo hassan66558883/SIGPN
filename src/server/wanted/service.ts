@@ -1,5 +1,5 @@
 import "server-only";
-import type { Prisma, WantedStatus } from "@/generated/prisma/client";
+import type { AlertKind, Prisma, WantedStatus } from "@/generated/prisma/client";
 import { prisma } from "@/server/db";
 import { logAudit } from "@/server/audit";
 import { AuthError, BusinessError, NotFoundError } from "@/server/errors";
@@ -7,6 +7,7 @@ import { inScope, scopeWhere, type Actor } from "@/server/auth/dal";
 import type { RequestContext } from "@/server/request-context";
 import { nextNumber } from "@/server/sequences";
 import { saveUpload } from "@/server/storage";
+import { alertKindForTransition, publishAlert } from "@/server/alerts/publish";
 import type { CreateWarrantInput, SightingInput, WantedPersonInput, WantedStatusInput, WantedVehicleInput, WantedVerifyInput, WarrantStatusInput } from "@/server/wanted/schemas";
 
 export function wantedScopeWhere(actor: Actor): Prisma.WantedPersonWhereInput {
@@ -42,6 +43,7 @@ export const wantedSelect = {
   closedAt: true,
   closureNotes: true,
   kind: true,
+  diffusionLevel: true,
   legalBasis: true,
   issuingAuthority: true,
   verifiedAt: true,
@@ -92,6 +94,7 @@ export async function createWantedPerson(actor: Actor, input: WantedPersonInput,
         reason: input.reason,
         dangerLevel: input.dangerLevel,
         kind: input.kind,
+        diffusionLevel: input.diffusionLevel,
         legalBasis: input.legalBasis || null,
         issuingAuthority: input.issuingAuthority || null,
         lastSeenLocation: input.lastSeenLocation || null,
@@ -109,11 +112,56 @@ export async function createWantedPerson(actor: Actor, input: WantedPersonInput,
 export async function updateWantedPerson(actor: Actor, id: string, input: Omit<WantedPersonInput, "personId" | "stationId">, ctx: RequestContext) {
   const before = await getWantedPerson(actor, id);
   if (before.status === "ARRESTED" || before.status === "CANCELLED" || before.status === "EXPIRED") throw new BusinessError(`A wanted notice in status ${before.status} can no longer be edited.`, "STATE");
+  const diffusionChanged = input.diffusionLevel !== before.diffusionLevel;
+  if (diffusionChanged && before.status !== "DRAFT" && before.status !== "PENDING_APPROVAL") throw new BusinessError("The diffusion perimeter can only be changed before approval.", "STATE");
   const legalChanged = input.kind !== before.kind || (input.legalBasis || null) !== before.legalBasis || (input.issuingAuthority || null) !== before.issuingAuthority;
   if (legalChanged && before.status !== "DRAFT" && before.status !== "PENDING_APPROVAL") throw new BusinessError("The nature, legal basis and issuing authority can only be changed before approval.", "STATE");
-  const after = await prisma.wantedPerson.update({ where: { id }, data: { offense: input.offense, reason: input.reason, dangerLevel: input.dangerLevel, kind: input.kind, legalBasis: input.legalBasis || null, issuingAuthority: input.issuingAuthority || null, lastSeenLocation: input.lastSeenLocation || null, expiresAt: input.expiresAt, ...(legalChanged && before.verifiedAt ? { verifiedAt: null, verifiedById: null, verificationNotes: null, status: "DRAFT" as const } : {}) }, select: wantedSelect });
-  await logAudit({ actor, action: "WANTED_UPDATED", module: "wanted", entityType: "WantedPerson", entityId: id, entityLabel: after.number, summary: `Wanted notice ${after.number} updated`, before: { offense: before.offense, dangerLevel: before.dangerLevel }, after: { offense: after.offense, dangerLevel: after.dangerLevel }, context: ctx });
+  const after = await prisma.$transaction(async (tx) => {
+  const updated = await tx.wantedPerson.update({ where: { id }, data: { offense: input.offense, reason: input.reason, dangerLevel: input.dangerLevel, kind: input.kind, diffusionLevel: input.diffusionLevel, legalBasis: input.legalBasis || null, issuingAuthority: input.issuingAuthority || null, lastSeenLocation: input.lastSeenLocation || null, expiresAt: input.expiresAt, ...(legalChanged && before.verifiedAt ? { verifiedAt: null, verifiedById: null, verificationNotes: null, status: "DRAFT" as const } : {}) }, select: wantedSelect });
+  await logAudit({ actor, action: "WANTED_UPDATED", module: "wanted", entityType: "WantedPerson", entityId: id, entityLabel: updated.number, summary: `Wanted notice ${updated.number} updated`, before: { offense: before.offense, dangerLevel: before.dangerLevel }, after: { offense: updated.offense, dangerLevel: updated.dangerLevel }, context: ctx }, tx);
+  const published: WantedStatus[] = ["ACTIVE", "LOCATED", "SUSPENDED"];
+  const material = before.offense !== updated.offense || before.dangerLevel !== updated.dangerLevel || before.lastSeenLocation !== updated.lastSeenLocation;
+  if (published.includes(before.status) && material) await publishWantedAlert(tx, actor, { ...before, offense: updated.offense, dangerLevel: updated.dangerLevel }, "UPDATED", before.status, ctx);
+  return updated;
+  });
   return after;
+}
+
+const ALERT_INSTRUCTION: Record<string, string> = {
+  PUBLISHED: "Vérification humaine obligatoire avant toute action. Une correspondance n'établit jamais la culpabilité.",
+  UPDATED: "Avis mis à jour : consulter les nouveaux éléments avant toute action.",
+  SUSPENDED: "Avis suspendu : ne prendre aucune mesure fondée sur cet avis jusqu'à nouvel ordre.",
+  REACTIVATED: "Avis réactivé : vérification humaine obligatoire avant toute action.",
+  WITHDRAWN: "Avis retiré : cesser toute recherche fondée sur cet avis.",
+  EXPIRED: "Avis expiré : ne plus l'utiliser.",
+  CLOSED: "Dossier clos (personne appréhendée) : cesser la recherche.",
+};
+
+type WantedForAlert = Awaited<ReturnType<typeof getWantedPerson>>;
+
+/** Minimal bulletin sent to the network: identity needed to recognise the person, never investigation detail or the internal reason. */
+async function publishWantedAlert(tx: Prisma.TransactionClient, actor: Actor, w: WantedForAlert, kind: AlertKind, status: WantedStatus, ctx: RequestContext) {
+  const stamp = Date.now();
+  return publishAlert(tx, actor, {
+    kind,
+    wantedPersonId: w.id,
+    idempotencyKey: `${w.id}:${kind}:${stamp}`,
+    diffusion: w.diffusionLevel,
+    source: { stationId: w.stationId, regionId: w.regionId },
+    priority: w.dangerLevel,
+    title: `${w.number} — ${kind}`,
+    payload: {
+      number: w.number,
+      status,
+      nature: w.kind,
+      person: { name: `${w.person.lastName} ${w.person.firstName}`, aliases: w.person.aliases.map((a) => a.alias), dateOfBirth: w.person.dateOfBirth, gender: w.person.gender, physicalDescription: w.person.physicalDescription, distinguishingMarks: w.person.distinguishingMarks },
+      offense: w.offense,
+      dangerLevel: w.dangerLevel,
+      issuingAuthority: w.issuingAuthority,
+      unit: `${w.station.code} · ${w.station.name}`,
+      instruction: ALERT_INSTRUCTION[kind],
+    },
+  }, ctx);
 }
 
 export const LIVE_STATUSES = ["DRAFT", "PENDING_APPROVAL", "ACTIVE", "LOCATED", "SUSPENDED"] as const;
@@ -176,20 +224,24 @@ export async function setWantedStatus(actor: Actor, input: WantedStatusInput, ct
   if (input.status === "ACTIVE") assertWarrantValid(before.kind, before.warrant, isApprovalStep ? "approval" : "reactivation");
   const closing = input.status === "CANCELLED" || input.status === "ARRESTED" || input.status === "EXPIRED";
   const suspending = input.status === "SUSPENDED";
-  const r = await prisma.wantedPerson.updateMany({
-    where: { id: before.id, status: before.status },
-    data: {
-      status: input.status,
-      approvedById: isApprovalStep ? actor.id : undefined,
-      approvedAt: isApprovalStep ? new Date() : undefined,
-      closedAt: closing ? new Date() : null,
-      closureNotes: closing ? reason || null : null,
-      suspendedAt: suspending ? new Date() : null,
-      suspensionReason: suspending ? reason : null,
-    },
+  const alertKind = alertKindForTransition(before.status, input.status);
+  await prisma.$transaction(async (tx) => {
+    const r = await tx.wantedPerson.updateMany({
+      where: { id: before.id, status: before.status },
+      data: {
+        status: input.status,
+        approvedById: isApprovalStep ? actor.id : undefined,
+        approvedAt: isApprovalStep ? new Date() : undefined,
+        closedAt: closing ? new Date() : null,
+        closureNotes: closing ? reason || null : null,
+        suspendedAt: suspending ? new Date() : null,
+        suspensionReason: suspending ? reason : null,
+      },
+    });
+    if (r.count !== 1) throw new BusinessError("The wanted notice was modified concurrently. Reload and retry.", "CONFLICT");
+    if (alertKind) await publishWantedAlert(tx, actor, before, alertKind, input.status, ctx);
+    await logAudit({ actor, action: `WANTED_${input.status}`, module: "wanted", entityType: "WantedPerson", entityId: before.id, entityLabel: before.number, summary: `${before.number}: ${before.status} → ${input.status}${reason ? ` — ${reason}` : ""}`, before: { status: before.status }, after: { status: input.status }, context: ctx }, tx);
   });
-  if (r.count !== 1) throw new BusinessError("The wanted notice was modified concurrently. Reload and retry.", "CONFLICT");
-  await logAudit({ actor, action: `WANTED_${input.status}`, module: "wanted", entityType: "WantedPerson", entityId: before.id, entityLabel: before.number, summary: `${before.number}: ${before.status} → ${input.status}${reason ? ` — ${reason}` : ""}`, before: { status: before.status }, after: { status: input.status }, context: ctx });
   return getWantedPerson(actor, before.id);
 }
 

@@ -36,6 +36,7 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
   await grantHrPhase7DefaultsOnce(byCode);
   await grantHrPayDefaultsOnce(byCode);
   await grantWantedVerifyOnce(byCode);
+  await grantAlertsOnce(byCode);
   return SYSTEM_ROLES.length;
 }
 
@@ -160,4 +161,23 @@ async function grantWantedVerifyOnce(byCode: Map<string, string>) {
     await prisma.rolePermission.createMany({ data: holders.map((h) => ({ roleId: h.roleId, permissionId: verify })), skipDuplicates: true });
   }
   await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "La permission de vérification des avis de recherche a été accordée aux rôles qui les approuvent." } });
+}
+
+/**
+ * National alert network (SIGPN-T v2.0, section 5), granted once: every role that sees wanted notices receives and acknowledges alerts,
+ * roles that approve notices supervise the diffusion, and only the system administrator and the national command simulate (demonstration).
+ */
+async function grantAlertsOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.alerts_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const id = (c: string) => byCode.get(c)!;
+  const holders = async (code: string) => (await prisma.rolePermission.findMany({ where: { permission: { code } }, select: { roleId: true } })).map((h) => h.roleId);
+  const grant = async (roleIds: string[], code: string) => roleIds.length && prisma.rolePermission.createMany({ data: roleIds.map((roleId) => ({ roleId, permissionId: id(code) })), skipDuplicates: true });
+  const viewers = await holders("wanted:view");
+  await grant(viewers, "alerts:view");
+  await grant(viewers, "alerts:ack");
+  await grant(await holders("wanted:approve"), "alerts:supervise");
+  const sim = await prisma.role.findMany({ where: { code: { in: ["SUPER_ADMIN", "NATIONAL_COMMANDER"] } }, select: { id: true } });
+  await grant(sim.map((r) => r.id), "alerts:simulate");
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions du réseau d'alertes nationales ont été accordées aux rôles système." } });
 }

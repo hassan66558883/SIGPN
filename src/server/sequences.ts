@@ -13,6 +13,7 @@ export const SEQUENCES = {
   ARREST: { prefix: "ARR", width: 5 },
   DETENTION: { prefix: "DET", width: 5 },
   WANTED: { prefix: "WNT", width: 5 },
+  ALERT: { prefix: "ALR", width: 6 },
   INCIDENT: { prefix: "INC", width: 5 },
   PATROL: { prefix: "PTL", width: 5 },
   OPERATION: { prefix: "OPS", width: 5 },

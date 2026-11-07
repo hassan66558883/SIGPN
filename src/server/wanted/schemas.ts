@@ -4,6 +4,7 @@ import { dateInput, optionalDate, optionalText } from "@/server/action-utils";
 export const DANGER_LEVELS = ["LOW", "MEDIUM", "HIGH", "EXTREME"] as const;
 export const WANTED_STATUSES = ["DRAFT", "PENDING_APPROVAL", "ACTIVE", "LOCATED", "ARRESTED", "CANCELLED", "EXPIRED", "SUSPENDED"] as const;
 export const WANTED_KINDS = ["SEARCH_WARRANT", "HEARING", "MISSING_PERSON"] as const;
+export const WANTED_DIFFUSIONS = ["NATIONAL", "REGIONAL", "LOCAL"] as const;
 export const WARRANT_TYPES = ["ARREST", "SEARCH", "DETENTION", "SUMMONS", "SEIZURE", "OTHER"] as const;
 export const WARRANT_STATUSES = ["DRAFT", "PENDING_APPROVAL", "ACTIVE", "EXECUTED", "EXPIRED", "CANCELLED", "REJECTED"] as const;
 
@@ -15,6 +16,7 @@ export const wantedPersonSchema = z.object({
   reason: z.string().trim().min(10).max(3000),
   dangerLevel: z.enum(DANGER_LEVELS).default("MEDIUM"),
   kind: z.enum(WANTED_KINDS).default("SEARCH_WARRANT"),
+  diffusionLevel: z.enum(WANTED_DIFFUSIONS).default("NATIONAL"),
   legalBasis: optionalText(2000),
   issuingAuthority: optionalText(200),
   lastSeenLocation: optionalText(300),

@@ -9,7 +9,7 @@ import { PersonPicker } from "@/components/person-picker";
 import { addSightingAction, addVehicleAction, attachPhotoAction, createWantedPersonAction, createWarrantAction, setWantedStatusAction, setWarrantStatusAction, updateWantedPersonAction, verifyWantedAction } from "@/server/wanted/actions";
 
 export type Opt = { id: string; label: string };
-export type WantedValues = { id?: string; kind?: string; legalBasis?: string; issuingAuthority?: string; offense?: string; reason?: string; dangerLevel?: string; lastSeenLocation?: string; expiresAt?: string };
+export type WantedValues = { id?: string; kind?: string; diffusionLevel?: string; legalBasis?: string; issuingAuthority?: string; offense?: string; reason?: string; dangerLevel?: string; lastSeenLocation?: string; expiresAt?: string };
 
 export function WantedPersonForm({ mode, values = {}, cases, stations }: { mode: "create" | "edit"; values?: WantedValues; cases: Opt[]; stations: Opt[] }) {
   const t = useT();
@@ -38,6 +38,9 @@ export function WantedPersonForm({ mode, values = {}, cases, stations }: { mode:
             </Field>
             <Field label={t("wanted.kind")} htmlFor="wt-kind" required>
               <Select id="wt-kind" name="kind" defaultValue={values.kind ?? "SEARCH_WARRANT"} options={optionsOf(WANTED_KIND, locale)} />
+            </Field>
+            <Field label={t("wanted.diffusion")} htmlFor="wt-diffusion" hint={t("wanted.diffusionHint")}>
+              <Select id="wt-diffusion" name="diffusionLevel" defaultValue={values.diffusionLevel ?? "NATIONAL"} options={(["NATIONAL", "REGIONAL", "LOCAL"] as const).map((d) => ({ value: d, label: t(`scope.${d}` as "scope.NATIONAL") }))} />
             </Field>
             <Field label={t("wanted.issuingAuthority")} htmlFor="wt-authority" hint={t("wanted.issuingAuthorityHint")}>
               <input id="wt-authority" name="issuingAuthority" className="input" maxLength={200} defaultValue={values.issuingAuthority ?? ""} />

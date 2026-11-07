@@ -20,6 +20,8 @@ export const NAVIGATION: NavSection[] = [
       { href: "/incidents", labelKey: "nav.incidents", permission: "incidents:view", icon: "⚠" },
       { href: "/persons", labelKey: "nav.persons", permission: "persons:view", icon: "☺" },
       { href: "/wanted", labelKey: "nav.wanted", permission: "wanted:view", icon: "⚑" },
+      { href: "/alerts", labelKey: "nav.alerts", permission: "alerts:view", icon: "◬" },
+      { href: "/alerts/supervision", labelKey: "nav.alerts.supervision", permission: "alerts:supervise", icon: "◎" },
     ],
   },
   {

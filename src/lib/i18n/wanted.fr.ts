@@ -1,5 +1,7 @@
 /** Personnes recherchées — nature de l'avis, base légale, vérification, suspension (français, langue de référence). */
 export const wantedFr = {
+  "wanted.diffusion": "Périmètre de diffusion",
+  "wanted.diffusionHint": "Unités destinataires de l'alerte à l'approbation : toutes (nationale), la province, ou l'unité émettrice et ses sous-unités.",
   "wanted.kind": "Nature de l'avis",
   "wanted.issuingAuthority": "Autorité émettrice",
   "wanted.issuingAuthorityHint": "Juridiction ou autorité qui a délivré le mandat ou la demande.",
