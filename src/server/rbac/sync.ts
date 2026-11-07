@@ -35,6 +35,7 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
   await grantHrPhase6DefaultsOnce(byCode);
   await grantHrPhase7DefaultsOnce(byCode);
   await grantHrPayDefaultsOnce(byCode);
+  await grantWantedVerifyOnce(byCode);
   return SYSTEM_ROLES.length;
 }
 
@@ -147,4 +148,16 @@ async function grantHrPayDefaultsOnce(byCode: Map<string, string>) {
     await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
   }
   await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions de solde ont été accordées aux rôles de paie dédiés." } });
+}
+
+/** Wanted-notice verification (SIGPN-T v2.0): roles that already approve notices also verify them, granted once. */
+async function grantWantedVerifyOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.wanted_verify_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const verify = byCode.get("wanted:verify");
+  if (verify) {
+    const holders = await prisma.rolePermission.findMany({ where: { permission: { code: "wanted:approve" } }, select: { roleId: true } });
+    await prisma.rolePermission.createMany({ data: holders.map((h) => ({ roleId: h.roleId, permissionId: verify })), skipDuplicates: true });
+  }
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "La permission de vérification des avis de recherche a été accordée aux rôles qui les approuvent." } });
 }

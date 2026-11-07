@@ -5,7 +5,7 @@ import { getRequestContext } from "@/server/request-context";
 import { fail, formEntries, formFile, revalidateAll } from "@/server/action-utils";
 import { requirePermissionForAction } from "@/server/auth/dal";
 import * as svc from "@/server/wanted/service";
-import { createWarrantSchema, sightingSchema, wantedPersonSchema, wantedStatusSchema, wantedVehicleSchema, warrantStatusSchema } from "@/server/wanted/schemas";
+import { createWarrantSchema, sightingSchema, wantedPersonSchema, wantedStatusSchema, wantedVehicleSchema, wantedVerifySchema, warrantStatusSchema } from "@/server/wanted/schemas";
 import { BusinessError } from "@/server/errors";
 import type { FormState } from "@/components/forms";
 
@@ -43,6 +43,17 @@ export async function setWantedStatusAction(_p: FormState, fd: FormData): Promis
     return { ok: true, message: "Status updated." };
   } catch (e) {
     return fail(e, "Could not update the status.", "wanted");
+  }
+}
+
+export async function verifyWantedAction(_p: FormState, fd: FormData): Promise<FormState> {
+  try {
+    const actor = await requirePermissionForAction("wanted:verify");
+    await svc.verifyWanted(actor, wantedVerifySchema.parse(formEntries(fd)), await getRequestContext());
+    revalidateAll();
+    return { ok: true, message: "Verification recorded." };
+  } catch (e) {
+    return fail(e, "Could not record the verification.", "wanted");
   }
 }
 

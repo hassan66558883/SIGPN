@@ -1,10 +1,10 @@
 import "server-only";
-import type { DangerLevel, Prisma, WantedStatus } from "@/generated/prisma/client";
+import type { DangerLevel, Prisma, WantedKind, WantedStatus } from "@/generated/prisma/client";
 import { prisma } from "@/server/db";
 import type { Actor } from "@/server/auth/dal";
 import { wantedScopeWhere } from "@/server/wanted/service";
 
-export async function listWantedPersons(actor: Actor, filter: { q?: string; status?: WantedStatus; dangerLevel?: DangerLevel; stationId?: string; page?: number; pageSize?: number } = {}) {
+export async function listWantedPersons(actor: Actor, filter: { q?: string; status?: WantedStatus; dangerLevel?: DangerLevel; stationId?: string; kind?: WantedKind; page?: number; pageSize?: number } = {}) {
   const page = filter.page ?? 1;
   const pageSize = Math.min(filter.pageSize ?? 25, 100);
   const q = filter.q?.trim();
@@ -13,6 +13,7 @@ export async function listWantedPersons(actor: Actor, filter: { q?: string; stat
     ...(filter.status ? { status: filter.status } : {}),
     ...(filter.dangerLevel ? { dangerLevel: filter.dangerLevel } : {}),
     ...(filter.stationId ? { stationId: filter.stationId } : {}),
+    ...(filter.kind ? { kind: filter.kind } : {}),
     ...(q
       ? {
           OR: [
@@ -37,6 +38,7 @@ export async function listWantedPersons(actor: Actor, filter: { q?: string; stat
         offense: true,
         dangerLevel: true,
         status: true,
+        kind: true,
         lastSeenLocation: true,
         issuedAt: true,
         person: { select: { id: true, number: true, firstName: true, lastName: true, dateOfBirth: true, aliases: { select: { alias: true }, take: 1 } } },

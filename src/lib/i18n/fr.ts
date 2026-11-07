@@ -6,12 +6,14 @@ import { trafficFr } from "@/lib/i18n/traffic.fr";
 import { cashFr } from "@/lib/i18n/cash.fr";
 import { hrFr } from "@/lib/i18n/hr.fr";
 import { dashFr } from "@/lib/i18n/dash.fr";
+import { wantedFr } from "@/lib/i18n/wanted.fr";
 
 export const fr = {
   ...trafficFr,
   ...cashFr,
   ...hrFr,
   ...dashFr,
+  ...wantedFr,
   // ---- application / common ----
   "app.name": "Système Intégré de Gestion Numérique de la Police Nationale du Tchad",
   "app.short": "SIGPN-T",

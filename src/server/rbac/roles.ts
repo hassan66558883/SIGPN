@@ -98,6 +98,7 @@ const COMMAND: Permission[] = [
   "investigations:review",
   "transcripts:approve",
   "wanted:approve",
+  "wanted:verify",
   "wanted:publish",
   "wanted:export",
   "warrants:approve",

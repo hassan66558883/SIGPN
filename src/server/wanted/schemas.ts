@@ -2,7 +2,8 @@ import { z } from "zod";
 import { dateInput, optionalDate, optionalText } from "@/server/action-utils";
 
 export const DANGER_LEVELS = ["LOW", "MEDIUM", "HIGH", "EXTREME"] as const;
-export const WANTED_STATUSES = ["DRAFT", "PENDING_APPROVAL", "ACTIVE", "LOCATED", "ARRESTED", "CANCELLED", "EXPIRED"] as const;
+export const WANTED_STATUSES = ["DRAFT", "PENDING_APPROVAL", "ACTIVE", "LOCATED", "ARRESTED", "CANCELLED", "EXPIRED", "SUSPENDED"] as const;
+export const WANTED_KINDS = ["SEARCH_WARRANT", "HEARING", "MISSING_PERSON"] as const;
 export const WARRANT_TYPES = ["ARREST", "SEARCH", "DETENTION", "SUMMONS", "SEIZURE", "OTHER"] as const;
 export const WARRANT_STATUSES = ["DRAFT", "PENDING_APPROVAL", "ACTIVE", "EXECUTED", "EXPIRED", "CANCELLED", "REJECTED"] as const;
 
@@ -13,6 +14,9 @@ export const wantedPersonSchema = z.object({
   offense: z.string().trim().min(3).max(300),
   reason: z.string().trim().min(10).max(3000),
   dangerLevel: z.enum(DANGER_LEVELS).default("MEDIUM"),
+  kind: z.enum(WANTED_KINDS).default("SEARCH_WARRANT"),
+  legalBasis: optionalText(2000),
+  issuingAuthority: optionalText(200),
   lastSeenLocation: optionalText(300),
   expiresAt: optionalDate,
 });
@@ -24,6 +28,12 @@ export const wantedStatusSchema = z.object({
   closureNotes: optionalText(2000),
 });
 export type WantedStatusInput = z.infer<typeof wantedStatusSchema>;
+
+export const wantedVerifySchema = z.object({
+  id: z.string().min(1),
+  notes: optionalText(2000),
+});
+export type WantedVerifyInput = z.infer<typeof wantedVerifySchema>;
 
 export const sightingSchema = z.object({
   wantedPersonId: z.string().min(1),

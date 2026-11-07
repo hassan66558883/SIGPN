@@ -2,25 +2,28 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePermission } from "@/server/auth/dal";
-import { getWantedPerson } from "@/server/wanted/service";
+import { listHomonyms, viewWantedPerson } from "@/server/wanted/service";
+import { getRequestContext } from "@/server/request-context";
 import { prisma } from "@/server/db";
 import { NotFoundError } from "@/server/errors";
 import { Alert, Badge, ButtonLink, Card, DL, EmptyState, PageHeader, Table } from "@/components/ui";
-import { DANGER_LEVEL, GENDER, IDENTIFIER_TYPE, WANTED_STATUS, labelOf } from "@/lib/labels";
+import { DANGER_LEVEL, GENDER, IDENTIFIER_TYPE, WANTED_KIND, WANTED_STATUS, labelOf } from "@/lib/labels";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
-import { PhotoForm, SightingForm, VehicleForm, WantedStatusForm, WarrantForm, WarrantStatusForm } from "../wanted-forms";
+import { PhotoForm, SightingForm, VehicleForm, WantedStatusForm, WantedVerifyForm, WarrantForm, WarrantStatusForm } from "../wanted-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return { title: t("wanted.detail") };
 }
 
+/** Mirrors the service: a DRAFT leaves through verification, not through a status change. */
 const WANTED_TRANSITIONS: Record<string, string[]> = {
-  DRAFT: ["PENDING_APPROVAL", "ACTIVE", "CANCELLED"],
+  DRAFT: ["CANCELLED"],
   PENDING_APPROVAL: ["ACTIVE", "CANCELLED"],
-  ACTIVE: ["LOCATED", "ARRESTED", "CANCELLED", "EXPIRED"],
-  LOCATED: ["ARRESTED", "ACTIVE", "CANCELLED", "EXPIRED"],
+  ACTIVE: ["LOCATED", "ARRESTED", "SUSPENDED", "CANCELLED", "EXPIRED"],
+  LOCATED: ["ARRESTED", "ACTIVE", "SUSPENDED", "CANCELLED", "EXPIRED"],
+  SUSPENDED: ["ACTIVE", "CANCELLED", "EXPIRED"],
   ARRESTED: [],
   CANCELLED: [],
   EXPIRED: ["ACTIVE"],
@@ -40,11 +43,12 @@ export default async function WantedDetailPage({ params, searchParams }: PagePro
   const [{ id }, sp, t, locale] = await Promise.all([params, searchParams, getT(), getLocale()]);
   let w;
   try {
-    w = await getWantedPerson(actor, id);
+    w = await viewWantedPerson(actor, id, await getRequestContext());
   } catch (e) {
     if (e instanceof NotFoundError) notFound();
     throw e;
   }
+  const homonyms = await listHomonyms(actor, w.id);
   const audit = actor.permissions.has("audit:view") ? await prisma.auditLog.findMany({ where: { entityType: { in: ["WantedPerson", "Warrant"] }, entityId: { in: [w.id, w.warrantId ?? "__none__"] } }, orderBy: { at: "desc" }, take: 50 }) : [];
   const st = labelOf(WANTED_STATUS, w.status, locale);
   const dl = labelOf(DANGER_LEVEL, w.dangerLevel, locale);
@@ -64,6 +68,7 @@ export default async function WantedDetailPage({ params, searchParams }: PagePro
         actions={
           <>
             <Badge tone={st.tone}>{st.label}</Badge>
+            <Badge tone={labelOf(WANTED_KIND, w.kind, locale).tone}>{labelOf(WANTED_KIND, w.kind, locale).label}</Badge>
             <Badge tone={dl.tone}>{dl.label}</Badge>
             {actor.permissions.has("wanted:publish") ? (
               <ButtonLink href={`/wanted/${w.id}/notice`} variant="ghost" size="sm">
@@ -119,10 +124,32 @@ export default async function WantedDetailPage({ params, searchParams }: PagePro
                 { label: t("wanted.case"), value: w.case ? <Link href={`/cases/${w.case.id}`} className="text-blue hover:underline">{w.case.number} — {w.case.title}</Link> : "—" },
                 { label: t("wanted.issuedBy"), value: `${w.issuedBy.firstName} ${w.issuedBy.lastName}` },
                 { label: t("wanted.approvedBy"), value: w.approvedBy ? `${w.approvedBy.firstName} ${w.approvedBy.lastName}` : "—" },
+                { label: t("wanted.issuingAuthority"), value: w.issuingAuthority ?? "—" },
+                { label: t("wanted.legalBasis"), value: w.legalBasis ?? "—" },
+                { label: t("wanted.verifiedBy"), value: w.verifiedBy && w.verifiedAt ? `${w.verifiedBy.firstName} ${w.verifiedBy.lastName} · ${fmtDateTime(w.verifiedAt, locale)}` : t("wanted.notVerified") },
+                ...(w.suspendedAt ? [{ label: t("wanted.suspension"), value: `${fmtDateTime(w.suspendedAt, locale)} — ${w.suspensionReason ?? ""}` }] : []),
               ]}
               cols={2}
             />
+            {(w.status === "DRAFT" || w.status === "PENDING_APPROVAL") && actor.permissions.has("wanted:verify") ? (
+              <div className="mt-4 border-t border-line pt-3">
+                <WantedVerifyForm id={w.id} />
+              </div>
+            ) : null}
           </Card>
+          {homonyms.length ? (
+            <Alert tone="warning">
+              <p className="font-semibold">{t("wanted.homonymsTitle")}</p>
+              <p className="text-xs">{t("wanted.homonymsHint")}</p>
+              <ul className="mt-1 list-disc ps-5 text-xs">
+                {homonyms.map((h) => (
+                  <li key={h.id}>
+                    <Link href={`/wanted/${h.id}`} className="font-semibold underline">{h.number}</Link> · {h.person.number} · {fmtDate(h.person.dateOfBirth, locale)} · {h.person.city ?? "—"}
+                  </li>
+                ))}
+              </ul>
+            </Alert>
+          ) : null}
 
           <Card title={t("wanted.warrantInfo")}>
             {w.warrant ? (

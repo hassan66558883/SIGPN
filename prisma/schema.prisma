@@ -169,6 +169,7 @@ model User {
   detentionLogs              DetentionLog[]
   wantedIssued               WantedPerson[]             @relation("WantedIssuedBy")
   wantedApproved             WantedPerson[]             @relation("WantedApprovedBy")
+  wantedVerified             WantedPerson[]             @relation("WantedVerifiedBy")
   wantedSightingsLogged      WantedSighting[]
   wantedVehiclesAdded        WantedVehicle[]
   incidentsReported          Incident[]
@@ -1409,6 +1410,14 @@ enum WantedStatus {
   ARRESTED
   CANCELLED
   EXPIRED
+  SUSPENDED
+}
+
+/// Nature of the notice (cahier des charges SIGPN-T v2.0, section 4): a search warrant, a summons for a hearing, a missing person.
+enum WantedKind {
+  SEARCH_WARRANT
+  HEARING
+  MISSING_PERSON
 }
 
 model WantedPerson {
@@ -1441,6 +1450,15 @@ model WantedPerson {
   expiresAt           DateTime?
   closedAt            DateTime?
   closureNotes        String?
+  kind                WantedKind   @default(SEARCH_WARRANT)
+  legalBasis          String?
+  issuingAuthority    String?
+  verifiedById        String?
+  verifiedBy          User?        @relation("WantedVerifiedBy", fields: [verifiedById], references: [id])
+  verifiedAt          DateTime?
+  verificationNotes   String?
+  suspendedAt         DateTime?
+  suspensionReason    String?
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
 

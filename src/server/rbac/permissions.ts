@@ -38,6 +38,7 @@ export const PERMISSION_CATALOG = [
   ["wanted:view", "View wanted persons"],
   ["wanted:create", "Create wanted notices"],
   ["wanted:approve", "Approve/cancel wanted notices"],
+  ["wanted:verify", "Verify the exhibits and legal basis of a wanted notice (four-eyes step before approval)"],
   ["wanted:update", "Update wanted notices"],
   ["wanted:status", "Change the status of a wanted notice (located, apprehended, etc.)"],
   ["wanted:publish", "Generate the public wanted notice"],

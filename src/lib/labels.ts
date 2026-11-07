@@ -548,6 +548,13 @@ export const WANTED_STATUS: LabelMap = {
   ARRESTED: def("Appréhendé", "تم القبض عليه", "success"),
   CANCELLED: def("Annulé", "ملغى", "neutral"),
   EXPIRED: def("Expiré", "منتهي الصلاحية", "neutral"),
+  SUSPENDED: def("Suspendu", "معلّق", "warning"),
+};
+
+export const WANTED_KIND: LabelMap = {
+  SEARCH_WARRANT: def("Mandat de recherche", "مذكرة بحث", "danger"),
+  HEARING: def("Recherche pour audition", "بحث لأجل الاستماع", "info"),
+  MISSING_PERSON: def("Personne disparue", "شخص مفقود", "warning"),
 };
 
 export const DANGER_LEVEL: LabelMap = {
