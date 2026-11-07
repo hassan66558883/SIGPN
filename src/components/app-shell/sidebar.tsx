@@ -25,7 +25,7 @@ function NavList({ sections, onNavigate }: { sections: SidebarSection[]; onNavig
                     href={item.href}
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
-                    className={cx("flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[13px] transition", active ? "bg-blue text-white" : "text-white/80 hover:bg-white/10 hover:text-white")}
+                    className={cx("flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[13px] transition", active ? "border-s-2 border-gold bg-gold/15 font-semibold text-gold" : "border-s-2 border-transparent text-white/80 hover:bg-white/10 hover:text-white")}
                   >
                     <span className="w-4 text-center text-xs opacity-80" aria-hidden>
                       {item.icon}

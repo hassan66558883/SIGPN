@@ -1,41 +1,44 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f6f9;
-  --foreground: #14202e;
+  --background: #071b35;
+  --foreground: #ffffff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: "Inter", "Segoe UI", system-ui, Arial, Helvetica, sans-serif;
+}
 
-  /* PMS institutional palette */
-  --color-navy: #0f2a4a;
-  --color-navy-2: #16396a;
-  --color-blue: #1e5aa8;
-  --color-blue-dark: #174783;
-  --color-gold: #c9a227;
-  --color-ink: #14202e;
-  --color-slate: #5b6675;
-  --color-mist: #f4f6f9;
-  --color-mist-2: #e8edf4;
-  --color-line: #dbe2ec;
+/* SIGPN-T navy / gold palette (cahier des charges v2.0, section 3). Not `inline`: utilities read these variables at runtime. */
+@theme {
+  --color-navy: #0b2545;
+  --color-navy-2: #102e50;
+  --color-blue: #2f6fc0;
+  --color-blue-dark: #245aa0;
+  --color-gold: #e5b32e;
+  --color-ink: #ffffff;
+  --color-slate: #b8c7d9;
+  --color-mist: #0b2545;
+  --color-mist-2: #163a63;
+  --color-line: #24476f;
+  --color-card: #102e50;
 
-  --color-success: #15803d;
-  --color-success-soft: #dcfce7;
-  --color-warning: #b45309;
-  --color-warning-soft: #fef3c7;
-  --color-danger: #b91c1c;
-  --color-danger-soft: #fee2e2;
-  --color-info: #1d4ed8;
-  --color-info-soft: #dbeafe;
-  --color-violet: #6d28d9;
-  --color-violet-soft: #ede9fe;
+  --color-success: #4ade80;
+  --color-success-soft: #0f3b2c;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #3d300c;
+  --color-danger: #ff6b6b;
+  --color-danger-soft: #451a24;
+  --color-info: #7cb3ff;
+  --color-info-soft: #12305a;
+  --color-violet: #b9a2ff;
+  --color-violet-soft: #2b2358;
 }
 
 html {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 body {
@@ -57,7 +60,7 @@ body {
 }
 
 .input {
-  @apply w-full rounded-md border border-line bg-white px-3 py-2 text-sm text-ink shadow-sm outline-none transition placeholder:text-slate/60 focus:border-blue focus:ring-2 focus:ring-blue/20 disabled:cursor-not-allowed disabled:bg-mist-2 aria-invalid:border-danger;
+  @apply w-full rounded-md border border-line bg-navy-2 px-3 py-2 text-sm text-ink shadow-sm outline-none transition placeholder:text-slate/60 focus:border-blue focus:ring-2 focus:ring-blue/20 disabled:cursor-not-allowed disabled:bg-mist-2 aria-invalid:border-danger;
 }
 .label {
   @apply mb-1 block text-xs font-semibold uppercase tracking-wide text-slate;
@@ -88,7 +91,7 @@ body {
     width: 100%;
   }
   .responsive-table tr {
-    @apply mb-3 rounded-lg border border-line bg-white p-2 shadow-sm;
+    @apply mb-3 rounded-lg border border-line bg-card p-2 shadow-sm;
   }
   .responsive-table td {
     @apply flex items-start justify-between gap-3 border-0 border-b border-line/60 px-2 py-1.5 text-right last:border-b-0;
@@ -106,4 +109,19 @@ body {
   body {
     background: white;
   }
+}
+
+/* Dark surfaces: white cards become the card colour, solid status fills stay dark enough for white text. */
+.bg-white { background-color: var(--color-card); }
+.bg-white\/95 { background-color: color-mix(in srgb, #071b35 92%, transparent); }
+.text-navy { color: #ffffff; }
+.bg-success { background-color: #15803d; }
+.bg-danger { background-color: #b91c1c; }
+.bg-warning { background-color: #b45309; }
+.shadow-sm { --tw-shadow-color: rgba(0, 0, 0, 0.35); }
+:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+.bg-brand { background-color: #071b35; background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px), radial-gradient(circle at 85% 15%, rgba(229,179,46,0.22), transparent 45%), linear-gradient(135deg, #071b35 0%, #0b2545 100%); }
+@media print {
+  :root { --background: #fff; --foreground: #14202e; --color-ink: #14202e; --color-slate: #5b6675; --color-line: #dbe2ec; --color-mist: #f4f6f9; }
+  .bg-white, .bg-card { background-color: #fff; }
 }
