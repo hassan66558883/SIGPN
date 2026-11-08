@@ -37,6 +37,7 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
   await grantHrPayDefaultsOnce(byCode);
   await grantWantedVerifyOnce(byCode);
   await grantAlertsOnce(byCode);
+  await grantBiometricControlOnce(byCode);
   return SYSTEM_ROLES.length;
 }
 
@@ -180,4 +181,16 @@ async function grantAlertsOnce(byCode: Map<string, string>) {
   const sim = await prisma.role.findMany({ where: { code: { in: ["SUPER_ADMIN", "NATIONAL_COMMANDER"] } }, select: { id: true } });
   await grant(sim.map((r) => r.id), "alerts:simulate");
   await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions du réseau d'alertes nationales ont été accordées aux rôles système." } });
+}
+
+/** Biometric control screen: granted once to the roles that already run fingerprint or face searches. */
+async function grantBiometricControlOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.biometric_control_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const perm = byCode.get("biometric:control");
+  if (perm) {
+    const holders = await prisma.rolePermission.findMany({ where: { permission: { code: { in: ["biometric:search_fingerprint", "biometric:search_face"] } } }, select: { roleId: true } });
+    await prisma.rolePermission.createMany({ data: [...new Set(holders.map((h) => h.roleId))].map((roleId) => ({ roleId, permissionId: perm })), skipDuplicates: true });
+  }
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "La permission de contrôle biométrique a été accordée aux rôles qui effectuent déjà des recherches d'empreinte ou de visage." } });
 }

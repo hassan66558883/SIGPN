@@ -3929,3 +3929,62 @@ model StationPresence {
   lastUserId       String?
   simulatedOffline Boolean  @default(false)
 }
+
+// ------------------------------------------------------------
+// BIOMETRIC CONTROL SCREEN (SIGPN-T v2.0, section 6) — demonstration simulator
+// ------------------------------------------------------------
+
+enum BiometricControlResult {
+  POSSIBLE_MATCH
+  UNCERTAIN
+  NO_MATCH
+  UNAVAILABLE
+}
+
+enum BiometricControlStatus {
+  NEW
+  VERIFICATION_REQUESTED
+  SUPERIOR_NOTIFIED
+  ERROR_REPORTED
+  CONFIRMED_BY_HUMAN
+  REJECTED_BY_HUMAN
+}
+
+enum BiometricErrorKind {
+  FALSE_POSITIVE
+  FALSE_NEGATIVE
+  POOR_CAPTURE
+  CONTESTED
+}
+
+/// One identity check at a control point. Always a SIMULATION in this version (fictitious identities, no real template
+/// is matched, no image is stored). A result is an indication to verify, never evidence and never an order to arrest.
+model BiometricControl {
+  id                      String                 @id @default(cuid())
+  number                  String                 @unique
+  modality                BiometricType
+  result                  BiometricControlResult
+  score                   Decimal?               @db.Decimal(5, 2)
+  captureQuality          Int
+  referenceAlertId        String?
+  subjectLabel            String?
+  officerId               String
+  stationId               String?
+  device                  String?
+  reason                  String
+  status                  BiometricControlStatus @default(NEW)
+  verificationRequestedAt DateTime?
+  superiorNotifiedAt      DateTime?
+  reviewedById            String?
+  reviewedAt              DateTime?
+  reviewNotes             String?
+  errorKind               BiometricErrorKind?
+  errorNotes              String?
+  errorReportedAt         DateTime?
+  isSimulation            Boolean                @default(true)
+  createdAt               DateTime               @default(now())
+
+  @@index([officerId, createdAt])
+  @@index([stationId, createdAt])
+  @@index([result])
+}

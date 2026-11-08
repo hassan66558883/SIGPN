@@ -34,6 +34,7 @@ export const NAVIGATION: NavSection[] = [
       { href: "/statements", labelKey: "nav.statements", permission: "statements:view", icon: "✎" },
       { href: "/interviews", labelKey: "nav.interviews", permission: "interviews:view", icon: "♫" },
       { href: "/biometric", labelKey: "nav.biometric", permission: "biometric:history_view", anyOf: ["biometric:search_fingerprint", "biometric:search_face", "biometric:search_voice", "biometric:search_anpr", "biometric:manage", "biometric:verify"], icon: "⚛" },
+      { href: "/biometric/control", labelKey: "nav.biocontrol", permission: "biometric:control", icon: "◐" },
     ],
   },
   {

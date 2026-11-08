@@ -8,6 +8,7 @@ import { hrFr } from "@/lib/i18n/hr.fr";
 import { dashFr } from "@/lib/i18n/dash.fr";
 import { wantedFr } from "@/lib/i18n/wanted.fr";
 import { alertsFr } from "@/lib/i18n/alerts.fr";
+import { biocontrolFr } from "@/lib/i18n/biocontrol.fr";
 
 export const fr = {
   ...trafficFr,
@@ -16,6 +17,7 @@ export const fr = {
   ...dashFr,
   ...wantedFr,
   ...alertsFr,
+  ...biocontrolFr,
   // ---- application / common ----
   "app.name": "Système Intégré de Gestion Numérique de la Police Nationale du Tchad",
   "app.short": "SIGPN-T",

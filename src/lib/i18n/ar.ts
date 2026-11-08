@@ -7,6 +7,7 @@ import { hrAr } from "@/lib/i18n/hr.ar";
 import { dashAr } from "@/lib/i18n/dash.ar";
 import { wantedAr } from "@/lib/i18n/wanted.ar";
 import { alertsAr } from "@/lib/i18n/alerts.ar";
+import { biocontrolAr } from "@/lib/i18n/biocontrol.ar";
 
 export const ar: Record<keyof typeof fr, string> = {
   ...trafficAr,
@@ -15,6 +16,7 @@ export const ar: Record<keyof typeof fr, string> = {
   ...dashAr,
   ...wantedAr,
   ...alertsAr,
+  ...biocontrolAr,
   // ---- application / common ----
   "app.name": "النظام المتكامل للإدارة الرقمية للشرطة الوطنية التشادية",
   "app.short": "SIGPN-T",

@@ -38,6 +38,7 @@ export const PERMISSION_CATALOG = [
   ["wanted:view", "View wanted persons"],
   ["wanted:create", "Create wanted notices"],
   ["wanted:approve", "Approve/cancel wanted notices"],
+  ["biometric:control", "Run identity checks at a control point (simulation screen) and report their errors"],
   ["alerts:view", "Receive and read the alerts of the national network (own unit)"],
   ["alerts:ack", "Acknowledge an alert on behalf of the unit"],
   ["alerts:supervise", "Supervise alert diffusion: receipts, offline units, reminders, escalations"],
