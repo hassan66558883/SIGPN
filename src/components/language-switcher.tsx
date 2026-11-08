@@ -15,7 +15,7 @@ export function LanguageSwitcher({ current, dark, label }: { current: Locale; da
           title={LOCALE_NAMES[l]}
           aria-pressed={l === current}
           className={cx(
-            "rounded px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide transition",
+            "inline-flex items-center justify-center rounded px-2.5 py-2 text-[11px] font-bold uppercase tracking-wide transition",
             l === current ? (dark ? "bg-white/20 text-white" : "bg-navy text-white") : dark ? "text-white/60 hover:text-white" : "text-slate hover:bg-mist hover:text-ink",
           )}
         >

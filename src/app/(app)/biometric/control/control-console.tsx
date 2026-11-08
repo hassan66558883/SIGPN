@@ -203,7 +203,7 @@ export function ControlConsole({ actorId, canReview, initial, focusId }: { actor
           <div className="mt-4 flex flex-wrap items-center gap-4">
             <Button onClick={run} disabled={busy || reason.trim().length < 5}>{busy ? t("bc.running") : t("bc.run")}</Button>
             <label className="flex items-center gap-1.5 text-xs text-ink">
-              <input type="checkbox" checked={sound.enabled} onChange={(e) => saveSound({ ...sound, enabled: e.target.checked })} />
+              <input type="checkbox" className="h-5 w-5 accent-gold" checked={sound.enabled} onChange={(e) => saveSound({ ...sound, enabled: e.target.checked })} />
               {t("bc.sound")}
             </label>
             <label className="flex items-center gap-1.5 text-xs text-slate">

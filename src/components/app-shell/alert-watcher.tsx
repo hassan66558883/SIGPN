@@ -90,7 +90,7 @@ export function AlertWatcher() {
         {t("alerts.watch.open")}
       </Link>
       <label className="flex items-center gap-1.5 text-xs text-ink">
-        <input type="checkbox" checked={sound} onChange={toggleSound} />
+        <input type="checkbox" className="h-5 w-5 accent-gold" checked={sound} onChange={toggleSound} />
         {t("alerts.watch.sound")}
       </label>
     </div>

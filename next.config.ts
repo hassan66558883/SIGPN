@@ -29,6 +29,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // A second build directory lets a production build be verified while the development server keeps running (NEXT_DIST_DIR=.next-prod).
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   poweredByHeader: false,
   reactStrictMode: true,
   experimental: { authInterrupts: true },

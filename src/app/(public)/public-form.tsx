@@ -127,7 +127,7 @@ export function PublicForm({ kind, stations, locale }: { kind: Kind; stations: {
       </div>
       {kind !== "CONTACT" ? (
         <label className="flex items-start gap-2 text-sm text-ink">
-          <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} className="mt-1" />
+          <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} className="mt-0.5 h-5 w-5 shrink-0 accent-gold" />
           {t("pub.form.anonymous")}
         </label>
       ) : null}
@@ -152,7 +152,7 @@ export function PublicForm({ kind, stations, locale }: { kind: Kind; stations: {
         </div>
       ) : null}
       <label className="flex items-start gap-2 text-sm text-ink">
-        <input type="checkbox" name="consent" required className="mt-1" />
+        <input type="checkbox" name="consent" required className="mt-0.5 h-5 w-5 shrink-0 accent-gold" />
         {t("pub.form.consent")}
       </label>
       {error ? <p role="alert" className="text-sm font-semibold text-danger">{error}</p> : null}

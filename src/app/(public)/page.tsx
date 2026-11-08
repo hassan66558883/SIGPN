@@ -66,7 +66,7 @@ export default async function PublicHome() {
         <section aria-labelledby="news">
           <div className="mb-3 flex items-baseline justify-between">
             <h2 id="news" className="text-lg font-bold text-ink">{t("pub.home.latestNews")}</h2>
-            <Link href="/actualites" className="text-sm font-semibold text-gold hover:underline">{t("pub.home.seeAll")}</Link>
+            <Link href="/actualites" className="inline-block py-2 text-sm font-semibold text-gold hover:underline">{t("pub.home.seeAll")}</Link>
           </div>
           {news.length === 0 ? <p className="text-sm text-slate">{t("pub.news.empty")}</p> : (
             <ul className="space-y-3">
@@ -83,7 +83,7 @@ export default async function PublicHome() {
         <section aria-labelledby="wanted">
           <div className="mb-3 flex items-baseline justify-between">
             <h2 id="wanted" className="text-lg font-bold text-ink">{t("pub.home.latestWanted")}</h2>
-            <Link href="/avis-de-recherche" className="text-sm font-semibold text-gold hover:underline">{t("pub.home.seeAll")}</Link>
+            <Link href="/avis-de-recherche" className="inline-block py-2 text-sm font-semibold text-gold hover:underline">{t("pub.home.seeAll")}</Link>
           </div>
           {wanted.length === 0 ? <p className="text-sm text-slate">{t("pub.wanted.empty")}</p> : (
             <ul className="space-y-3">

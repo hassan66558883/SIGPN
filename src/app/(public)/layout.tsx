@@ -32,16 +32,16 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
           </Link>
           <div className="flex items-center gap-3">
             <LanguageSwitcher current={locale} dark label="Langue" />
-            <Link href="/login" className="rounded-md border border-gold px-3 py-1.5 text-xs font-bold text-gold hover:bg-gold hover:text-navy">
+            <Link href="/login" className="inline-flex min-h-9 items-center rounded-md border border-gold px-3 text-xs font-bold text-gold hover:bg-gold hover:text-navy">
               {t("pub.nav.staff")}
             </Link>
           </div>
         </div>
         <nav aria-label="Principal" className="border-t border-line/60">
-          <ul className="mx-auto flex max-w-6xl flex-wrap gap-x-5 gap-y-1 px-4 py-2 text-sm">
+          <ul className="mx-auto flex max-w-6xl flex-wrap gap-x-5 px-4 text-sm">
             {LINKS.map((l) => (
               <li key={l.href}>
-                <Link href={l.href} className="text-white/85 hover:text-gold">
+                <Link href={l.href} className="inline-flex min-h-11 min-w-11 items-center justify-center px-1 text-white/85 hover:text-gold">
                   {t(l.key)}
                 </Link>
               </li>
