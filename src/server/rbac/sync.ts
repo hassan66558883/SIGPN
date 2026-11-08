@@ -38,6 +38,7 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
   await grantWantedVerifyOnce(byCode);
   await grantAlertsOnce(byCode);
   await grantBiometricControlOnce(byCode);
+  await grantPublicPortalOnce(byCode);
   return SYSTEM_ROLES.length;
 }
 
@@ -193,4 +194,20 @@ async function grantBiometricControlOnce(byCode: Map<string, string>) {
     await prisma.rolePermission.createMany({ data: [...new Set(holders.map((h) => h.roleId))].map((roleId) => ({ roleId, permissionId: perm })), skipDuplicates: true });
   }
   await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "La permission de contrôle biométrique a été accordée aux rôles qui effectuent déjà des recherches d'empreinte ou de visage." } });
+}
+
+/** Public portal: roles that review complaints handle public submissions; roles that publish notices manage the public content. Granted once. */
+async function grantPublicPortalOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.public_portal_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const holders = async (code: string) => (await prisma.rolePermission.findMany({ where: { permission: { code } }, select: { roleId: true } })).map((h) => h.roleId);
+  const grant = async (roleIds: string[], code: string) => {
+    const id = byCode.get(code);
+    if (id && roleIds.length) await prisma.rolePermission.createMany({ data: [...new Set(roleIds)].map((roleId) => ({ roleId, permissionId: id })), skipDuplicates: true });
+  };
+  const reviewers = await holders("complaints:review");
+  await grant(reviewers, "intake:view");
+  await grant(reviewers, "intake:manage");
+  await grant(await holders("wanted:publish"), "public:content");
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions du portail public ont été accordées aux rôles système concernés." } });
 }

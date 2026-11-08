@@ -26,6 +26,10 @@ export const LIMITS = {
   api: { limit: 240, windowMs: 60_000 },
   apiWrite: { limit: 60, windowMs: 60_000 },
   upload: { limit: 30, windowMs: 60_000 },
+  // Per client IP (behind a trusted proxy). Overridable for load tests / demonstrations: PUBLIC_SUBMIT_LIMIT, PUBLIC_TRACK_LIMIT.
+  publicSubmit: { limit: Number(process.env.PUBLIC_SUBMIT_LIMIT) || 5, windowMs: 60 * 60_000 },
+  publicTrack: { limit: Number(process.env.PUBLIC_TRACK_LIMIT) || 10, windowMs: 15 * 60_000 },
+  publicTrackRef: { limit: 8, windowMs: 60 * 60_000 },
 } as const;
 export type LimitKey = keyof typeof LIMITS;
 

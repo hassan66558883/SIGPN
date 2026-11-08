@@ -6,6 +6,7 @@ import { Field, Select } from "@/components/ui";
 import { useLocale, useT } from "@/components/i18n-provider";
 import { DANGER_LEVEL, WANTED_KIND, WANTED_STATUS, optionsOf } from "@/lib/labels";
 import { PersonPicker } from "@/components/person-picker";
+import { publishWantedPubliclyAction, unpublishWantedPubliclyAction } from "@/server/public/actions";
 import { addSightingAction, addVehicleAction, attachPhotoAction, createWantedPersonAction, createWarrantAction, setWantedStatusAction, setWarrantStatusAction, updateWantedPersonAction, verifyWantedAction } from "@/server/wanted/actions";
 
 export type Opt = { id: string; label: string };
@@ -110,6 +111,38 @@ export function WantedVerifyForm({ id }: { id: string }) {
           <SubmitButton size="sm" pendingText={t("common.working")}>
             {t("wanted.verifyAction")}
           </SubmitButton>
+        </>
+      )}
+    </ActionForm>
+  );
+}
+
+export function WantedPublicForm({ id, published, publishedAt, notice }: { id: string; published: boolean; publishedAt: string | null; notice: string | null }) {
+  const t = useT();
+  if (published)
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-ink">{t("pa.wanted.isPublished")} {publishedAt}</p>
+        {notice ? <p className="rounded-md border border-line p-3 text-sm text-slate">{notice}</p> : null}
+        <ActionForm action={unpublishWantedPubliclyAction}>
+          <input type="hidden" name="id" value={id} />
+          <SubmitButton size="sm" variant="secondary">{t("pa.wanted.unpublish")}</SubmitButton>
+        </ActionForm>
+      </div>
+    );
+  return (
+    <ActionForm action={publishWantedPubliclyAction} className="space-y-3">
+      {(s) => (
+        <>
+          <input type="hidden" name="id" value={id} />
+          <Field label={t("pa.wanted.notice")} htmlFor="wt-pubnotice" error={s.fieldErrors?.notice}>
+            <textarea id="wt-pubnotice" name="notice" className="input" rows={3} minLength={20} maxLength={600} required />
+          </Field>
+          <label className="flex items-start gap-2 text-sm text-ink">
+            <input type="checkbox" name="confirm" required className="mt-1" />
+            {t("pa.wanted.confirm")}
+          </label>
+          <SubmitButton size="sm">{t("pa.wanted.publish")}</SubmitButton>
         </>
       )}
     </ActionForm>

@@ -10,6 +10,8 @@ export const GET = withApi<P>({ permission: "wanted:view" }, async ({ actor, ctx
 const opSchema = z.discriminatedUnion("op", [
   z.object({ op: z.literal("status"), status: z.enum(WANTED_STATUSES), closureNotes: z.string().max(2000).optional() }),
   z.object({ op: z.literal("verify"), notes: z.string().max(2000).optional() }),
+  z.object({ op: z.literal("publishPublic"), notice: z.string().max(600), confirm: z.boolean() }),
+  z.object({ op: z.literal("unpublishPublic") }),
   z.object({ op: z.literal("addSighting"), location: z.string().min(2).max(300), occurredAt: z.string().min(1), source: z.string().max(120).optional(), notes: z.string().max(1000).optional() }),
   z.object({ op: z.literal("addVehicle"), plateNumber: z.string().max(20).optional(), make: z.string().max(60).optional(), model: z.string().max(60).optional(), color: z.string().max(40).optional(), year: z.string().max(4).optional(), notes: z.string().max(300).optional() }),
 ]);
@@ -22,6 +24,10 @@ export const PATCH = withApi<P>({ permission: "wanted:view" }, async ({ actor, c
       const w = await svc.setWantedStatus(actor, { id: params.id, status: body.status, closureNotes: body.closureNotes }, ctx);
       return apiOk(w);
     }
+    case "publishPublic":
+      return apiOk(await svc.publishWantedPublicly(actor, params.id, { notice: body.notice, confirm: body.confirm }, ctx));
+    case "unpublishPublic":
+      return apiOk(await svc.unpublishWantedPublicly(actor, params.id, ctx));
     case "verify":
       return apiOk(await svc.verifyWanted(actor, { id: params.id, notes: body.notes }, ctx));
     case "addSighting": {

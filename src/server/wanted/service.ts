@@ -44,6 +44,8 @@ export const wantedSelect = {
   closureNotes: true,
   kind: true,
   diffusionLevel: true,
+  publicPublishedAt: true,
+  publicNotice: true,
   legalBasis: true,
   issuingAuthority: true,
   verifiedAt: true,
@@ -236,13 +238,46 @@ export async function setWantedStatus(actor: Actor, input: WantedStatusInput, ct
         closureNotes: closing ? reason || null : null,
         suspendedAt: suspending ? new Date() : null,
         suspensionReason: suspending ? reason : null,
+        // Leaving ACTIVE always withdraws the public notice.
+        ...(input.status !== "ACTIVE" ? { publicPublishedAt: null, publicPublishedById: null } : {}),
       },
     });
     if (r.count !== 1) throw new BusinessError("The wanted notice was modified concurrently. Reload and retry.", "CONFLICT");
+    if (before.publicPublishedAt && input.status !== "ACTIVE") await logAudit({ actor, action: "WANTED_PUBLIC_UNPUBLISHED", module: "wanted", entityType: "WantedPerson", entityId: before.id, entityLabel: before.number, summary: `${before.number}: public notice withdrawn automatically (${before.status} → ${input.status})`, context: ctx }, tx);
     if (alertKind) await publishWantedAlert(tx, actor, before, alertKind, input.status, ctx);
     await logAudit({ actor, action: `WANTED_${input.status}`, module: "wanted", entityType: "WantedPerson", entityId: before.id, entityLabel: before.number, summary: `${before.number}: ${before.status} → ${input.status}${reason ? ` — ${reason}` : ""}`, before: { status: before.status }, after: { status: input.status }, context: ctx }, tx);
   });
   return getWantedPerson(actor, before.id);
+}
+
+/**
+ * Express validation of the publication of a notice on the PUBLIC site (a separate step from approval and from network diffusion).
+ * Needs wanted:publish and a person other than the issuer; ACTIVE, verified, not a hearing summons. Only the reviewed public text and
+ * minimal identity leave the building; the notice leaves the site automatically as soon as it stops being ACTIVE.
+ */
+export async function publishWantedPublicly(actor: Actor, id: string, input: { notice: string; confirm: boolean }, ctx: RequestContext) {
+  if (!actor.permissions.has("wanted:publish")) throw new AuthError("forbidden", "Permission wanted:publish required");
+  const w = await getWantedPerson(actor, id);
+  const meta = await prisma.wantedPerson.findUnique({ where: { id }, select: { issuedById: true } });
+  if (!input.confirm) throw new BusinessError("Confirm expressly that this notice may be published on the public site.", "VALIDATION", { confirm: "required" });
+  if (w.status !== "ACTIVE") throw new BusinessError("Only an ACTIVE notice can be published on the public site.", "STATE");
+  if (w.kind === "HEARING") throw new BusinessError("A summons for a hearing is never published on the public site.", "STATE");
+  if (!w.verifiedAt) throw new BusinessError("The notice must be verified before public publication.", "STATE");
+  if (meta?.issuedById === actor.id) throw new BusinessError("The issuer of a notice cannot publish it publicly (four-eyes rule).", "STATE");
+  const notice = input.notice.trim();
+  if (notice.length < 20) throw new BusinessError("Write the public text (what the public should do, at least 20 characters).", "VALIDATION", { notice: "too short" });
+  await prisma.wantedPerson.update({ where: { id }, data: { publicPublishedAt: new Date(), publicPublishedById: actor.id, publicNotice: notice } });
+  await logAudit({ actor, action: "WANTED_PUBLIC_PUBLISHED", module: "wanted", entityType: "WantedPerson", entityId: id, entityLabel: w.number, summary: `${w.number}: published on the public site`, context: ctx });
+  return getWantedPerson(actor, id);
+}
+
+export async function unpublishWantedPublicly(actor: Actor, id: string, ctx: RequestContext) {
+  if (!actor.permissions.has("wanted:publish")) throw new AuthError("forbidden", "Permission wanted:publish required");
+  const w = await getWantedPerson(actor, id);
+  if (!w.publicPublishedAt) throw new BusinessError("This notice is not published on the public site.", "STATE");
+  await prisma.wantedPerson.update({ where: { id }, data: { publicPublishedAt: null, publicPublishedById: null } });
+  await logAudit({ actor, action: "WANTED_PUBLIC_UNPUBLISHED", module: "wanted", entityType: "WantedPerson", entityId: id, entityLabel: w.number, summary: `${w.number}: withdrawn from the public site`, context: ctx });
+  return getWantedPerson(actor, id);
 }
 
 /** Sensitive consultation of a notice: audited (who looked at whom, when). */

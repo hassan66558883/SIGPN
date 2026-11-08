@@ -459,6 +459,12 @@ enum StationStatus {
 
 /// Police structure: commissariat, poste, unité, brigade, direction. Posts and units hang under a parent station.
 model Station {
+  publicVisible     Boolean          @default(false)
+  publicAddress     String?
+  publicPhone       String?
+  publicHours       String?
+  publicVerifiedAt  DateTime?
+  publicVerifiedById String?
   alertDeliveries   AlertDelivery[]
   presence          StationPresence?
   id                String           @id @default(cuid())
@@ -1454,6 +1460,9 @@ model WantedPerson {
   closureNotes        String?
   kind                WantedKind   @default(SEARCH_WARRANT)
   diffusionLevel      WantedDiffusion @default(NATIONAL)
+  publicPublishedAt   DateTime?
+  publicPublishedById String?
+  publicNotice        String?
   legalBasis          String?
   issuingAuthority    String?
   verifiedById        String?
@@ -3987,4 +3996,72 @@ model BiometricControl {
   @@index([officerId, createdAt])
   @@index([stationId, createdAt])
   @@index([result])
+}
+
+// ------------------------------------------------------------
+// PUBLIC PORTAL (SIGPN-T v2.0, sections 2.2 and 4): anonymous intake, news, directory
+// ------------------------------------------------------------
+
+enum PublicSubmissionKind {
+  COMPLAINT
+  REPORT
+  CONTACT
+}
+
+enum PublicSubmissionStatus {
+  RECEIVED
+  IN_REVIEW
+  FORWARDED
+  CLOSED
+  REJECTED
+}
+
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// A complaint, report or contact message filed on the public site. Never an internal record: staff review it and may convert a
+/// complaint into the internal complaint workflow. The tracking code is only stored hashed.
+model PublicSubmission {
+  id             String                 @id @default(cuid())
+  number         String                 @unique
+  codeHash       String
+  kind           PublicSubmissionKind
+  category       OffenseCategory        @default(OTHER)
+  subject        String
+  message        String
+  locationText   String?
+  occurredOn     DateTime?
+  contactName    String?
+  contactPhone   String?
+  contactEmail   String?
+  anonymous      Boolean                @default(false)
+  stationId      String?
+  status         PublicSubmissionStatus @default(RECEIVED)
+  publicReply    String?
+  repliedAt      DateTime?
+  handledById    String?
+  complaintId    String?                @unique
+  ipHash         String?
+  receivedAt     DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@index([status, receivedAt])
+  @@index([stationId, status])
+}
+
+model PublicNews {
+  id          String     @id @default(cuid())
+  title       String
+  summary     String
+  body        String
+  status      NewsStatus @default(DRAFT)
+  publishedAt DateTime?
+  authorId    String
+  isDemo      Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([status, publishedAt])
 }

@@ -10,7 +10,7 @@ import { Alert, Badge, ButtonLink, Card, DL, EmptyState, PageHeader, Table } fro
 import { DANGER_LEVEL, GENDER, IDENTIFIER_TYPE, WANTED_KIND, WANTED_STATUS, labelOf } from "@/lib/labels";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
-import { PhotoForm, SightingForm, VehicleForm, WantedStatusForm, WantedVerifyForm, WarrantForm, WarrantStatusForm } from "../wanted-forms";
+import { PhotoForm, SightingForm, VehicleForm, WantedPublicForm, WantedStatusForm, WantedVerifyForm, WarrantForm, WarrantStatusForm } from "../wanted-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -137,6 +137,15 @@ export default async function WantedDetailPage({ params, searchParams }: PagePro
               </div>
             ) : null}
           </Card>
+          {actor.permissions.has("wanted:publish") ? (
+            <Card title={t("pa.wanted.title")} description={t("pa.wanted.hint")}>
+              {w.status === "ACTIVE" && w.kind !== "HEARING" && w.verifiedAt ? (
+                <WantedPublicForm id={w.id} published={!!w.publicPublishedAt} publishedAt={w.publicPublishedAt ? fmtDateTime(w.publicPublishedAt, locale) : null} notice={w.publicNotice} />
+              ) : (
+                <p className="text-sm text-slate">{t("pa.wanted.notPublic")}</p>
+              )}
+            </Card>
+          ) : null}
           {homonyms.length ? (
             <Alert tone="warning">
               <p className="font-semibold">{t("wanted.homonymsTitle")}</p>
