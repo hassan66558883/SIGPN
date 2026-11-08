@@ -24,7 +24,14 @@ async function keyFor(username: string): Promise<string> {
 }
 
 async function api(key: string, method: string, path: string, body?: unknown) {
-  const res = await fetch(`${BASE}${path}`, { method, headers: { authorization: `Bearer ${key}`, "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  // The per-account write quota (60 per minute) is shared by every suite run back to back (hr-security exhausts it on purpose): wait out the window instead of failing.
+  const send = () => fetch(`${BASE}${path}`, { method, headers: { authorization: `Bearer ${key}`, "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  let res = await send();
+  for (let i = 0; i < 2 && res.status === 429 && true; i++) {
+    await res.arrayBuffer();
+    await new Promise((ok) => setTimeout(ok, Math.min(65, Number(res.headers.get("retry-after") ?? 30)) * 1000));
+    res = await send();
+  }
   const json = (await res.json().catch(() => ({}))) as { data?: Record<string, unknown> & { id?: string; items?: unknown }; error?: { code: string; message: string }; meta?: Record<string, number> };
   return { res, json };
 }

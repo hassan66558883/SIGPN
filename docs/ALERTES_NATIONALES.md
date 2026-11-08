@@ -62,5 +62,6 @@ Alerte fictive (marquée SIMULATION partout, jamais liée à un avis réel) et c
 - Livraison « pull » (rafraîchissement 20 s), pas de WebSocket ni de notification push mobile : le délai d'affichage est de l'ordre de 20 s.
 - La reconnexion d'une unité est détectée à la prochaine synchronisation ; le test de coupure réseau réel (câble, VSAT) n'a pas été fait, seulement la simulation.
 - La photographie n'est pas diffusée dans le bulletin (accès aux pièces hors périmètre) ; à décider avec la Direction.
-- Aucun test de charge sur 300 unités × plusieurs alertes simultanées n'a été exécuté.
+- Charge mesurée en phase 8 sur un seul poste (300 unités simulées, 20 avis, 6 000 livraisons, build de production) : publication 138 ms au 95e centile, supervision 27 ms, voir `docs/TESTS_PHASE8.md` ; les délais d'un réseau réel ne sont pas mesurés.
+- Le texte du bulletin (par exemple « vérification humaine obligatoire ») est figé en français à la publication ; il n'est pas traduit dans l'interface arabe.
 - Compte d'unité : la réception suit l'unité de l'utilisateur ; une unité sans utilisateur (ex. sous-commissariat sans compte) reste en attente et finit escaladée.

@@ -10,6 +10,8 @@ export const DEMO_ACCOUNTS = [
   { username: "chief.cs1", roleCode: "STATION_COMMANDER", roleName: "Station Commander", firstName: "Samuel", lastName: "Kone", hint: "Commissariat Central N'Djamena · MFA required", station: "CS-01" },
   { username: "chief.arr5", roleCode: "STATION_COMMANDER", roleName: "Station Commander", firstName: "Ngarmbatina", lastName: "Kemba", hint: "Commissariat 5e arrondissement · MFA required", station: "CA-NDJ-05" },
   { username: "chief.mdu", roleCode: "STATION_COMMANDER", roleName: "Station Commander", firstName: "Djasrabé", lastName: "Nadjita", hint: "Commissariat Central Moundou · MFA required", station: "NS-01" },
+  { username: "chief.abe", roleCode: "STATION_COMMANDER", roleName: "Station Commander", firstName: "Mahamat", lastName: "Haggar", hint: "Commissariat Central Abéché · MFA required", station: "CC-ABE" },
+  { username: "desk.abe", roleCode: "DESK_OFFICER", roleName: "Desk / Duty Officer", firstName: "Zenaba", lastName: "Hissein", hint: "Commissariat Central Abéché", station: "CC-ABE" },
   { username: "inv.diallo", roleCode: "INVESTIGATOR", roleName: "Investigator", firstName: "Fatou", lastName: "Diallo", hint: "Commissariat Central N'Djamena", station: "CS-01" },
   { username: "inv.mensah", roleCode: "INVESTIGATOR", roleName: "Investigator", firstName: "Kwame", lastName: "Mensah", hint: "Commissariat Central N'Djamena", station: "CS-01" },
   { username: "desk.cs1", roleCode: "DESK_OFFICER", roleName: "Desk / Duty Officer", firstName: "Amina", lastName: "Sow", hint: "Commissariat Central N'Djamena", station: "CS-01" },

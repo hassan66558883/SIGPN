@@ -104,11 +104,13 @@ test("two maintenance passes at the same instant (two instances, or app + cron) 
   const count = async () => (await pool.query(`SELECT count(*)::int n FROM "Notification" WHERE title LIKE 'Escalade%' AND body LIKE $1`, [body])).rows[0].n as number;
   const before = await count();
   const future = new Date(Date.now() + 120 * 60_000);
+  const eligibleBefore = (await pool.query(`SELECT count(*)::int n FROM "AlertDelivery" WHERE "escalationLevel" < 2 AND status IN ('PENDING','DELIVERED','READ')`)).rows[0].n as number;
   const runs = await Promise.all([runAlertMaintenance(future), runAlertMaintenance(future), runAlertMaintenance(future)]);
   const total1 = runs.reduce((s, r) => s + r.escalated1, 0);
   const total2 = runs.reduce((s, r) => s + r.escalated2, 0);
-  const pending = (await pool.query(`SELECT count(*)::int n FROM "AlertDelivery" WHERE "alertId"=$1 AND status IN ('PENDING','DELIVERED','READ') AND "escalationLevel"=2`, [target.id])).rows[0].n as number;
-  assert.ok(total1 + total2 <= pending, `escalations counted ${total1 + total2} for ${pending} deliveries (double escalation)`);
+  // A pass counts every overdue delivery of the whole network (other alerts left by earlier runs included), so the bound is the number of
+  // deliveries that could still escalate before the passes: each is escalated to its final level once, never once per concurrent pass.
+  assert.ok(total1 + total2 <= eligibleBefore, `escalations counted ${total1 + total2} for ${eligibleBefore} eligible deliveries (double escalation)`);
   const created = (await count()) - before;
   const second = await runAlertMaintenance(future);
   assert.equal(second.escalated1 + second.escalated2, 0, "a further pass repeats nothing");

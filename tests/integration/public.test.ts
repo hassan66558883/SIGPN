@@ -25,7 +25,14 @@ async function keyFor(username: string) {
 }
 type Json = { data?: any; error?: { code: string; message: string; details?: any } };
 async function api(key: string | null, method: string, path: string, body?: unknown) {
-  const res = await fetch(`${BASE}${path}`, { method, headers: { ...(key ? { authorization: `Bearer ${key}` } : {}), "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  // The per-account write quota (60 per minute) is shared by every suite run back to back (hr-security exhausts it on purpose): wait out the window instead of failing.
+  const send = () => fetch(`${BASE}${path}`, { method, headers: { ...(key ? { authorization: `Bearer ${key}` } : {}), "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+  let res = await send();
+  for (let i = 0; i < 2 && res.status === 429 && key !== null; i++) {
+    await res.arrayBuffer();
+    await new Promise((ok) => setTimeout(ok, Math.min(65, Number(res.headers.get("retry-after") ?? 30)) * 1000));
+    res = await send();
+  }
   return { res, json: (await res.json().catch(() => ({}))) as Json };
 }
 const complaint = (over: Record<string, unknown> = {}) => ({ kind: "COMPLAINT", category: "THEFT", subject: `Vol de téléphone ${RUN}`, message: "Mon téléphone a été volé au marché central vers 10 heures du matin (test).", locationText: "Marché central", contactName: "Test Citoyen", contactPhone: "+235 60 00 00 00", anonymous: false, consent: true, ...over });
