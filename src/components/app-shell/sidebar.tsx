@@ -18,14 +18,14 @@ function NavList({ sections, onNavigate }: { sections: SidebarSection[]; onNavig
           {section.title ? <p className="mb-1.5 px-2 text-[10px] font-semibold uppercase tracking-widest text-white/45">{section.title}</p> : null}
           <ul className="space-y-0.5">
             {section.items.map((item) => {
-              const active = pathname === item.href || (item.href !== "/dashboard" && item.href !== "/traffic" && item.href !== "/traffic/cash" && item.href !== "/hr" && pathname.startsWith(`${item.href}/`));
+              const active = pathname === item.href || (item.href === "/biometric" && pathname.startsWith("/biometric/") && !pathname.startsWith("/biometric/control")) || (item.href === "/alerts" && pathname.startsWith("/alerts/") && !pathname.startsWith("/alerts/supervision")) || (item.href !== "/alerts" && item.href !== "/alerts/supervision" && item.href !== "/biometric" && item.href !== "/biometric/control" && item.href !== "/dashboard" && item.href !== "/traffic" && item.href !== "/traffic/cash" && item.href !== "/hr" && pathname.startsWith(`${item.href}/`));
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href}
                     onClick={onNavigate}
                     aria-current={active ? "page" : undefined}
-                    className={cx("flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[13px] transition", active ? "bg-blue text-white" : "text-white/80 hover:bg-white/10 hover:text-white")}
+                    className={cx("flex items-center gap-2.5 rounded-md px-3 py-1.5 text-[13px] transition", active ? "border-s-2 border-gold bg-gold/15 font-semibold text-gold" : "border-s-2 border-transparent text-white/80 hover:bg-white/10 hover:text-white")}
                   >
                     <span className="w-4 text-center text-xs opacity-80" aria-hidden>
                       {item.icon}

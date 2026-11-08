@@ -16,3 +16,5 @@ uploads/
 backups/
 test-results/
 *.log
+.next-prod/
+.next-demo/

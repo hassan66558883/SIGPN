@@ -169,6 +169,7 @@ model User {
   detentionLogs              DetentionLog[]
   wantedIssued               WantedPerson[]             @relation("WantedIssuedBy")
   wantedApproved             WantedPerson[]             @relation("WantedApprovedBy")
+  wantedVerified             WantedPerson[]             @relation("WantedVerifiedBy")
   wantedSightingsLogged      WantedSighting[]
   wantedVehiclesAdded        WantedVehicle[]
   incidentsReported          Incident[]
@@ -458,6 +459,14 @@ enum StationStatus {
 
 /// Police structure: commissariat, poste, unité, brigade, direction. Posts and units hang under a parent station.
 model Station {
+  publicVisible     Boolean          @default(false)
+  publicAddress     String?
+  publicPhone       String?
+  publicHours       String?
+  publicVerifiedAt  DateTime?
+  publicVerifiedById String?
+  alertDeliveries   AlertDelivery[]
+  presence          StationPresence?
   id                String           @id @default(cuid())
   regionId          String
   region            Region           @relation(fields: [regionId], references: [id])
@@ -1409,6 +1418,14 @@ enum WantedStatus {
   ARRESTED
   CANCELLED
   EXPIRED
+  SUSPENDED
+}
+
+/// Nature of the notice (cahier des charges SIGPN-T v2.0, section 4): a search warrant, a summons for a hearing, a missing person.
+enum WantedKind {
+  SEARCH_WARRANT
+  HEARING
+  MISSING_PERSON
 }
 
 model WantedPerson {
@@ -1441,11 +1458,25 @@ model WantedPerson {
   expiresAt           DateTime?
   closedAt            DateTime?
   closureNotes        String?
+  kind                WantedKind   @default(SEARCH_WARRANT)
+  diffusionLevel      WantedDiffusion @default(NATIONAL)
+  publicPublishedAt   DateTime?
+  publicPublishedById String?
+  publicNotice        String?
+  legalBasis          String?
+  issuingAuthority    String?
+  verifiedById        String?
+  verifiedBy          User?        @relation("WantedVerifiedBy", fields: [verifiedById], references: [id])
+  verifiedAt          DateTime?
+  verificationNotes   String?
+  suspendedAt         DateTime?
+  suspensionReason    String?
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
 
   sightings WantedSighting[]
   vehicles  WantedVehicle[]
+  alerts    NationalAlert[]
   photos    Document[]       @relation("WantedPersonAttachment")
 
   @@index([status])
@@ -3813,4 +3844,224 @@ model TrafficCashDiscrepancy {
 
   @@index([status])
   @@index([agentId])
+}
+
+// ------------------------------------------------------------
+// NATIONAL ALERT NETWORK (SIGPN-T v2.0, section 5)
+// ------------------------------------------------------------
+
+/// Perimeter of diffusion approved for a wanted notice.
+enum WantedDiffusion {
+  NATIONAL
+  REGIONAL
+  LOCAL
+}
+
+enum AlertKind {
+  PUBLISHED
+  UPDATED
+  SUSPENDED
+  REACTIVATED
+  WITHDRAWN
+  EXPIRED
+  CLOSED
+}
+
+enum AlertDeliveryStatus {
+  PENDING
+  DELIVERED
+  READ
+  ACKNOWLEDGED
+  FAILED
+}
+
+/// One national event per approved change of a wanted notice. Immutable (trigger): the durable queue of the network.
+/// `payload` is a minimal snapshot: no investigation detail, informants or case content.
+model NationalAlert {
+  id             String          @id @default(cuid())
+  seq            Int             @unique @default(autoincrement())
+  number         String          @unique
+  kind           AlertKind
+  wantedPersonId String?
+  wantedPerson   WantedPerson?   @relation(fields: [wantedPersonId], references: [id])
+  idempotencyKey String          @unique
+  diffusion      WantedDiffusion
+  sourceStationId String
+  sourceRegionId  String
+  priority       DangerLevel     @default(MEDIUM)
+  title          String
+  payload        Json
+  requiresAck    Boolean         @default(true)
+  isSimulation   Boolean         @default(false)
+  createdById    String
+  createdAt      DateTime        @default(now())
+
+  deliveries AlertDelivery[]
+
+  @@index([wantedPersonId, seq])
+  @@index([createdAt])
+}
+
+/// Delivery of an alert to one unit (station or sub-station) with its receipts. Retried and escalated by the scheduler.
+model AlertDelivery {
+  id              String              @id @default(cuid())
+  alertId         String
+  alert           NationalAlert       @relation(fields: [alertId], references: [id])
+  stationId       String
+  station         Station             @relation(fields: [stationId], references: [id])
+  status          AlertDeliveryStatus @default(PENDING)
+  attempts        Int                 @default(0)
+  nextAttemptAt   DateTime?
+  deliveredAt     DateTime?
+  deliveredById   String?
+  readAt          DateTime?
+  readById        String?
+  ackAt           DateTime?
+  ackById         String?
+  escalatedAt     DateTime?
+  escalationLevel Int                 @default(0)
+  error           String?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@unique([alertId, stationId])
+  @@index([stationId, status])
+  @@index([status, nextAttemptAt])
+}
+
+/// Connectivity of a unit: refreshed by the heartbeat of its clients. `simulatedOffline` is the demonstration switch.
+model StationPresence {
+  stationId        String   @id
+  station          Station  @relation(fields: [stationId], references: [id])
+  lastSeenAt       DateTime
+  lastSyncAt       DateTime?
+  lastUserId       String?
+  simulatedOffline Boolean  @default(false)
+}
+
+// ------------------------------------------------------------
+// BIOMETRIC CONTROL SCREEN (SIGPN-T v2.0, section 6) — demonstration simulator
+// ------------------------------------------------------------
+
+enum BiometricControlResult {
+  POSSIBLE_MATCH
+  UNCERTAIN
+  NO_MATCH
+  UNAVAILABLE
+}
+
+enum BiometricControlStatus {
+  NEW
+  VERIFICATION_REQUESTED
+  SUPERIOR_NOTIFIED
+  ERROR_REPORTED
+  CONFIRMED_BY_HUMAN
+  REJECTED_BY_HUMAN
+}
+
+enum BiometricErrorKind {
+  FALSE_POSITIVE
+  FALSE_NEGATIVE
+  POOR_CAPTURE
+  CONTESTED
+}
+
+/// One identity check at a control point. Always a SIMULATION in this version (fictitious identities, no real template
+/// is matched, no image is stored). A result is an indication to verify, never evidence and never an order to arrest.
+model BiometricControl {
+  id                      String                 @id @default(cuid())
+  number                  String                 @unique
+  modality                BiometricType
+  result                  BiometricControlResult
+  score                   Decimal?               @db.Decimal(5, 2)
+  captureQuality          Int
+  referenceAlertId        String?
+  subjectLabel            String?
+  officerId               String
+  stationId               String?
+  device                  String?
+  reason                  String
+  status                  BiometricControlStatus @default(NEW)
+  verificationRequestedAt DateTime?
+  superiorNotifiedAt      DateTime?
+  reviewedById            String?
+  reviewedAt              DateTime?
+  reviewNotes             String?
+  errorKind               BiometricErrorKind?
+  errorNotes              String?
+  errorReportedAt         DateTime?
+  isSimulation            Boolean                @default(true)
+  createdAt               DateTime               @default(now())
+
+  @@index([officerId, createdAt])
+  @@index([stationId, createdAt])
+  @@index([result])
+}
+
+// ------------------------------------------------------------
+// PUBLIC PORTAL (SIGPN-T v2.0, sections 2.2 and 4): anonymous intake, news, directory
+// ------------------------------------------------------------
+
+enum PublicSubmissionKind {
+  COMPLAINT
+  REPORT
+  CONTACT
+}
+
+enum PublicSubmissionStatus {
+  RECEIVED
+  IN_REVIEW
+  FORWARDED
+  CLOSED
+  REJECTED
+}
+
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
+}
+
+/// A complaint, report or contact message filed on the public site. Never an internal record: staff review it and may convert a
+/// complaint into the internal complaint workflow. The tracking code is only stored hashed.
+model PublicSubmission {
+  id             String                 @id @default(cuid())
+  number         String                 @unique
+  codeHash       String
+  kind           PublicSubmissionKind
+  category       OffenseCategory        @default(OTHER)
+  subject        String
+  message        String
+  locationText   String?
+  occurredOn     DateTime?
+  contactName    String?
+  contactPhone   String?
+  contactEmail   String?
+  anonymous      Boolean                @default(false)
+  stationId      String?
+  status         PublicSubmissionStatus @default(RECEIVED)
+  publicReply    String?
+  repliedAt      DateTime?
+  handledById    String?
+  complaintId    String?                @unique
+  ipHash         String?
+  receivedAt     DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@index([status, receivedAt])
+  @@index([stationId, status])
+}
+
+model PublicNews {
+  id          String     @id @default(cuid())
+  title       String
+  summary     String
+  body        String
+  status      NewsStatus @default(DRAFT)
+  publishedAt DateTime?
+  authorId    String
+  isDemo      Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([status, publishedAt])
 }

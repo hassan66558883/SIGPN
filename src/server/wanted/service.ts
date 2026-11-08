@@ -1,5 +1,5 @@
 import "server-only";
-import type { Prisma, WantedStatus } from "@/generated/prisma/client";
+import type { AlertKind, Prisma, WantedStatus } from "@/generated/prisma/client";
 import { prisma } from "@/server/db";
 import { logAudit } from "@/server/audit";
 import { AuthError, BusinessError, NotFoundError } from "@/server/errors";
@@ -7,7 +7,8 @@ import { inScope, scopeWhere, type Actor } from "@/server/auth/dal";
 import type { RequestContext } from "@/server/request-context";
 import { nextNumber } from "@/server/sequences";
 import { saveUpload } from "@/server/storage";
-import type { CreateWarrantInput, SightingInput, WantedPersonInput, WantedStatusInput, WantedVehicleInput, WarrantStatusInput } from "@/server/wanted/schemas";
+import { alertKindForTransition, publishAlert } from "@/server/alerts/publish";
+import type { CreateWarrantInput, SightingInput, WantedPersonInput, WantedStatusInput, WantedVehicleInput, WantedVerifyInput, WarrantStatusInput } from "@/server/wanted/schemas";
 
 export function wantedScopeWhere(actor: Actor): Prisma.WantedPersonWhereInput {
   return scopeWhere(actor) as Prisma.WantedPersonWhereInput;
@@ -41,6 +42,16 @@ export const wantedSelect = {
   expiresAt: true,
   closedAt: true,
   closureNotes: true,
+  kind: true,
+  diffusionLevel: true,
+  publicPublishedAt: true,
+  publicNotice: true,
+  legalBasis: true,
+  issuingAuthority: true,
+  verifiedAt: true,
+  verificationNotes: true,
+  suspendedAt: true,
+  suspensionReason: true,
   createdAt: true,
   updatedAt: true,
   person: { select: { id: true, number: true, firstName: true, lastName: true, dateOfBirth: true, gender: true, nationality: true, physicalDescription: true, distinguishingMarks: true, address: true, city: true, phone: true, aliases: { select: { alias: true } }, identifiers: { select: { type: true, value: true } } } },
@@ -48,6 +59,7 @@ export const wantedSelect = {
   station: { select: { id: true, code: true, name: true } },
   issuedBy: { select: { id: true, username: true, firstName: true, lastName: true } },
   approvedBy: { select: { id: true, username: true, firstName: true, lastName: true } },
+  verifiedBy: { select: { id: true, username: true, firstName: true, lastName: true } },
   warrant: { select: { id: true, number: true, type: true, status: true, issuingAuthority: true, issuingAuthorityRef: true, issuedAt: true, expiresAt: true, grounds: true, documents: { select: { id: true, title: true, versions: { orderBy: { version: "desc" }, take: 1, select: { fileName: true, storagePath: true } } } } } },
   mainPhoto: { select: { id: true, versions: { orderBy: { version: "desc" }, take: 1, select: { storagePath: true, fileName: true } } } },
   photos: { orderBy: { createdAt: "desc" }, select: { id: true, title: true, createdAt: true, uploadedBy: { select: { firstName: true, lastName: true } }, versions: { orderBy: { version: "desc" }, take: 1, select: { fileName: true, storagePath: true, sizeBytes: true } } } },
@@ -69,6 +81,8 @@ export async function createWantedPerson(actor: Actor, input: WantedPersonInput,
     const kase = await prisma.case.findUnique({ where: { id: input.caseId }, select: { id: true, stationId: true, regionId: true } });
     if (!kase || !inScope(actor, { stationId: kase.stationId, regionId: kase.regionId })) throw new BusinessError("Selected case is invalid or outside your scope.");
   }
+  const live = await prisma.wantedPerson.findFirst({ where: { personId: person.id, status: { in: [...LIVE_STATUSES] } }, select: { number: true } });
+  if (live) throw new BusinessError(`Person ${person.number} already has a live wanted notice (${live.number}). Update it instead of creating another.`, "STATE");
   const created = await prisma.$transaction(async (tx) => {
     const number = await nextNumber("WANTED", tx);
     const w = await tx.wantedPerson.create({
@@ -81,13 +95,17 @@ export async function createWantedPerson(actor: Actor, input: WantedPersonInput,
         offense: input.offense,
         reason: input.reason,
         dangerLevel: input.dangerLevel,
+        kind: input.kind,
+        diffusionLevel: input.diffusionLevel,
+        legalBasis: input.legalBasis || null,
+        issuingAuthority: input.issuingAuthority || null,
         lastSeenLocation: input.lastSeenLocation || null,
         expiresAt: input.expiresAt,
         issuedById: actor.id,
       },
       select: wantedSelect,
     });
-    await logAudit({ actor, action: "WANTED_CREATED", module: "wanted", entityType: "WantedPerson", entityId: w.id, entityLabel: w.number, summary: `Wanted notice ${w.number} drafted for ${person.number} — ${person.firstName} ${person.lastName} (${input.offense})`, after: { offense: w.offense, dangerLevel: w.dangerLevel }, context: ctx }, tx);
+    await logAudit({ actor, action: "WANTED_CREATED", module: "wanted", entityType: "WantedPerson", entityId: w.id, entityLabel: w.number, summary: `Wanted notice ${w.number} drafted for ${person.number} — ${person.firstName} ${person.lastName} (${input.offense})`, after: { offense: w.offense, dangerLevel: w.dangerLevel, kind: w.kind }, context: ctx }, tx);
     return w;
   });
   return created;
@@ -96,38 +114,187 @@ export async function createWantedPerson(actor: Actor, input: WantedPersonInput,
 export async function updateWantedPerson(actor: Actor, id: string, input: Omit<WantedPersonInput, "personId" | "stationId">, ctx: RequestContext) {
   const before = await getWantedPerson(actor, id);
   if (before.status === "ARRESTED" || before.status === "CANCELLED" || before.status === "EXPIRED") throw new BusinessError(`A wanted notice in status ${before.status} can no longer be edited.`, "STATE");
-  const after = await prisma.wantedPerson.update({ where: { id }, data: { offense: input.offense, reason: input.reason, dangerLevel: input.dangerLevel, lastSeenLocation: input.lastSeenLocation || null, expiresAt: input.expiresAt }, select: wantedSelect });
-  await logAudit({ actor, action: "WANTED_UPDATED", module: "wanted", entityType: "WantedPerson", entityId: id, entityLabel: after.number, summary: `Wanted notice ${after.number} updated`, before: { offense: before.offense, dangerLevel: before.dangerLevel }, after: { offense: after.offense, dangerLevel: after.dangerLevel }, context: ctx });
+  const diffusionChanged = input.diffusionLevel !== before.diffusionLevel;
+  if (diffusionChanged && before.status !== "DRAFT" && before.status !== "PENDING_APPROVAL") throw new BusinessError("The diffusion perimeter can only be changed before approval.", "STATE");
+  const legalChanged = input.kind !== before.kind || (input.legalBasis || null) !== before.legalBasis || (input.issuingAuthority || null) !== before.issuingAuthority;
+  if (legalChanged && before.status !== "DRAFT" && before.status !== "PENDING_APPROVAL") throw new BusinessError("The nature, legal basis and issuing authority can only be changed before approval.", "STATE");
+  const after = await prisma.$transaction(async (tx) => {
+  const updated = await tx.wantedPerson.update({ where: { id }, data: { offense: input.offense, reason: input.reason, dangerLevel: input.dangerLevel, kind: input.kind, diffusionLevel: input.diffusionLevel, legalBasis: input.legalBasis || null, issuingAuthority: input.issuingAuthority || null, lastSeenLocation: input.lastSeenLocation || null, expiresAt: input.expiresAt, ...(legalChanged && before.verifiedAt ? { verifiedAt: null, verifiedById: null, verificationNotes: null, status: "DRAFT" as const } : {}) }, select: wantedSelect });
+  await logAudit({ actor, action: "WANTED_UPDATED", module: "wanted", entityType: "WantedPerson", entityId: id, entityLabel: updated.number, summary: `Wanted notice ${updated.number} updated`, before: { offense: before.offense, dangerLevel: before.dangerLevel }, after: { offense: updated.offense, dangerLevel: updated.dangerLevel }, context: ctx }, tx);
+  const published: WantedStatus[] = ["ACTIVE", "LOCATED", "SUSPENDED"];
+  const material = before.offense !== updated.offense || before.dangerLevel !== updated.dangerLevel || before.lastSeenLocation !== updated.lastSeenLocation;
+  if (published.includes(before.status) && material) await publishWantedAlert(tx, actor, { ...before, offense: updated.offense, dangerLevel: updated.dangerLevel }, "UPDATED", before.status, ctx);
+  return updated;
+  });
   return after;
 }
 
+const ALERT_INSTRUCTION: Record<string, string> = {
+  PUBLISHED: "Vérification humaine obligatoire avant toute action. Une correspondance n'établit jamais la culpabilité.",
+  UPDATED: "Avis mis à jour : consulter les nouveaux éléments avant toute action.",
+  SUSPENDED: "Avis suspendu : ne prendre aucune mesure fondée sur cet avis jusqu'à nouvel ordre.",
+  REACTIVATED: "Avis réactivé : vérification humaine obligatoire avant toute action.",
+  WITHDRAWN: "Avis retiré : cesser toute recherche fondée sur cet avis.",
+  EXPIRED: "Avis expiré : ne plus l'utiliser.",
+  CLOSED: "Dossier clos (personne appréhendée) : cesser la recherche.",
+};
+
+type WantedForAlert = Awaited<ReturnType<typeof getWantedPerson>>;
+
+/** Minimal bulletin sent to the network: identity needed to recognise the person, never investigation detail or the internal reason. */
+async function publishWantedAlert(tx: Prisma.TransactionClient, actor: Actor, w: WantedForAlert, kind: AlertKind, status: WantedStatus, ctx: RequestContext) {
+  const stamp = Date.now();
+  return publishAlert(tx, actor, {
+    kind,
+    wantedPersonId: w.id,
+    idempotencyKey: `${w.id}:${kind}:${stamp}`,
+    diffusion: w.diffusionLevel,
+    source: { stationId: w.stationId, regionId: w.regionId },
+    priority: w.dangerLevel,
+    title: `${w.number} — ${kind}`,
+    payload: {
+      number: w.number,
+      status,
+      nature: w.kind,
+      person: { name: `${w.person.lastName} ${w.person.firstName}`, aliases: w.person.aliases.map((a) => a.alias), dateOfBirth: w.person.dateOfBirth, gender: w.person.gender, physicalDescription: w.person.physicalDescription, distinguishingMarks: w.person.distinguishingMarks },
+      offense: w.offense,
+      dangerLevel: w.dangerLevel,
+      issuingAuthority: w.issuingAuthority,
+      unit: `${w.station.code} · ${w.station.name}`,
+      instruction: ALERT_INSTRUCTION[kind],
+    },
+  }, ctx);
+}
+
+export const LIVE_STATUSES = ["DRAFT", "PENDING_APPROVAL", "ACTIVE", "LOCATED", "SUSPENDED"] as const;
+
+/** DRAFT -> PENDING_APPROVAL only happens through `verifyWanted` (check of the exhibits and the legal basis). */
 const WANTED_TRANSITIONS: Record<WantedStatus, WantedStatus[]> = {
-  DRAFT: ["PENDING_APPROVAL", "ACTIVE", "CANCELLED"],
+  DRAFT: ["CANCELLED"],
   PENDING_APPROVAL: ["ACTIVE", "CANCELLED"],
-  ACTIVE: ["LOCATED", "ARRESTED", "CANCELLED", "EXPIRED"],
-  LOCATED: ["ARRESTED", "ACTIVE", "CANCELLED", "EXPIRED"],
+  ACTIVE: ["LOCATED", "ARRESTED", "SUSPENDED", "CANCELLED", "EXPIRED"],
+  LOCATED: ["ARRESTED", "ACTIVE", "SUSPENDED", "CANCELLED", "EXPIRED"],
+  SUSPENDED: ["ACTIVE", "CANCELLED", "EXPIRED"],
   ARRESTED: [],
   CANCELLED: [],
   EXPIRED: ["ACTIVE"],
 };
-const APPROVAL_TARGETS = new Set<WantedStatus>(["PENDING_APPROVAL", "ACTIVE"]);
 
-/** Status changes out of DRAFT/PENDING_APPROVAL need wanted:approve (publishing an active notice);
- * every other transition (located/apprehended/cancelled/expired/reactivated) needs wanted:status. */
+type WarrantLite = { status: string; expiresAt: Date | null } | null;
+
+/** A search-warrant notice may only be live while its warrant is ACTIVE and unexpired. */
+function assertWarrantValid(kind: string, warrant: WarrantLite, what: string) {
+  if (kind !== "SEARCH_WARRANT") return;
+  if (!warrant) throw new BusinessError(`A search-warrant notice needs a linked warrant before ${what}.`, "STATE");
+  if (warrant.status !== "ACTIVE") throw new BusinessError(`The linked warrant must be ACTIVE before ${what} (currently ${warrant.status}).`, "STATE");
+  if (warrant.expiresAt && warrant.expiresAt.getTime() < Date.now()) throw new BusinessError(`The linked warrant has expired; it cannot support ${what}.`, "STATE");
+}
+
+/**
+ * Verification of the exhibits and the legal basis (workflow step 2). Needs wanted:verify and a different person than the issuer.
+ * Moves a DRAFT to PENDING_APPROVAL; any later change of the legal fields resets it.
+ */
+export async function verifyWanted(actor: Actor, input: WantedVerifyInput, ctx: RequestContext) {
+  if (!actor.permissions.has("wanted:verify")) throw new AuthError("forbidden", "Permission wanted:verify required");
+  const before = await getWantedPerson(actor, input.id);
+  if (before.status !== "DRAFT" && before.status !== "PENDING_APPROVAL") throw new BusinessError(`A wanted notice in status ${before.status} cannot be verified.`, "STATE");
+  const issuer = await prisma.wantedPerson.findUnique({ where: { id: before.id }, select: { issuedById: true } });
+  if (issuer?.issuedById === actor.id) throw new BusinessError("The issuer of a wanted notice cannot verify it (four-eyes rule).", "STATE");
+  if (!before.legalBasis?.trim() || !before.issuingAuthority?.trim()) throw new BusinessError("Fill in the legal basis and the issuing authority before verification.", "STATE");
+  if (before.kind === "SEARCH_WARRANT" && !before.warrant) throw new BusinessError("A search-warrant notice needs a linked warrant before verification.", "STATE");
+  const r = await prisma.wantedPerson.updateMany({ where: { id: before.id, status: before.status }, data: { verifiedById: actor.id, verifiedAt: new Date(), verificationNotes: input.notes || null, status: "PENDING_APPROVAL" } });
+  if (r.count !== 1) throw new BusinessError("The wanted notice was modified concurrently. Reload and retry.", "CONFLICT");
+  await logAudit({ actor, action: "WANTED_VERIFIED", module: "wanted", entityType: "WantedPerson", entityId: before.id, entityLabel: before.number, summary: `${before.number}: exhibits and legal basis verified`, before: { status: before.status }, after: { status: "PENDING_APPROVAL" }, context: ctx });
+  return getWantedPerson(actor, before.id);
+}
+
+/** Status changes: approval/activation needs wanted:approve, verification, a different person than the issuer and a valid warrant;
+ * every other transition needs wanted:status. Suspension and withdrawal need a stated reason. */
 export async function setWantedStatus(actor: Actor, input: WantedStatusInput, ctx: RequestContext) {
   const before = await getWantedPerson(actor, input.id);
   if (!WANTED_TRANSITIONS[before.status].includes(input.status)) throw new BusinessError(`Cannot move a wanted notice from ${before.status} to ${input.status}.`, "STATE");
-  const isApprovalStep = (before.status === "DRAFT" || before.status === "PENDING_APPROVAL") && APPROVAL_TARGETS.has(input.status);
+  const isApprovalStep = before.status === "PENDING_APPROVAL" && input.status === "ACTIVE";
   const required = isApprovalStep ? "wanted:approve" : "wanted:status";
   if (!actor.permissions.has(required)) throw new AuthError("forbidden", `Permission ${required} required`);
+  const reason = input.closureNotes?.trim();
+  if ((input.status === "SUSPENDED" || input.status === "CANCELLED") && !reason) throw new BusinessError(input.status === "CANCELLED" ? "State the reason for the withdrawal." : "State the reason for the suspension.", "STATE");
+  if (isApprovalStep) {
+    const meta = await prisma.wantedPerson.findUnique({ where: { id: before.id }, select: { issuedById: true } });
+    if (!before.verifiedAt) throw new BusinessError("The exhibits and the legal basis must be verified before approval.", "STATE");
+    if (meta?.issuedById === actor.id) throw new BusinessError("The issuer of a wanted notice cannot approve it (four-eyes rule).", "STATE");
+  }
+  if (input.status === "ACTIVE") assertWarrantValid(before.kind, before.warrant, isApprovalStep ? "approval" : "reactivation");
   const closing = input.status === "CANCELLED" || input.status === "ARRESTED" || input.status === "EXPIRED";
-  const r = await prisma.wantedPerson.updateMany({
-    where: { id: before.id, status: before.status },
-    data: { status: input.status, approvedById: isApprovalStep ? actor.id : undefined, approvedAt: isApprovalStep ? new Date() : undefined, closedAt: closing ? new Date() : null, closureNotes: closing ? input.closureNotes || null : null },
+  const suspending = input.status === "SUSPENDED";
+  const alertKind = alertKindForTransition(before.status, input.status);
+  await prisma.$transaction(async (tx) => {
+    const r = await tx.wantedPerson.updateMany({
+      where: { id: before.id, status: before.status },
+      data: {
+        status: input.status,
+        approvedById: isApprovalStep ? actor.id : undefined,
+        approvedAt: isApprovalStep ? new Date() : undefined,
+        closedAt: closing ? new Date() : null,
+        closureNotes: closing ? reason || null : null,
+        suspendedAt: suspending ? new Date() : null,
+        suspensionReason: suspending ? reason : null,
+        // Leaving ACTIVE always withdraws the public notice.
+        ...(input.status !== "ACTIVE" ? { publicPublishedAt: null, publicPublishedById: null } : {}),
+      },
+    });
+    if (r.count !== 1) throw new BusinessError("The wanted notice was modified concurrently. Reload and retry.", "CONFLICT");
+    if (before.publicPublishedAt && input.status !== "ACTIVE") await logAudit({ actor, action: "WANTED_PUBLIC_UNPUBLISHED", module: "wanted", entityType: "WantedPerson", entityId: before.id, entityLabel: before.number, summary: `${before.number}: public notice withdrawn automatically (${before.status} → ${input.status})`, context: ctx }, tx);
+    if (alertKind) await publishWantedAlert(tx, actor, before, alertKind, input.status, ctx);
+    await logAudit({ actor, action: `WANTED_${input.status}`, module: "wanted", entityType: "WantedPerson", entityId: before.id, entityLabel: before.number, summary: `${before.number}: ${before.status} → ${input.status}${reason ? ` — ${reason}` : ""}`, before: { status: before.status }, after: { status: input.status }, context: ctx }, tx);
   });
-  if (r.count !== 1) throw new BusinessError("The wanted notice was modified concurrently. Reload and retry.", "CONFLICT");
-  await logAudit({ actor, action: `WANTED_${input.status}`, module: "wanted", entityType: "WantedPerson", entityId: before.id, entityLabel: before.number, summary: `${before.number}: ${before.status} → ${input.status}${input.closureNotes ? ` — ${input.closureNotes}` : ""}`, before: { status: before.status }, after: { status: input.status }, context: ctx });
   return getWantedPerson(actor, before.id);
+}
+
+/**
+ * Express validation of the publication of a notice on the PUBLIC site (a separate step from approval and from network diffusion).
+ * Needs wanted:publish and a person other than the issuer; ACTIVE, verified, not a hearing summons. Only the reviewed public text and
+ * minimal identity leave the building; the notice leaves the site automatically as soon as it stops being ACTIVE.
+ */
+export async function publishWantedPublicly(actor: Actor, id: string, input: { notice: string; confirm: boolean }, ctx: RequestContext) {
+  if (!actor.permissions.has("wanted:publish")) throw new AuthError("forbidden", "Permission wanted:publish required");
+  const w = await getWantedPerson(actor, id);
+  const meta = await prisma.wantedPerson.findUnique({ where: { id }, select: { issuedById: true } });
+  if (!input.confirm) throw new BusinessError("Confirm expressly that this notice may be published on the public site.", "VALIDATION", { confirm: "required" });
+  if (w.status !== "ACTIVE") throw new BusinessError("Only an ACTIVE notice can be published on the public site.", "STATE");
+  if (w.kind === "HEARING") throw new BusinessError("A summons for a hearing is never published on the public site.", "STATE");
+  if (!w.verifiedAt) throw new BusinessError("The notice must be verified before public publication.", "STATE");
+  if (meta?.issuedById === actor.id) throw new BusinessError("The issuer of a notice cannot publish it publicly (four-eyes rule).", "STATE");
+  const notice = input.notice.trim();
+  if (notice.length < 20) throw new BusinessError("Write the public text (what the public should do, at least 20 characters).", "VALIDATION", { notice: "too short" });
+  await prisma.wantedPerson.update({ where: { id }, data: { publicPublishedAt: new Date(), publicPublishedById: actor.id, publicNotice: notice } });
+  await logAudit({ actor, action: "WANTED_PUBLIC_PUBLISHED", module: "wanted", entityType: "WantedPerson", entityId: id, entityLabel: w.number, summary: `${w.number}: published on the public site`, context: ctx });
+  return getWantedPerson(actor, id);
+}
+
+export async function unpublishWantedPublicly(actor: Actor, id: string, ctx: RequestContext) {
+  if (!actor.permissions.has("wanted:publish")) throw new AuthError("forbidden", "Permission wanted:publish required");
+  const w = await getWantedPerson(actor, id);
+  if (!w.publicPublishedAt) throw new BusinessError("This notice is not published on the public site.", "STATE");
+  await prisma.wantedPerson.update({ where: { id }, data: { publicPublishedAt: null, publicPublishedById: null } });
+  await logAudit({ actor, action: "WANTED_PUBLIC_UNPUBLISHED", module: "wanted", entityType: "WantedPerson", entityId: id, entityLabel: w.number, summary: `${w.number}: withdrawn from the public site`, context: ctx });
+  return getWantedPerson(actor, id);
+}
+
+/** Sensitive consultation of a notice: audited (who looked at whom, when). */
+export async function viewWantedPerson(actor: Actor, id: string, ctx: RequestContext) {
+  const w = await getWantedPerson(actor, id);
+  await logAudit({ actor, action: "WANTED_VIEWED", module: "wanted", entityType: "WantedPerson", entityId: w.id, entityLabel: w.number, summary: `Wanted notice ${w.number} consulted`, context: ctx });
+  return w;
+}
+
+/** Other persons with the same first and last name that also carry a notice in the actor's scope. Shown as a warning, never merged. */
+export async function listHomonyms(actor: Actor, wantedId: string) {
+  const w = await getWantedPerson(actor, wantedId);
+  return prisma.wantedPerson.findMany({
+    where: { AND: [wantedScopeWhere(actor)], personId: { not: w.personId }, person: { firstName: { equals: w.person.firstName, mode: "insensitive" }, lastName: { equals: w.person.lastName, mode: "insensitive" } } },
+    select: { id: true, number: true, status: true, person: { select: { number: true, dateOfBirth: true, city: true } } },
+    take: 10,
+  });
 }
 
 export async function addSighting(actor: Actor, input: SightingInput, ctx: RequestContext) {

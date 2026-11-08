@@ -20,6 +20,9 @@ export const NAVIGATION: NavSection[] = [
       { href: "/incidents", labelKey: "nav.incidents", permission: "incidents:view", icon: "⚠" },
       { href: "/persons", labelKey: "nav.persons", permission: "persons:view", icon: "☺" },
       { href: "/wanted", labelKey: "nav.wanted", permission: "wanted:view", icon: "⚑" },
+      { href: "/public-admin", labelKey: "nav.publicAdmin", permission: "intake:view", anyOf: ["public:content", "intake:manage"], icon: "◌" },
+      { href: "/alerts", labelKey: "nav.alerts", permission: "alerts:view", icon: "◬" },
+      { href: "/alerts/supervision", labelKey: "nav.alerts.supervision", permission: "alerts:supervise", icon: "◎" },
     ],
   },
   {
@@ -32,6 +35,7 @@ export const NAVIGATION: NavSection[] = [
       { href: "/statements", labelKey: "nav.statements", permission: "statements:view", icon: "✎" },
       { href: "/interviews", labelKey: "nav.interviews", permission: "interviews:view", icon: "♫" },
       { href: "/biometric", labelKey: "nav.biometric", permission: "biometric:history_view", anyOf: ["biometric:search_fingerprint", "biometric:search_face", "biometric:search_voice", "biometric:search_anpr", "biometric:manage", "biometric:verify"], icon: "⚛" },
+      { href: "/biometric/control", labelKey: "nav.biocontrol", permission: "biometric:control", icon: "◐" },
     ],
   },
   {

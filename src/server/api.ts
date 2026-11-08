@@ -64,6 +64,7 @@ export function mapError(e: unknown): Response {
   if (e instanceof NotFoundError) return apiError(404, "NOT_FOUND", e.message);
   if (e instanceof BusinessError) return apiError(e.code === "CONFLICT" || e.code === "STATE" ? 409 : 422, e.code, e.message, e.fieldErrors);
   if (e instanceof z.ZodError) return apiError(422, "VALIDATION", "Validation failed.", z.flattenError(e).fieldErrors);
+  if (e instanceof Error && /0x00|invalid byte sequence for encoding/i.test(e.message)) return apiError(422, "VALIDATION", "Text must not contain NUL characters.");
   console.error("[api] unhandled", e);
   return apiError(500, "INTERNAL", "Internal server error.");
 }
@@ -75,11 +76,23 @@ export async function parseJson<T extends z.ZodType>(req: NextRequest, schema: T
   } catch {
     throw new BusinessError("Request body must be valid JSON.");
   }
+  rejectNul(body);
   return schema.parse(body);
 }
 
+/** PostgreSQL text cannot hold a NUL byte; left alone it surfaces as a 500. Refuse it at the door as a validation error. */
+function rejectNul(v: unknown, depth = 0): void {
+  if (typeof v === "string") {
+    if (v.includes("\u0000")) throw new BusinessError("Text must not contain NUL characters.");
+  } else if (depth < 8 && v && typeof v === "object") {
+    for (const x of Array.isArray(v) ? v : Object.values(v)) rejectNul(x, depth + 1);
+  }
+}
+
 export function parseQuery<T extends z.ZodType>(req: NextRequest, schema: T): z.infer<T> {
-  return schema.parse(Object.fromEntries(req.nextUrl.searchParams.entries()));
+  const raw = Object.fromEntries(req.nextUrl.searchParams.entries());
+  rejectNul(raw);
+  return schema.parse(raw);
 }
 
 export const paginationSchema = z.object({

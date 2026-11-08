@@ -4,6 +4,7 @@ import { NAVIGATION } from "@/lib/navigation";
 import { Sidebar } from "@/components/app-shell/sidebar";
 import { Header } from "@/components/app-shell/header";
 import { getT } from "@/server/i18n";
+import { AlertWatcher } from "@/components/app-shell/alert-watcher";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const actor = await requireActor({ allowPending: true });
@@ -17,6 +18,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
       <Sidebar sections={sections} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header actor={actor} unreadCount={unread} sections={sections} />
+        {can(actor, "alerts:view") ? <AlertWatcher /> : null}
         <main className="flex-1 px-4 py-6 lg:px-8">{children}</main>
         <footer className="no-print border-t border-line px-4 py-3 text-xs text-slate lg:px-8">{t("app.footer")}</footer>
       </div>

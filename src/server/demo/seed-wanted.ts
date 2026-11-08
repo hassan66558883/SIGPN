@@ -52,7 +52,9 @@ export async function seedWanted() {
     usedPersons.add(person.id);
     const st = stations[int(0, stations.length - 1)];
     const officer = officers.find((o) => o.stationId === st.id) ?? officers[int(0, officers.length - 1)];
-    const approver = approvers.find((a) => a.stationId === st.id) ?? approvers[int(0, approvers.length - 1)] ?? officer;
+    // four-eyes rule (database constraint): the approver is never the issuer
+    const others = approvers.filter((a) => a.id !== officer.id);
+    const approver = others.find((a) => a.stationId === st.id) ?? others[int(0, Math.max(0, others.length - 1))] ?? null;
     const status = pick(STATUSES);
     const issuedAt = at(int(2, 180));
     const closed = status === "ARRESTED" || status === "CANCELLED";

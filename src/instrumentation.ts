@@ -9,5 +9,7 @@ export async function register() {
     }
     const { startRotationScheduler } = await import("@/server/hr/scheduler");
     startRotationScheduler();
+    const { startAlertScheduler } = await import("@/server/alerts/scheduler");
+    startAlertScheduler();
   }
 }

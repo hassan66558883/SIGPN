@@ -35,6 +35,10 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
   await grantHrPhase6DefaultsOnce(byCode);
   await grantHrPhase7DefaultsOnce(byCode);
   await grantHrPayDefaultsOnce(byCode);
+  await grantWantedVerifyOnce(byCode);
+  await grantAlertsOnce(byCode);
+  await grantBiometricControlOnce(byCode);
+  await grantPublicPortalOnce(byCode);
   return SYSTEM_ROLES.length;
 }
 
@@ -147,4 +151,63 @@ async function grantHrPayDefaultsOnce(byCode: Map<string, string>) {
     await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
   }
   await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions de solde ont été accordées aux rôles de paie dédiés." } });
+}
+
+/** Wanted-notice verification (SIGPN-T v2.0): roles that already approve notices also verify them, granted once. */
+async function grantWantedVerifyOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.wanted_verify_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const verify = byCode.get("wanted:verify");
+  if (verify) {
+    const holders = await prisma.rolePermission.findMany({ where: { permission: { code: "wanted:approve" } }, select: { roleId: true } });
+    await prisma.rolePermission.createMany({ data: holders.map((h) => ({ roleId: h.roleId, permissionId: verify })), skipDuplicates: true });
+  }
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "La permission de vérification des avis de recherche a été accordée aux rôles qui les approuvent." } });
+}
+
+/**
+ * National alert network (SIGPN-T v2.0, section 5), granted once: every role that sees wanted notices receives and acknowledges alerts,
+ * roles that approve notices supervise the diffusion, and only the system administrator and the national command simulate (demonstration).
+ */
+async function grantAlertsOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.alerts_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const id = (c: string) => byCode.get(c)!;
+  const holders = async (code: string) => (await prisma.rolePermission.findMany({ where: { permission: { code } }, select: { roleId: true } })).map((h) => h.roleId);
+  const grant = async (roleIds: string[], code: string) => roleIds.length && prisma.rolePermission.createMany({ data: roleIds.map((roleId) => ({ roleId, permissionId: id(code) })), skipDuplicates: true });
+  const viewers = await holders("wanted:view");
+  await grant(viewers, "alerts:view");
+  await grant(viewers, "alerts:ack");
+  await grant(await holders("wanted:approve"), "alerts:supervise");
+  const sim = await prisma.role.findMany({ where: { code: { in: ["SUPER_ADMIN", "NATIONAL_COMMANDER"] } }, select: { id: true } });
+  await grant(sim.map((r) => r.id), "alerts:simulate");
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions du réseau d'alertes nationales ont été accordées aux rôles système." } });
+}
+
+/** Biometric control screen: granted once to the roles that already run fingerprint or face searches. */
+async function grantBiometricControlOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.biometric_control_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const perm = byCode.get("biometric:control");
+  if (perm) {
+    const holders = await prisma.rolePermission.findMany({ where: { permission: { code: { in: ["biometric:search_fingerprint", "biometric:search_face"] } } }, select: { roleId: true } });
+    await prisma.rolePermission.createMany({ data: [...new Set(holders.map((h) => h.roleId))].map((roleId) => ({ roleId, permissionId: perm })), skipDuplicates: true });
+  }
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "La permission de contrôle biométrique a été accordée aux rôles qui effectuent déjà des recherches d'empreinte ou de visage." } });
+}
+
+/** Public portal: roles that review complaints handle public submissions; roles that publish notices manage the public content. Granted once. */
+async function grantPublicPortalOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.public_portal_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const holders = async (code: string) => (await prisma.rolePermission.findMany({ where: { permission: { code } }, select: { roleId: true } })).map((h) => h.roleId);
+  const grant = async (roleIds: string[], code: string) => {
+    const id = byCode.get(code);
+    if (id && roleIds.length) await prisma.rolePermission.createMany({ data: [...new Set(roleIds)].map((roleId) => ({ roleId, permissionId: id })), skipDuplicates: true });
+  };
+  const reviewers = await holders("complaints:review");
+  await grant(reviewers, "intake:view");
+  await grant(reviewers, "intake:manage");
+  await grant(await holders("wanted:publish"), "public:content");
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions du portail public ont été accordées aux rôles système concernés." } });
 }

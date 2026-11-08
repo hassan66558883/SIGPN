@@ -4,12 +4,13 @@ import { useState, type ReactNode } from "react";
 import { ActionForm, SubmitButton } from "@/components/forms";
 import { Field, Select } from "@/components/ui";
 import { useLocale, useT } from "@/components/i18n-provider";
-import { DANGER_LEVEL, WANTED_STATUS, optionsOf } from "@/lib/labels";
+import { DANGER_LEVEL, WANTED_KIND, WANTED_STATUS, optionsOf } from "@/lib/labels";
 import { PersonPicker } from "@/components/person-picker";
-import { addSightingAction, addVehicleAction, attachPhotoAction, createWantedPersonAction, createWarrantAction, setWantedStatusAction, setWarrantStatusAction, updateWantedPersonAction } from "@/server/wanted/actions";
+import { publishWantedPubliclyAction, unpublishWantedPubliclyAction } from "@/server/public/actions";
+import { addSightingAction, addVehicleAction, attachPhotoAction, createWantedPersonAction, createWarrantAction, setWantedStatusAction, setWarrantStatusAction, updateWantedPersonAction, verifyWantedAction } from "@/server/wanted/actions";
 
 export type Opt = { id: string; label: string };
-export type WantedValues = { id?: string; offense?: string; reason?: string; dangerLevel?: string; lastSeenLocation?: string; expiresAt?: string };
+export type WantedValues = { id?: string; kind?: string; diffusionLevel?: string; legalBasis?: string; issuingAuthority?: string; offense?: string; reason?: string; dangerLevel?: string; lastSeenLocation?: string; expiresAt?: string };
 
 export function WantedPersonForm({ mode, values = {}, cases, stations }: { mode: "create" | "edit"; values?: WantedValues; cases: Opt[]; stations: Opt[] }) {
   const t = useT();
@@ -36,6 +37,18 @@ export function WantedPersonForm({ mode, values = {}, cases, stations }: { mode:
             <Field label={t("wanted.offense")} htmlFor="wt-offense" required error={s.fieldErrors?.offense}>
               <input id="wt-offense" name="offense" className="input" required minLength={3} maxLength={300} defaultValue={values.offense ?? ""} />
             </Field>
+            <Field label={t("wanted.kind")} htmlFor="wt-kind" required>
+              <Select id="wt-kind" name="kind" defaultValue={values.kind ?? "SEARCH_WARRANT"} options={optionsOf(WANTED_KIND, locale)} />
+            </Field>
+            <Field label={t("wanted.diffusion")} htmlFor="wt-diffusion" hint={t("wanted.diffusionHint")}>
+              <Select id="wt-diffusion" name="diffusionLevel" defaultValue={values.diffusionLevel ?? "NATIONAL"} options={(["NATIONAL", "REGIONAL", "LOCAL"] as const).map((d) => ({ value: d, label: t(`scope.${d}` as "scope.NATIONAL") }))} />
+            </Field>
+            <Field label={t("wanted.issuingAuthority")} htmlFor="wt-authority" hint={t("wanted.issuingAuthorityHint")}>
+              <input id="wt-authority" name="issuingAuthority" className="input" maxLength={200} defaultValue={values.issuingAuthority ?? ""} />
+            </Field>
+            <Field label={t("wanted.legalBasis")} htmlFor="wt-legal" hint={t("wanted.legalBasisHint")} className="sm:col-span-2">
+              <textarea id="wt-legal" name="legalBasis" className="input" rows={2} maxLength={2000} defaultValue={values.legalBasis ?? ""} />
+            </Field>
             <Field label={t("wanted.dangerLevel")} htmlFor="wt-danger" required>
               <Select id="wt-danger" name="dangerLevel" defaultValue={values.dangerLevel ?? "MEDIUM"} options={optionsOf(DANGER_LEVEL, locale)} />
             </Field>
@@ -61,7 +74,8 @@ export function WantedStatusForm({ id, next }: { id: string; next: string[] }) {
   const locale = useLocale();
   const [status, setStatus] = useState(next[0] ?? "");
   if (!next.length) return null;
-  const closing = status === "CANCELLED" || status === "ARRESTED" || status === "EXPIRED";
+  const closing = status === "CANCELLED" || status === "ARRESTED" || status === "EXPIRED" || status === "SUSPENDED";
+  const reasonRequired = status === "CANCELLED" || status === "SUSPENDED";
   return (
     <ActionForm action={setWantedStatusAction} className="space-y-3">
       {(s) => (
@@ -71,13 +85,64 @@ export function WantedStatusForm({ id, next }: { id: string; next: string[] }) {
             <Select id="wt-next-status" name="status" value={status} onChange={(e) => setStatus(e.target.value)} options={next.map((n) => ({ value: n, label: WANTED_STATUS[n]?.[locale] ?? n }))} />
           </Field>
           {closing ? (
-            <Field label={t("wanted.closureNotes")} htmlFor="wt-closure" error={s.fieldErrors?.closureNotes}>
-              <textarea id="wt-closure" name="closureNotes" className="input" rows={3} maxLength={2000} />
+            <Field label={reasonRequired ? t("wanted.reasonRequired") : t("wanted.closureNotes")} htmlFor="wt-closure" required={reasonRequired} error={s.fieldErrors?.closureNotes}>
+              <textarea id="wt-closure" name="closureNotes" className="input" rows={3} maxLength={2000} required={reasonRequired} />
             </Field>
           ) : null}
           <SubmitButton size="sm" pendingText={t("common.working")}>
             {t("wanted.applyStatus")}
           </SubmitButton>
+        </>
+      )}
+    </ActionForm>
+  );
+}
+
+export function WantedVerifyForm({ id }: { id: string }) {
+  const t = useT();
+  return (
+    <ActionForm action={verifyWantedAction} className="space-y-3">
+      {(s) => (
+        <>
+          <input type="hidden" name="id" value={id} />
+          <Field label={t("wanted.verificationNotes")} htmlFor="wt-verify-notes" hint={t("wanted.verifyHint")} error={s.fieldErrors?.notes}>
+            <textarea id="wt-verify-notes" name="notes" className="input" rows={2} maxLength={2000} />
+          </Field>
+          <SubmitButton size="sm" pendingText={t("common.working")}>
+            {t("wanted.verifyAction")}
+          </SubmitButton>
+        </>
+      )}
+    </ActionForm>
+  );
+}
+
+export function WantedPublicForm({ id, published, publishedAt, notice }: { id: string; published: boolean; publishedAt: string | null; notice: string | null }) {
+  const t = useT();
+  if (published)
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-ink">{t("pa.wanted.isPublished")} {publishedAt}</p>
+        {notice ? <p className="rounded-md border border-line p-3 text-sm text-slate">{notice}</p> : null}
+        <ActionForm action={unpublishWantedPubliclyAction}>
+          <input type="hidden" name="id" value={id} />
+          <SubmitButton size="sm" variant="secondary">{t("pa.wanted.unpublish")}</SubmitButton>
+        </ActionForm>
+      </div>
+    );
+  return (
+    <ActionForm action={publishWantedPubliclyAction} className="space-y-3">
+      {(s) => (
+        <>
+          <input type="hidden" name="id" value={id} />
+          <Field label={t("pa.wanted.notice")} htmlFor="wt-pubnotice" error={s.fieldErrors?.notice}>
+            <textarea id="wt-pubnotice" name="notice" className="input" rows={3} minLength={20} maxLength={600} required />
+          </Field>
+          <label className="flex items-start gap-2 text-sm text-ink">
+            <input type="checkbox" name="confirm" required className="mt-1" />
+            {t("pa.wanted.confirm")}
+          </label>
+          <SubmitButton size="sm">{t("pa.wanted.publish")}</SubmitButton>
         </>
       )}
     </ActionForm>
