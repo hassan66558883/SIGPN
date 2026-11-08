@@ -47,7 +47,7 @@ function Brand() {
   return (
     <div className="flex items-center gap-3 border-b border-white/10 px-5 py-4">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/icon.svg" alt="" className="h-9 w-9" />
+      <img src="/emblem.png" alt="" className="h-9 w-9 shrink-0 object-contain" />
       <div>
         <p className="text-sm font-bold leading-tight">{t("app.short")}</p>
         <p className="text-[10px] uppercase tracking-widest text-gold">{t("app.tagline")}</p>

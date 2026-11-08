@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: { default: "SIGPN-T", template: "%s · SIGPN-T" },
   description: "SIGPN-T — Système Intégré de Gestion Numérique de la Police Nationale du Tchad : plaintes, affaires, enquêtes, pièces à conviction, arrestations, mandats, opérations, personnel, parc et infractions routières.",
   robots: { index: false, follow: false },
-  icons: { icon: "/icon.svg" },
+  icons: { icon: "/emblem.png" },
 };
 
 export const viewport: Viewport = { themeColor: "#0f2a4a", width: "device-width", initialScale: 1 };

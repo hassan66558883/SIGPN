@@ -23,7 +23,7 @@ export async function Header({ actor, unreadCount, sections }: { actor: Actor; u
         <MobileNav sections={sections} />
         <Link href="/dashboard" className="flex items-center gap-2 lg:hidden" aria-label={t("nav.dashboard")}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/icon.svg" alt="" className="h-8 w-8" />
+          <img src="/emblem.png" alt="" className="h-8 w-8 shrink-0 object-contain" />
           <span className="hidden text-sm font-bold text-navy sm:inline">{t("app.short")}</span>
         </Link>
         <span className="hidden text-xs text-slate md:inline">

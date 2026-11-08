@@ -24,7 +24,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
           <Link href="/" className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon.svg" alt="" className="h-10 w-10" />
+            <img src="/emblem.png" alt="" className="h-10 w-10 shrink-0 object-contain" />
             <span>
               <span className="block text-base font-extrabold leading-tight text-white">{t("pub.brand")}</span>
               <span className="block text-[10px] uppercase tracking-widest text-gold">{t("pub.brandSub")}</span>

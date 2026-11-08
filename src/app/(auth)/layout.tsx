@@ -9,7 +9,7 @@ export default async function AuthLayout({ children }: LayoutProps<"/">) {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/icon.svg" alt="" className="h-12 w-12" />
+            <img src="/emblem.png" alt="Direction Générale de la Police Nationale du Tchad" width={88} height={88} className="shrink-0 object-contain" />
             <div>
               <p className="text-xl font-bold leading-tight">{t("app.short")}</p>
               <p className="max-w-xs text-[11px] font-semibold uppercase leading-snug tracking-wide text-white/85">{t("app.name")}</p>
