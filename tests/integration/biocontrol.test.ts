@@ -72,7 +72,7 @@ test("the control requires the permission and a stated purpose", async () => {
 
 test("a possible match is compared to a live network alert: identity shown only for POSSIBLE_MATCH; withdrawn notices are never used", async () => {
   const mk = async () => {
-    const free = await pool.query(`SELECT id FROM "Person" p WHERE p."deletedAt" IS NULL AND p."mergedIntoId" IS NULL AND NOT EXISTS (SELECT 1 FROM "WantedPerson" w WHERE w."personId"=p.id AND w.status IN ('DRAFT','PENDING_APPROVAL','ACTIVE','LOCATED','SUSPENDED')) LIMIT 1`);
+    const free = await pool.query(`SELECT id FROM "Person" p WHERE p."deletedAt" IS NULL AND p."mergedIntoId" IS NULL AND NOT EXISTS (SELECT 1 FROM "WantedPerson" w WHERE w."personId"=p.id AND w.status IN ('DRAFT','PENDING_APPROVAL','ACTIVE','LOCATED','SUSPENDED')) ORDER BY random() LIMIT 1`);
     const cs1 = (await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`)).rows[0].id;
     const c = await api(keys["inv.diallo"], "POST", "/api/v1/wanted", { personId: free.rows[0].id, stationId: cs1, offense: `Contrôle test ${RUN}`, reason: "Motif de test suffisamment long pour la validation.", kind: "HEARING", diffusionLevel: "NATIONAL", legalBasis: "Convocation (test)", issuingAuthority: "Parquet (test)" });
     assert.equal(c.res.status, 201, JSON.stringify(c.json));

@@ -46,7 +46,7 @@ before(async () => {
   ids.cs1 = (await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`)).rows[0].id;
   ids.ns1 = (await pool.query(`SELECT id FROM "Station" WHERE code='NS-01'`)).rows[0].id;
   activeStations = (await pool.query(`SELECT count(*)::int n FROM "Station" WHERE "isActive"`)).rows[0].n;
-  const free = await pool.query(`SELECT id FROM "Person" p WHERE p."deletedAt" IS NULL AND p."mergedIntoId" IS NULL AND NOT EXISTS (SELECT 1 FROM "WantedPerson" w WHERE w."personId"=p.id AND w.status IN ('DRAFT','PENDING_APPROVAL','ACTIVE','LOCATED','SUSPENDED')) LIMIT 1`);
+  const free = await pool.query(`SELECT id FROM "Person" p WHERE p."deletedAt" IS NULL AND p."mergedIntoId" IS NULL AND NOT EXISTS (SELECT 1 FROM "WantedPerson" w WHERE w."personId"=p.id AND w.status IN ('DRAFT','PENDING_APPROVAL','ACTIVE','LOCATED','SUSPENDED')) ORDER BY random() LIMIT 1`);
   assert.ok(free.rowCount, "need a person without a live notice");
   ids.person = free.rows[0].id;
   // a clean slate for the units used below: previous alerts must not hide the ones of this run
@@ -136,7 +136,7 @@ test("suspension and withdrawal are diffused automatically as new events on the 
 });
 
 test("a LOCAL notice goes to the issuing unit and its sub-units only; a notice never published produces no alert", async () => {
-  const free = await pool.query(`SELECT id FROM "Person" p WHERE p."deletedAt" IS NULL AND p."mergedIntoId" IS NULL AND NOT EXISTS (SELECT 1 FROM "WantedPerson" w WHERE w."personId"=p.id AND w.status IN ('DRAFT','PENDING_APPROVAL','ACTIVE','LOCATED','SUSPENDED')) LIMIT 1`);
+  const free = await pool.query(`SELECT id FROM "Person" p WHERE p."deletedAt" IS NULL AND p."mergedIntoId" IS NULL AND NOT EXISTS (SELECT 1 FROM "WantedPerson" w WHERE w."personId"=p.id AND w.status IN ('DRAFT','PENDING_APPROVAL','ACTIVE','LOCATED','SUSPENDED')) ORDER BY random() LIMIT 1`);
   const c = await api(keys["inv.diallo"], "POST", "/api/v1/wanted", { personId: free.rows[0].id, stationId: ids.cs1, offense: `Local test ${RUN}`, reason: "Motif de test suffisamment long pour la validation.", kind: "HEARING", diffusionLevel: "LOCAL", legalBasis: "Convocation (test)", issuingAuthority: "Parquet (test)" });
   assert.equal(c.res.status, 201, JSON.stringify(c.json));
   const id = c.res.status === 201 ? c.json.data.id : "";
@@ -149,7 +149,7 @@ test("a LOCAL notice goes to the issuing unit and its sub-units only; a notice n
   assert.ok(!d.some((x) => x.stationId === ids.ns1), "another commissariat is not a recipient of a local notice");
   await api(keys["chief.cs1"], "PATCH", `/api/v1/wanted/${id}`, { op: "status", status: "CANCELLED", closureNotes: "Fin du test" });
   // a draft cancelled before any publication generates no alert
-  const free2 = await pool.query(`SELECT id FROM "Person" p WHERE p."deletedAt" IS NULL AND p."mergedIntoId" IS NULL AND NOT EXISTS (SELECT 1 FROM "WantedPerson" w WHERE w."personId"=p.id AND w.status IN ('DRAFT','PENDING_APPROVAL','ACTIVE','LOCATED','SUSPENDED')) LIMIT 1`);
+  const free2 = await pool.query(`SELECT id FROM "Person" p WHERE p."deletedAt" IS NULL AND p."mergedIntoId" IS NULL AND NOT EXISTS (SELECT 1 FROM "WantedPerson" w WHERE w."personId"=p.id AND w.status IN ('DRAFT','PENDING_APPROVAL','ACTIVE','LOCATED','SUSPENDED')) ORDER BY random() LIMIT 1`);
   const c2 = await api(keys["inv.diallo"], "POST", "/api/v1/wanted", { personId: free2.rows[0].id, stationId: ids.cs1, offense: `Brouillon ${RUN}`, reason: "Motif de test suffisamment long pour la validation." });
   const id2 = c2.json.data.id;
   await api(keys["chief.cs1"], "PATCH", `/api/v1/wanted/${id2}`, { op: "status", status: "CANCELLED", closureNotes: "Abandon" });

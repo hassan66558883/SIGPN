@@ -33,7 +33,7 @@ before(async () => {
   const cs1 = await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`);
   ids.cs1 = cs1.rows[0].id;
   // persons without a live notice (the service refuses a second live notice for the same person)
-  const free = await pool.query(`SELECT id FROM "Person" p WHERE p."deletedAt" IS NULL AND p."mergedIntoId" IS NULL AND NOT EXISTS (SELECT 1 FROM "WantedPerson" w WHERE w."personId"=p.id AND w.status IN ('DRAFT','PENDING_APPROVAL','ACTIVE','LOCATED','SUSPENDED')) ORDER BY (p."stationId"=$1) DESC NULLS LAST LIMIT 3`, [ids.cs1]);
+  const free = await pool.query(`SELECT id FROM "Person" p WHERE p."deletedAt" IS NULL AND p."mergedIntoId" IS NULL AND NOT EXISTS (SELECT 1 FROM "WantedPerson" w WHERE w."personId"=p.id AND w.status IN ('DRAFT','PENDING_APPROVAL','ACTIVE','LOCATED','SUSPENDED')) ORDER BY random() LIMIT 3`);
   assert.ok(free.rowCount && free.rowCount >= 2, "need two persons without a live wanted notice");
   ids.person = free.rows[0].id;
   ids.person2 = free.rows[1].id;
