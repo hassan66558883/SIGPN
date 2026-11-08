@@ -1,35 +1,48 @@
 import { getLocale, getT } from "@/server/i18n";
 import { LanguageSwitcher } from "@/components/language-switcher";
 
+/**
+ * Shared frame of the sign-in pages (login, second factor, password reset). Restricted to authorised internal police personnel.
+ * Left: institutional photograph supplied by the client (hidden on small screens). Right: the official emblem above the form card.
+ */
 export default async function AuthLayout({ children }: LayoutProps<"/">) {
   const [t, locale] = await Promise.all([getT(), getLocale()]);
   return (
     <div className="flex min-h-screen flex-1 flex-col lg:flex-row">
-      <section className="bg-brand flex flex-col justify-between p-8 text-white lg:w-1/2 lg:p-14">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/emblem.png" alt="Direction Générale de la Police Nationale du Tchad" width={88} height={88} className="shrink-0 object-contain" />
-            <div>
-              <p className="text-xl font-bold leading-tight">{t("app.short")}</p>
-              <p className="max-w-xs text-[11px] font-semibold uppercase leading-snug tracking-wide text-white/85">{t("app.name")}</p>
-              <p className="mt-1 text-[10px] uppercase tracking-widest text-gold">{t("auth.platform")}</p>
-            </div>
-          </div>
+      <section aria-hidden className="login-hero" />
+      <section className="bg-brand flex flex-1 flex-col p-6 sm:p-10">
+        <div className="flex justify-end">
           <LanguageSwitcher current={locale} dark label={t("common.language")} />
         </div>
-        <div className="my-10 max-w-md lg:my-0">
-          <h2 className="text-2xl font-bold leading-snug lg:text-3xl">{t("auth.hero")}</h2>
-          <ul className="mt-6 space-y-2 text-sm text-white/80">
-            <li>{t("auth.bullet1")}</li>
-            <li>{t("auth.bullet2")}</li>
-            <li>{t("auth.bullet3")}</li>
-          </ul>
+        <div className="flex flex-1 flex-col items-center justify-center py-6">
+          <div className="relative w-full max-w-md" style={{ marginTop: 70 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/emblem.png"
+              alt="Direction Générale de la Police Nationale du Tchad"
+              width={124}
+              height={124}
+              style={{ position: "absolute", top: -70, left: "50%", marginLeft: -62, zIndex: 1 }}
+            />
+            <div className="rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-8" style={{ paddingTop: 72 }}>
+              <div className="mb-6 text-center">
+                <p className="text-4xl font-extrabold leading-tight text-navy">
+                  SIGPN-<span className="text-gold">T</span>
+                </p>
+                <p className="mt-1 text-base font-semibold text-navy">{t("auth.erp")}</p>
+                <div className="mx-auto mt-3 flex overflow-hidden rounded" style={{ height: 4, width: 160 }} aria-hidden>
+                  <span style={{ flex: 1, background: "#002664" }} />
+                  <span style={{ flex: 1, background: "#FECB00" }} />
+                  <span style={{ flex: 1, background: "#C60C30" }} />
+                </div>
+                <p className="mt-3 text-sm text-slate">{t("auth.tagline")}</p>
+              </div>
+              {children}
+              <p className="mt-6 border-t border-line pt-4 text-center text-xs text-slate">{t("auth.restricted")}</p>
+            </div>
+          </div>
+          <p className="mt-6 max-w-md text-center text-[11px] text-slate">{t("auth.notice")}</p>
         </div>
-        <p className="text-[11px] text-white/50">{t("auth.notice")}</p>
-      </section>
-      <section className="flex flex-1 items-center justify-center bg-mist p-6 sm:p-10">
-        <div className="w-full max-w-md rounded-2xl border border-line bg-white p-6 shadow-sm sm:p-8">{children}</div>
       </section>
     </div>
   );

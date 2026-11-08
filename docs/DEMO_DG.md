@@ -63,6 +63,16 @@ Le réseau de démonstration compte **14 unités**. Les cinq qui ont un compte s
 - Une fenêtre privée par compte (ou un navigateur différent) : les sessions ne doivent pas se mélanger.
 - Le bandeau orange « ENVIRONNEMENT DE DÉMONSTRATION — DONNÉES FICTIVES » reste visible sur toutes les pages : le laisser.
 
+### L'écran de connexion
+
+La page de connexion est réservée au personnel autorisé de la Police Nationale. Elle porte l'emblème officiel de la Direction Générale, en français, en arabe (de droite à gauche) et sur téléphone.
+
+![Connexion en français](demo/screens/s0-1-connexion-fr.png)
+
+![Connexion en arabe](demo/screens/s0-2-connexion-ar-rtl.png)
+
+![Connexion sur téléphone](demo/screens/s0-3-connexion-mobile.png)
+
 ## 3. Scénario 1 — Créer et approuver un avis de recherche fictif à N'Djamena
 
 **Message :** *« Un avis de recherche ne peut pas être publié par une seule personne. Il faut un enquêteur, un vérificateur et une autorité qui approuve. »*

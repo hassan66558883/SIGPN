@@ -165,11 +165,13 @@ Formation par fonction (section 5), période de double saisie de deux semaines s
 
 `docs/DEMO_DG.md` (et son PDF) : préparation, comptes, cinq scénarios illustrés de 30 captures, messages clés, limites à ne pas taire, questions probables. Les scripts `scripts/demo/*` reconstruisent la base de démonstration (`npm run demo:reset`), activent le second facteur des comptes de direction (`npm run demo:mfa`) et rejouent les cinq scénarios par l'interface (`npm run demo:run`) ; ils refusent toute base dont le nom ne se termine pas par `_demo`.
 
+**Identité visuelle.** L'emblème officiel de la Direction Générale de la Police Nationale du Tchad remplace l'ancien logo générique sur la page de connexion, la barre latérale, l'en-tête, le portail public, les pages de vérification et l'icône du site (`public/emblem.png`). Il a été découpé sans modification dans la maquette de connexion fournie (résolution 248 px) : le remplacer par le fichier d'origine en haute résolution dès qu'il est disponible, sans changer le code. La page de connexion suit la maquette (photographie institutionnelle `public/login-hero.jpg`, emblème au-dessus de la carte, bandeau tricolore, mention d'accès réservé) en français, en arabe et sur téléphone ; le mécanisme d'authentification n'est pas modifié.
+
 Nouveaux comptes fictifs ajoutés à la graine pour la démonstration d'Abéché : `chief.abe` (commissaire de poste) et `desk.abe` (agent d'accueil), rattachés au Commissariat Central d'Abéché.
 
 ## Annexe A — Fichiers ajoutés ou modifiés
 
-Comparaison avec la branche principale : **168 fichiers** (129 ajoutés, 39 modifiés). `A` = ajouté, `M` = modifié.
+Comparaison avec la branche principale : **177 fichiers** (134 ajoutés, 43 modifiés). `A` = ajouté, `M` = modifié.
 
 ### Base de données (migrations et schéma) — 6
 
@@ -274,12 +276,13 @@ Comparaison avec la branche principale : **168 fichiers** (129 ajoutés, 39 modi
 | A | `src/app/(public)/signalement/page.tsx` |
 | A | `src/app/(public)/suivi/page.tsx` |
 
-### Composants, thème et navigation — 9
+### Composants, thème et navigation — 10
 
 | | Fichier |
 |---|---|
 | M | `src/app/globals.css` |
 | A | `src/components/app-shell/alert-watcher.tsx` |
+| M | `src/components/app-shell/header.tsx` |
 | M | `src/components/app-shell/sidebar.tsx` |
 | M | `src/components/charts.tsx` |
 | M | `src/components/language-switcher.tsx` |
@@ -353,11 +356,11 @@ Comparaison avec la branche principale : **168 fichiers** (129 ajoutés, 39 modi
 | A | `docs/TESTS_PHASE8.md` |
 | A | `docs/TESTS_PHASE8.pdf` |
 
-### Captures de la démonstration — 30
+### Captures de la démonstration — 33
 
-30 images PNG dans `docs/demo/screens/` (scénarios 1 à 5).
+33 images PNG dans `docs/demo/screens/` (scénarios 1 à 5).
 
-### Configuration et divers — 6
+### Configuration et divers — 11
 
 | | Fichier |
 |---|---|
@@ -367,4 +370,9 @@ Comparaison avec la branche principale : **168 fichiers** (129 ajoutés, 39 modi
 | M | `next.config.ts` |
 | M | `package-lock.json` |
 | M | `package.json` |
+| A | `public/emblem.png` |
+| A | `public/login-hero.jpg` |
+| M | `src/app/(auth)/layout.tsx` |
+| M | `src/app/layout.tsx` |
+| M | `src/app/verify/layout.tsx` |
 

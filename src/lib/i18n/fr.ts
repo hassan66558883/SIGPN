@@ -128,6 +128,9 @@ export const fr = {
 
   // ---- auth shell ----
   "auth.platform": "Plateforme opérationnelle sécurisée",
+  "auth.erp": "ERP – Police Nationale du Tchad",
+  "auth.tagline": "Système Intégré de Gestion de la Police Nationale",
+  "auth.restricted": "Accès réservé aux personnels autorisés de la Police Nationale du Tchad",
   "auth.hero": "Plaintes, affaires, pièces à conviction, arrestations et opérations — un seul système intégré et audité.",
   "auth.bullet1": "· Accès par rôle avec périmètre organisationnel",
   "auth.bullet2": "· Authentification à deux facteurs pour les rôles privilégiés",

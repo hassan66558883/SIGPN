@@ -6,7 +6,7 @@
 import type { Browser, Page } from "puppeteer-core";
 import { assertDemoDb, launch, session, shot, cleanup, pool, ensureMfa, clickText, setValue, submitFormOf, sleep, BASE, apiKey, api } from "./lib";
 
-const wanted = (process.argv.slice(2).length ? process.argv.slice(2) : ["1", "2", "3", "4", "5"]).map(String);
+const wanted = (process.argv.slice(2).length ? process.argv.slice(2) : ["0", "1", "2", "3", "4", "5"]).map(String);
 const go = async (p: Page, path: string) => {
   await p.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded" });
   await sleep(2000);
@@ -37,6 +37,19 @@ async function prepare() {
     const r = await api<{ id: string }>(author, "POST", "/api/v1/public-content/news", it);
     const id = r.json.data?.id;
     if (id) await api(publisher, "PATCH", `/api/v1/public-content/news/${id}`, { published: true });
+  }
+}
+
+/** Sign-in page (official emblem), French, Arabic (right-to-left) and phone. */
+async function s0(b: Browser) {
+  console.log("# Écran de connexion");
+  for (const [lang, vp, name] of [["fr", { width: 1672, height: 941 }, "s0-1-connexion-fr"], ["ar", { width: 1672, height: 941 }, "s0-2-connexion-ar-rtl"], ["fr", { width: 375, height: 812 }, "s0-3-connexion-mobile"]] as const) {
+    const p = await (await b.createBrowserContext()).newPage();
+    await p.setViewport(vp);
+    await p.setCookie({ name: "pms_lang", value: lang, url: BASE });
+    await p.goto(`${BASE}/login`, { waitUntil: "domcontentloaded" });
+    await sleep(2500);
+    await shot(p, name);
   }
 }
 
@@ -259,6 +272,7 @@ async function s5(b: Browser) {
   const b = await launch();
   try {
     await prepare();
+    if (wanted.includes("0") || process.argv.slice(2).length === 0) await s0(b);
     if (wanted.includes("1")) await s1(b);
     if (wanted.includes("2")) await s2(b);
     if (wanted.includes("3")) await s3(b);
