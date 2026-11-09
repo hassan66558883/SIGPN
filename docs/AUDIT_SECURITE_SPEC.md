@@ -1,6 +1,6 @@
 # SIGPN-T — Security audit: consolidated specification
 
-Status: **proposal, awaiting explicit approval.** Nothing in this document has been implemented. The audit was read-only: no source code, database, role, permission or production configuration was changed.
+Status: **the seven lots are implemented** (approved on 2026-11-09 and delivered lot by lot, sections 6 to 13). The audit itself was read-only; the changes were made only after the specification was approved.
 
 Date: 2026-11-09. Sources read: `prisma/schema.prisma`, `src/server/rbac/*`, `src/server/auth/*`, `src/server/hr/transfers.ts`, `src/server/org/service.ts`, the immutability triggers, and the environment settings.
 
@@ -214,3 +214,48 @@ Please state which lots you approve, and in which order. Lots 1 and 6 can start 
 2. The person keeps being recorded as lead of their old cases until a supervisor reassigns them; they can no longer see them through their new scope, which is the intended effect.
 3. A person who commands a station or heads a service cannot be transferred at all (existing rule): the effects above therefore concern everyone else.
 4. Not browsed in the interface.
+
+## 13. Lot 7 — status (implemented 2026-11-09)
+
+**Done.** Sessions of sensitive accounts are tighter, and API keys are capped, restricted and supervised.
+
+| Item | Result |
+|---|---|
+| Sensitive account | An account whose role holds a sensitive permission, or whose clearance is above standard. |
+| Idle timeout | **15 minutes** for a sensitive account (60 for an ordinary one; `SESSION_SENSITIVE_IDLE_MINUTES`). The flag is stored on the session when it is created. |
+| One session | A sensitive account has **one active session**: signing in again ends the previous one (reason `single_session`, audited as `SESSION_REPLACED`). An ordinary account may keep several. |
+| Key validity | A key created by the application **always expires**, between 1 and 90 days (`API_KEY_MAX_DAYS`). No key outlives 90 days from its creation, whatever its own expiry says (rotation). Existing keys without expiry were given one at creation + 90 days. |
+| Key permissions | A key created by the application **never carries a sensitive permission**: it cannot approve, decide, export or read sensitive records, whoever owns it. A commander's key still reads. Keys already existing were brought under the same rule. |
+| Oversight | The security administrator sees **every active key** of every user (prefix only, never the secret) on the security page and through `GET /api/v1/security/api-keys`, and can revoke any of them (`DELETE /api/v1/security/api-keys/{id}`, audited as `API_KEY_REVOKED_BY_ADMIN`). An ordinary user can neither list nor revoke other people's keys. |
+| Tests | `tsc` clean, 156 unit, 234 integration (7 new, with real sign-ins), 35 security. |
+
+**Choices made, to confirm.**
+1. The 15-minute idle timeout is the proposal of decision 13, not an official policy.
+2. "Sensitive account" is read as: sensitive permission in the role, or any clearance above standard.
+3. 90 days is both the longest validity and the rotation period.
+
+**Limits.**
+1. The sensitive flag of a session is set when it is created; a role that gains a sensitive permission later does not change the sessions already open (a change of role or clearance ends them).
+2. A key inserted directly in the database without the restriction flag keeps the legacy behaviour; the automated tests use such keys. The application never creates one, and anyone able to insert it already controls the database.
+3. There is no automatic rotation or reminder: a key simply stops working after 90 days and its owner creates a new one.
+4. Not browsed in the interface.
+
+## 14. Summary of the seven lots
+
+| Lot | Subject | Commit |
+|---|---|---|
+| 1 | Technical and security administration separated from police command | cfa6070 |
+| 2 | Provincial title and central directions from decree 0572/2023 | d1ec0ad |
+| 3 | Clearance tiers and MFA by sensitivity | 80adab9 |
+| 4 | Approval workflow for accounts, roles and clearances | dcf3e7c |
+| 5 | Effects of a reassignment on access | de5f601 |
+| 6 | Tamper-evident audit log and audited reads | 4eedbbe |
+| 7 | Sessions of sensitive accounts and API keys | see the git log |
+
+**Still open, and needing the Direction or a later decision.**
+1. The ministerial arrêté with the detailed organisation (sub-directions, services, commissariats) and the official clearance levels.
+2. Whether police command should approve the technical and security administrators; whether the departmental level exists.
+3. The audit retention period and where to record the head of the audit chain outside the database.
+4. The 15-minute timeout, the 7-day expiry of an approval and the 48-hour custody limit.
+5. Not yet built: the real `OWN` scope, a retry of an approved change stopped between its vote and its execution, a list screen of work to reassign, reading of confidential documents (the documents module itself).
+6. None of the new screens has been browsed in the interface, and no external security audit has been carried out.

@@ -9,6 +9,9 @@ import { LIMITS } from "@/server/auth/rate-limit";
 import { getLocale, getT } from "@/server/i18n";
 import { getRequestContext } from "@/server/request-context";
 import { verifyAuditChain } from "@/server/audit-chain";
+import { listActiveApiKeys } from "@/server/auth/api-keys-admin";
+import { revokeAnyApiKeyAction } from "@/server/auth/actions";
+import { ActionButton } from "@/components/forms";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -19,6 +22,7 @@ export default async function SecurityPage({ searchParams }: PageProps<"/admin/s
   const actor = await requirePermission("security:view");
   const [o, sessions, t, locale, sp] = await Promise.all([securityOverview(), listActiveSessions(), getT(), getLocale(), searchParams]);
   const canVerify = actor.permissions.has("audit:view");
+  const keys = actor.permissions.has("security:manage") ? await listActiveApiKeys(actor) : null;
   // The walk over the whole chain is run on request only, never on every page view.
   const chain = canVerify && sp.verify === "1" ? await verifyAuditChain(actor, await getRequestContext()) : null;
   return (
@@ -108,6 +112,56 @@ export default async function SecurityPage({ searchParams }: PageProps<"/admin/s
           )}
         </Card>
       </div>
+      {keys ? (
+        <Card className="mt-4" title={t("sec.keys.title", { n: keys.length })} description={t("sec.keys.intro")} padded={false}>
+          {keys.length === 0 ? (
+            <EmptyState>{t("sec.keys.none")}</EmptyState>
+          ) : (
+            <Table>
+              <thead>
+                <tr>
+                  <th>{t("sec.keys.owner")}</th>
+                  <th>{t("account.col.name")}</th>
+                  <th>{t("account.col.prefix")}</th>
+                  <th>{t("account.col.created")}</th>
+                  <th>{t("account.col.lastUsed")}</th>
+                  <th>{t("account.col.expires")}</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {keys.map((k) => (
+                  <tr key={k.id}>
+                    <td data-label={t("sec.keys.owner")}>
+                      <Link href={`/admin/users/${k.user.id}`} className="text-blue hover:underline">
+                        {k.user.username}
+                      </Link>
+                    </td>
+                    <td data-label={t("account.col.name")}>{k.name}</td>
+                    <td data-label={t("account.col.prefix")} className="font-mono text-xs">
+                      pms_{k.keyPrefix}_…
+                    </td>
+                    <td data-label={t("account.col.created")} className="text-xs">
+                      {fmtDateTime(k.createdAt, locale)}
+                    </td>
+                    <td data-label={t("account.col.lastUsed")} className="text-xs">
+                      {k.lastUsedAt ? fmtRelative(k.lastUsedAt, locale) : t("common.never")}
+                    </td>
+                    <td data-label={t("account.col.expires")} className="text-xs">
+                      {k.expiresAt ? fmtDateTime(k.expiresAt, locale) : "—"} {k.expired ? <Badge tone="danger">{t("sec.keys.expired")}</Badge> : null}
+                    </td>
+                    <td data-label="">
+                      <ActionButton action={revokeAnyApiKeyAction} fields={{ id: k.id }} variant="secondary" size="xs" confirm={t("account.revokeKeyConfirm")}>
+                        {t("common.revoke")}
+                      </ActionButton>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </Card>
+      ) : null}
       <Card className="mt-4" title={t("sec.recentAttempts")} padded={false}>
         <Table>
           <thead>

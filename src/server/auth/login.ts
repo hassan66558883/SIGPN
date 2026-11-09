@@ -11,6 +11,7 @@ import { createSession, revokeAllSessions, revokeSessionById, revokeSessionByTok
 import type { RequestContext } from "@/server/request-context";
 import type { Actor } from "@/server/auth/dal";
 import { notifyPermission } from "@/server/notifications";
+import { keyExpiryDays } from "@/server/auth/api-key-policy";
 
 const GENERIC_LOGIN_ERROR = "Invalid username or password.";
 const MFA_CHALLENGE_MINUTES = 5;
@@ -252,12 +253,15 @@ export async function revokeOwnSession(actor: Actor, sessionId: string, context:
 
 export async function createApiKey(actor: Actor, name: string, expiresInDays: number | null, context: RequestContext): Promise<string> {
   if (!actor.permissions.has("apikeys:manage_own")) throw new AuthError("forbidden");
+  // Every key expires, at most `API_KEY_MAX_DAYS` (90) after its creation: rotation (security audit, lot 7).
+  const days = keyExpiryDays(expiresInDays, env.apiKey.maxDays);
+  if (days === null) throw new BusinessError(`An API key must expire: choose a validity between 1 and ${env.apiKey.maxDays} days.`, "VALIDATION", { expiresInDays: "required" });
   const count = await prisma.apiKey.count({ where: { userId: actor.id, revokedAt: null } });
   if (count >= 5) throw new BusinessError("You already have 5 active API keys. Revoke one first.", "STATE");
   const prefix = randomToken(6).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8);
   const secret = randomToken(32);
   const key = `pms_${prefix}_${secret}`;
-  await prisma.apiKey.create({ data: { userId: actor.id, name: name.trim().slice(0, 80) || "API key", keyPrefix: prefix, keyHash: sha256(key), expiresAt: expiresInDays ? new Date(Date.now() + expiresInDays * 86_400_000) : null } });
+  await prisma.apiKey.create({ data: { userId: actor.id, name: name.trim().slice(0, 80) || "API key", keyPrefix: prefix, keyHash: sha256(key), noSensitive: true, expiresAt: new Date(Date.now() + days * 86_400_000) } });
   await logAudit({ actor, action: "API_KEY_CREATED", module: "auth", entityType: "ApiKey", entityLabel: prefix, summary: `${actor.username} created API key ${prefix} (${name})`, context });
   return key;
 }

@@ -43,6 +43,16 @@ export const env = {
     get absoluteHours() {
       return int("SESSION_ABSOLUTE_HOURS", 10);
     },
+    /** Idle timeout of a sensitive account (lot 7): a proposal, to be confirmed by the Direction. */
+    get sensitiveIdleMinutes() {
+      return int("SESSION_SENSITIVE_IDLE_MINUTES", 15);
+    },
+  },
+  apiKey: {
+    /** Longest validity of an API key, i.e. the rotation period. */
+    get maxDays() {
+      return int("API_KEY_MAX_DAYS", 90);
+    },
   },
   login: {
     get maxFailures() {

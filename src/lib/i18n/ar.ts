@@ -1359,4 +1359,9 @@ export const ar: Record<keyof typeof fr, string> = {
   "approvals.commentHint": "إلزامي عند الرفض.",
   "approvals.submit": "تسجيل القرار",
   "approvals.cancel": "إلغاء طلبي",
+  "sec.keys.title": "مفاتيح API النشطة ({n})",
+  "sec.keys.intro": "جميع مفاتيح كل الحسابات. ينتهي المفتاح دائمًا (90 يومًا كحد أقصى) ولا يحمل أبدًا صلاحية حساسة.",
+  "sec.keys.none": "لا مفاتيح نشطة.",
+  "sec.keys.owner": "صاحب المفتاح",
+  "sec.keys.expired": "منتهي",
 } as const;

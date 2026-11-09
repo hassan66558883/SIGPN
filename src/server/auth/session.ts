@@ -3,6 +3,8 @@ import { prisma, type Db } from "@/server/db";
 import { env } from "@/server/env";
 import { randomToken, sha256 } from "@/server/crypto";
 import type { RequestContext } from "@/server/request-context";
+import { logAudit } from "@/server/audit";
+import { isSensitiveAccount } from "@/server/rbac/sensitivity";
 
 export const SESSION_COOKIE = "pms_session";
 export const MFA_COOKIE = "pms_mfa";
@@ -14,10 +16,16 @@ export type ResolvedSession = { id: string; userId: string; mfaVerified: boolean
 export async function createSession(userId: string, context: RequestContext, opts: { mfaVerified: boolean }, db: Db = prisma): Promise<{ token: string; id: string }> {
   const token = randomToken(32);
   const absoluteMs = env.session.absoluteHours * 3_600_000;
+  // A sensitive account (sensitive permission or clearance) has a shorter idle timeout and ONE active session: signing in again
+  // ends the previous one (lot 7).
+  const u = await db.user.findUnique({ where: { id: userId }, select: { username: true, clearance: true, role: { select: { permissions: { select: { permission: { select: { code: true } } } } } } } });
+  const sensitive = !!u && isSensitiveAccount({ permissions: u.role.permissions.map((p) => p.permission.code), clearance: u.clearance });
+  const replaced = sensitive ? await revokeAllSessions(userId, "single_session", null, db) : 0;
   const s = await db.session.create({
-    data: { userId, tokenHash: sha256(token), ipAddress: context.ip, userAgent: context.userAgent, mfaVerified: opts.mfaVerified, expiresAt: new Date(Date.now() + absoluteMs) },
+    data: { userId, tokenHash: sha256(token), ipAddress: context.ip, userAgent: context.userAgent, mfaVerified: opts.mfaVerified, sensitive, expiresAt: new Date(Date.now() + absoluteMs) },
     select: { id: true },
   });
+  if (replaced > 0) await logAudit({ actor: null, action: "SESSION_REPLACED", module: "auth", entityType: "User", entityId: userId, entityLabel: u?.username ?? null, summary: `${u?.username ?? userId}: ${replaced} previous session(s) ended (a sensitive account has a single active session)`, context }, db);
   return { token, id: s.id };
 }
 
@@ -54,12 +62,12 @@ export async function resolveSession(token: string | undefined | null): Promise<
   if (!token || token.length < 32) return null;
   const session = await prisma.session.findUnique({
     where: { tokenHash: sha256(token) },
-    select: { id: true, userId: true, lastSeenAt: true, expiresAt: true, revokedAt: true, mfaVerified: true, createdAt: true },
+    select: { id: true, userId: true, lastSeenAt: true, expiresAt: true, revokedAt: true, mfaVerified: true, createdAt: true, sensitive: true },
   });
   if (!session || session.revokedAt) return null;
   const now = Date.now();
   if (session.expiresAt.getTime() < now) return null;
-  if (now - session.lastSeenAt.getTime() > env.session.idleMinutes * 60_000) {
+  if (now - session.lastSeenAt.getTime() > (session.sensitive ? env.session.sensitiveIdleMinutes : env.session.idleMinutes) * 60_000) {
     await prisma.session.update({ where: { id: session.id }, data: { revokedAt: new Date(), revokedReason: "idle_timeout" } });
     return null;
   }

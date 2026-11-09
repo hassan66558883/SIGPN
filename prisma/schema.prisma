@@ -267,6 +267,8 @@ model Session {
   ipAddress     String?
   userAgent     String?
   mfaVerified   Boolean   @default(false)
+  /// Sensitive account at creation (lot 7): shorter idle timeout, single active session.
+  sensitive     Boolean   @default(false)
   createdAt     DateTime  @default(now())
   lastSeenAt    DateTime  @default(now())
   expiresAt     DateTime
@@ -329,6 +331,8 @@ model LoginAttempt {
 
 /// Personal API keys for REST clients (Bearer). Scoped to the owner's permissions.
 model ApiKey {
+  /// Created by the application: never carries a sensitive permission (lot 7).
+  noSensitive Boolean  @default(false)
   id         String    @id @default(cuid())
   userId     String
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -26,7 +26,7 @@ export function ApiKeyForm() {
           <input id="apikey-name" name="name" className="input" required maxLength={80} placeholder={t("apikey.namePlaceholder")} />
         </Field>
         <Field label={t("apikey.expiresIn")} htmlFor="apikey-exp" hint={t("apikey.expiresHint")}>
-          <input id="apikey-exp" name="expiresInDays" type="number" min={0} max={730} defaultValue={90} className="input" />
+          <input id="apikey-exp" name="expiresInDays" type="number" required min={1} max={90} defaultValue={90} className="input" />
         </Field>
         <SubmitButton variant="secondary" pendingText={t("common.creating")}>
           {t("apikey.create")}

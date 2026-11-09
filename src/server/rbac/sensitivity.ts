@@ -70,6 +70,16 @@ export function impliedClearance(permissions: Iterable<string>): Clearance {
 }
 
 /**
+ * A sensitive account (lot 7): its role holds a sensitive permission, or its clearance is above standard. Its sessions are
+ * shorter (idle timeout) and it has only one active session at a time.
+ */
+export function isSensitiveAccount(input: { permissions: Iterable<string>; clearance: Clearance }): boolean {
+  if (input.clearance !== "STANDARD") return true;
+  for (const code of input.permissions) if (SENSITIVE.has(code)) return true;
+  return false;
+}
+
+/**
  * Multi-factor authentication is mandatory when the role says so, OR the role holds a sensitive permission, OR the user
  * holds a clearance above standard. Ordinary accounts without any of these may keep it optional.
  */

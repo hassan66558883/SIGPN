@@ -8,6 +8,7 @@ import { fail, formEntries, revalidateAll } from "@/server/action-utils";
 import { getActor, requireActorForAction } from "@/server/auth/dal";
 import { clearMfaCookie, clearSessionCookie, getMfaToken, getSessionToken, setMfaCookie, setSessionCookie } from "@/server/auth/session";
 import * as svc from "@/server/auth/login";
+import { revokeAnyApiKey } from "@/server/auth/api-keys-admin";
 import type { FormState } from "@/components/forms";
 
 function safeNext(value: unknown): string {
@@ -187,6 +188,19 @@ export async function revokeApiKeyAction(_prev: FormState, formData: FormData): 
     const actor = await requireActorForAction();
     const context = await getRequestContext();
     await svc.revokeApiKey(actor, String(formData.get("id") ?? ""), context);
+    revalidateAll();
+    return { ok: true, message: "API key revoked." };
+  } catch (e) {
+    return fail(e, "Could not revoke API key.", "apikeys");
+  }
+}
+
+/** The security administrator revokes any API key (lot 7). */
+export async function revokeAnyApiKeyAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  try {
+    const actor = await requireActorForAction();
+    const context = await getRequestContext();
+    await revokeAnyApiKey(actor, String(formData.get("id") ?? ""), context);
     revalidateAll();
     return { ok: true, message: "API key revoked." };
   } catch (e) {

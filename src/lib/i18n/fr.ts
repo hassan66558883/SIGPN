@@ -1360,4 +1360,9 @@ export const fr = {
   "approvals.commentHint": "Obligatoire pour un refus.",
   "approvals.submit": "Enregistrer la décision",
   "approvals.cancel": "Annuler ma demande",
+  "sec.keys.title": "Clés d'API actives ({n})",
+  "sec.keys.intro": "Toutes les clés de tous les comptes. Une clé expire toujours (90 jours au plus) et ne porte jamais de permission sensible.",
+  "sec.keys.none": "Aucune clé active.",
+  "sec.keys.owner": "Titulaire",
+  "sec.keys.expired": "expirée",
 } as const;
