@@ -10,6 +10,7 @@ import { randomBytes, createHash } from "node:crypto";
 import { Pool } from "pg";
 
 const BASE = process.env.PMS_URL ?? "http://localhost:3300";
+const MFA_OFF = ["off", "0", "false", "no"].includes((process.env.MFA_ENFORCEMENT ?? "on").trim().toLowerCase()); // temporary switch: these tests need the second factor enforced
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, options: "-c timezone=UTC" });
 const RUN = Date.now().toString(36);
 const keys: Record<string, string> = {};
@@ -115,7 +116,7 @@ test("only the security administrator grants or changes a clearance, and never o
   assert.equal(audited, 3);
 });
 
-test("multi-factor authentication follows the permissions: the analyst (read-everything role, flag off) must now enrol", async () => {
+test("multi-factor authentication follows the permissions: the analyst (read-everything role, flag off) must now enrol", { skip: MFA_OFF ? "MFA_ENFORCEMENT=off (temporary setting)" : false }, async () => {
   const flag = (await pool.query(`SELECT r."requiresMfa" f FROM "Role" r WHERE r.code='ANALYST'`)).rows[0].f;
   assert.equal(flag, false, "the ANALYST role flag is off");
   const res = await fetch(`${BASE}/api/v1/auth/login`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ identifier: "analyst", password: process.env.DEMO_PASSWORD ?? "ChangeMe-Demo-2026!" }) });

@@ -1430,4 +1430,5 @@ export const fr = {
   "wsearch.logRow": "{n} résultat(s) · {ms} ms",
   "wsearch.notQueried": "Sources non interrogées (non connectées) : {list}.",
   "wsearch.allNotices": "Tous les avis de recherche ({n})",
+  "app.mfaOff": "Authentification à deux facteurs DÉSACTIVÉE — réglage temporaire (MFA_ENFORCEMENT=off)",
 } as const;

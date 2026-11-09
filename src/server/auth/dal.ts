@@ -8,6 +8,7 @@ import { AuthError } from "@/server/errors";
 import { getSessionToken, resolveSession } from "@/server/auth/session";
 import type { Permission } from "@/server/rbac/permissions";
 import { mfaRequired, usablePermissions, type Clearance } from "@/server/rbac/sensitivity";
+import { env } from "@/server/env";
 
 /**
  * Authorization principle: Role + Organizational scope + Permission.
@@ -111,7 +112,7 @@ export async function buildActor(u: UserRow, session: { id: string | null; mfaVe
     roleCode: u.role.code,
     roleName: u.role.name,
     scopeLevel: u.role.scopeLevel,
-    roleRequiresMfa: mfaRequired({ roleRequiresMfa: u.role.requiresMfa, permissions: u.role.permissions.map((p) => p.permission.code), clearance: u.clearance }),
+    roleRequiresMfa: env.mfa.enforced && mfaRequired({ roleRequiresMfa: u.role.requiresMfa, permissions: u.role.permissions.map((p) => p.permission.code), clearance: u.clearance }),
     clearance: u.clearance,
     permissions: usablePermissions(
       u.role.permissions.map((p) => p.permission.code),
@@ -155,7 +156,7 @@ export function canAny(actor: Pick<Actor, "permissions">, permissions: Permissio
 export function pendingSecurityStep(actor: Actor): "password" | "mfa_enrol" | "mfa_verify" | null {
   if (actor.authMethod === "api_key") return null;
   if (actor.mustChangePassword) return "password";
-  if (actor.mfaEnabled && !actor.mfaVerified) return "mfa_verify";
+  if (env.mfa.enforced && actor.mfaEnabled && !actor.mfaVerified) return "mfa_verify";
   if (actor.roleRequiresMfa && !actor.mfaEnabled) return "mfa_enrol";
   return null;
 }

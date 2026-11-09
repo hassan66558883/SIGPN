@@ -54,6 +54,16 @@ export const env = {
       return int("API_KEY_MAX_DAYS", 90);
     },
   },
+  mfa: {
+    /**
+     * TEMPORARY SWITCH. `MFA_ENFORCEMENT=off` stops requiring a second factor (no enrolment is forced, enrolled accounts are not asked
+     * for a code). Nothing is deleted: the secrets stay, and `on` (the default) restores the full rule at once. Every start with the
+     * switch off is audited and every page shows a banner.
+     */
+    get enforced() {
+      return !["off", "0", "false", "no"].includes((process.env.MFA_ENFORCEMENT ?? "on").trim().toLowerCase());
+    },
+  },
   login: {
     get maxFailures() {
       return int("LOGIN_MAX_FAILURES", 5);

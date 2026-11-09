@@ -4,6 +4,7 @@ import { NAVIGATION } from "@/lib/navigation";
 import { Sidebar } from "@/components/app-shell/sidebar";
 import { Header } from "@/components/app-shell/header";
 import { getT } from "@/server/i18n";
+import { env } from "@/server/env";
 import { AlertWatcher } from "@/components/app-shell/alert-watcher";
 
 export default async function AppLayout({ children }: LayoutProps<"/">) {
@@ -17,6 +18,11 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
     <div className="flex min-h-screen flex-1">
       <Sidebar sections={sections} />
       <div className="flex min-w-0 flex-1 flex-col">
+        {!env.mfa.enforced ? (
+          <div role="alert" className="no-print bg-danger px-4 py-1.5 text-center text-xs font-bold uppercase tracking-wide text-white">
+            {t("app.mfaOff")}
+          </div>
+        ) : null}
         <Header actor={actor} unreadCount={unread} sections={sections} />
         {can(actor, "alerts:view") ? <AlertWatcher /> : null}
         <main className="flex-1 px-4 py-6 lg:px-8">{children}</main>

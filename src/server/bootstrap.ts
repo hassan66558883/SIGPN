@@ -5,6 +5,7 @@ import { hashPassword, passwordPolicyErrors } from "@/server/auth/password";
 import { syncPermissionCatalog, syncSystemRoles } from "@/server/rbac/sync";
 import { CHAD_PROVINCES } from "@/server/demo/seed-territory";
 import { syncCentralDirections } from "@/server/org/central";
+import { env } from "@/server/env";
 import { SYSTEM_ROLES } from "@/server/rbac/roles";
 import { impliedClearance } from "@/server/rbac/sensitivity";
 
@@ -28,6 +29,10 @@ export async function bootstrap(log: (m: string) => void = console.log) {
     } catch (e) {
       if (attempt === 2) throw e; // two instances starting together can race on the one-time grants: retry once
     }
+  }
+  if (!env.mfa.enforced) {
+    log("[bootstrap] WARNING: MFA_ENFORCEMENT=off — the second factor is NOT required and NOT asked. Temporary: remove the variable to restore it.");
+    await logAudit({ actor: null, action: "MFA_ENFORCEMENT_DISABLED", module: "security", summary: "Server started with MFA_ENFORCEMENT=off: no second factor is required or asked (temporary setting)", outcome: "FAILURE" });
   }
   const org = (await prisma.organization.findFirst({ where: { isActive: true }, orderBy: { createdAt: "asc" } })) ?? (await prisma.organization.create({ data: { code: "NPS", name: "Police Nationale du Tchad", shortName: "PNT", description: "Organisation nationale." } }));
   if ((await prisma.region.count()) === 0) {

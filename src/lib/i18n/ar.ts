@@ -1429,4 +1429,5 @@ export const ar: Record<keyof typeof fr, string> = {
   "wsearch.logRow": "{n} نتيجة · {ms} م.ث",
   "wsearch.notQueried": "مصادر لم يُستعلم عنها (غير متصلة): {list}.",
   "wsearch.allNotices": "جميع إعلانات البحث ({n})",
+  "app.mfaOff": "المصادقة الثنائية معطّلة — إعداد مؤقت (MFA_ENFORCEMENT=off)",
 } as const;

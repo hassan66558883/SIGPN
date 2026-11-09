@@ -10,6 +10,7 @@ import { Pool } from "pg";
 
 const BASE = process.env.PMS_URL ?? "http://localhost:3300";
 const PASSWORD = process.env.DEMO_PASSWORD ?? "Demo-Pms-2026!";
+const MFA_OFF = ["off", "0", "false", "no"].includes((process.env.MFA_ENFORCEMENT ?? "on").trim().toLowerCase()); // temporary switch: these tests need the second factor enforced
 // Pin the session to UTC so raw-SQL time comparisons match the UTC-naive timestamps Prisma writes
 // (the embedded dev database otherwise runs in the machine's local timezone).
 const pool = new Pool({ connectionString: process.env.DATABASE_URL, options: "-c timezone=UTC" });
@@ -165,7 +166,7 @@ test("brute force: account locks after configured failures and login is rejected
   await resetUser("desk.cs1");
 });
 
-test("MFA-required role without enrolment: API refuses until security step completed", async () => {
+test("MFA-required role without enrolment: API refuses until security step completed", { skip: MFA_OFF ? "MFA_ENFORCEMENT=off (temporary setting)" : false }, async () => {
   // Fixture: a privileged (MFA-required) demo account that has NOT enrolled an authenticator yet.
   let pick = await pool.query(`SELECT u.username FROM "User" u JOIN "Role" r ON r.id=u."roleId" WHERE r."requiresMfa" AND NOT u."mfaEnabled" AND u.username <> 'admin' ORDER BY u.username LIMIT 1`);
   if (pick.rowCount === 0) {

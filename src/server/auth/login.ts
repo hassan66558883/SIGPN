@@ -65,7 +65,7 @@ export async function login(input: { identifier: string; password: string }, con
   }
 
   const expired = isPasswordExpired(user.passwordChangedAt);
-  if (user.mfaEnabled) {
+  if (user.mfaEnabled && env.mfa.enforced) {
     const token = challengeToken();
     await prisma.loginChallenge.create({ data: { userId: user.id, tokenHash: sha256(token), ipAddress: context.ip, userAgent: context.userAgent, expiresAt: new Date(Date.now() + MFA_CHALLENGE_MINUTES * 60_000) } });
     await prisma.loginAttempt.create({ data: { identifier, ipAddress: context.ip, success: true, reason: "password_ok_mfa_pending" } });
