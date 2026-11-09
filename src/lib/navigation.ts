@@ -55,6 +55,7 @@ export const NAVIGATION: NavSection[] = [
       { href: "/traffic/controls", labelKey: "nav.traffic.controls", permission: "traffic:view", icon: "⚑" },
       { href: "/traffic/tickets", labelKey: "nav.traffic.tickets", permission: "traffic:view", icon: "▤" },
       { href: "/traffic/fines", labelKey: "nav.traffic.fines", permission: "traffic:view", icon: "₣" },
+      { href: "/traffic/online-payments", labelKey: "nav.traffic.online", permission: "traffic:payment_record", icon: "☎" },
       { href: "/traffic/drivers", labelKey: "nav.traffic.drivers", permission: "traffic:drivers_view", icon: "☺" },
       { href: "/traffic/vehicles", labelKey: "nav.traffic.vehicles", permission: "traffic:vehicles_view", icon: "⛟" },
       { href: "/traffic/violations", labelKey: "nav.traffic.violations", permission: "traffic:violations_view", icon: "§" },

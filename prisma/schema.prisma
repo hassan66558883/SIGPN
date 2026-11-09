@@ -3572,8 +3572,9 @@ model TrafficFine {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 
-  payments TrafficPayment[]
-  receipts TrafficReceipt[]
+  payments       TrafficPayment[]
+  receipts       TrafficReceipt[]
+  onlinePayments TrafficOnlinePayment[]
 
   @@index([status])
   @@index([stationId, issuedAt])
@@ -3608,6 +3609,7 @@ model TrafficPayment {
   receipt         TrafficReceipt?
   cashTransaction TrafficCashTransaction?
   depositItems    TrafficDepositItem[]
+  onlinePayment   TrafficOnlinePayment?
 
   @@unique([method, transactionReference])
   @@index([fineId])
@@ -4152,4 +4154,55 @@ model PublicNews {
   updatedAt   DateTime   @updatedAt
 
   @@index([status, publishedAt])
+}
+
+enum TrafficOnlinePaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  EXPIRED
+}
+
+/// A payment started by the citizen on the public site (mobile money, card, transfer). It becomes a TrafficPayment only when the
+/// operator confirms it, through a signed webhook or a status query: the fine is never settled on the citizen's word.
+model TrafficOnlinePayment {
+  id                String                     @id @default(cuid())
+  number            String                     @unique
+  fineId            String
+  fine              TrafficFine                @relation(fields: [fineId], references: [id])
+  amountFcfa        Int
+  method            TrafficPaymentMethod
+  provider          String
+  providerReference String?
+  /// Hash of the secret the payer holds to follow this payment (never the secret itself).
+  accessHash        String
+  payerPhoneMasked  String?
+  status            TrafficOnlinePaymentStatus @default(PENDING)
+  failureReason     String?
+  paymentId         String?                    @unique
+  payment           TrafficPayment?            @relation(fields: [paymentId], references: [id])
+  expiresAt         DateTime
+  confirmedAt       DateTime?
+  createdAt         DateTime                   @default(now())
+  updatedAt         DateTime                   @updatedAt
+
+  events TrafficPaymentEvent[]
+
+  @@unique([provider, providerReference])
+  @@index([fineId])
+  @@index([status, createdAt])
+}
+
+/// Every notification received from an operator, kept for evidence and replay protection: (provider, eventId) is unique.
+model TrafficPaymentEvent {
+  id          String                @id @default(cuid())
+  provider    String
+  eventId     String
+  onlineId    String?
+  online      TrafficOnlinePayment? @relation(fields: [onlineId], references: [id])
+  outcome     String
+  payloadHash String
+  receivedAt  DateTime              @default(now())
+
+  @@unique([provider, eventId])
 }

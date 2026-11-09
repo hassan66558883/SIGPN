@@ -7,6 +7,7 @@ const LINKS: { href: string; key: MessageKey }[] = [
   { href: "/plaintes", key: "pub.nav.complaint" },
   { href: "/signalement", key: "pub.nav.report" },
   { href: "/suivi", key: "pub.nav.track" },
+  { href: "/payer", key: "pub.nav.pay" },
   { href: "/commissariats", key: "pub.nav.stations" },
   { href: "/avis-de-recherche", key: "pub.nav.wanted" },
   { href: "/actualites", key: "pub.nav.news" },

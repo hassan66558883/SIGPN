@@ -30,6 +30,7 @@ export const SEQUENCES = {
   TRAFFIC_FINE: { prefix: "AMD", width: 6 },
   TRAFFIC_PAYMENT: { prefix: "PAY", width: 6 },
   TRAFFIC_RECEIPT: { prefix: "REC", width: 6 },
+  ONLINE_PAYMENT: { prefix: "OPY", width: 6 },
   TRANSFER: { prefix: "MUT", width: 5 },
   LEAVE: { prefix: "CNG", width: 5 },
   DISCIPLINE: { prefix: "DIS", width: 5 },

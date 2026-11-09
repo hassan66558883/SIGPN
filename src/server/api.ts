@@ -5,7 +5,7 @@ import { logAudit } from "@/server/audit";
 import { contextFromHeaders, type RequestContext } from "@/server/request-context";
 import { resolveApiActor } from "@/server/auth/api-auth";
 import { can, pendingSecurityStep, type Actor } from "@/server/auth/dal";
-import { enforceRateLimit } from "@/server/auth/rate-limit";
+import { enforceRateLimit, type LimitKey } from "@/server/auth/rate-limit";
 import { AuthError, BusinessError, NotFoundError, RateLimitError } from "@/server/errors";
 import type { Permission } from "@/server/rbac/permissions";
 
@@ -28,12 +28,12 @@ const MUTATING = new Set(["POST", "PUT", "PATCH", "DELETE"]);
  * cookie-authenticated mutations, rate limiting, permission check (audited on denial) and
  * uniform error mapping. Handlers never see unauthenticated requests.
  */
-export function withApi<P = Record<string, string>>(opts: { permission?: Permission; public?: boolean }, handler: Handler<P>) {
+export function withApi<P = Record<string, string>>(opts: { permission?: Permission; public?: boolean; bucket?: LimitKey }, handler: Handler<P>) {
   return async (req: NextRequest, routeCtx?: { params: Promise<P> }): Promise<Response> => {
     const ctx = contextFromHeaders(req.headers);
     const params = (routeCtx ? await routeCtx.params : ({} as P)) as P;
     try {
-      const bucket = MUTATING.has(req.method) ? "apiWrite" : "api";
+      const bucket: LimitKey = opts.bucket ?? (MUTATING.has(req.method) ? "apiWrite" : "api");
       if (opts.public) {
         enforceRateLimit(bucket, ctx.ip);
         return await handler({ actor: null as unknown as Actor, ctx, params, req });

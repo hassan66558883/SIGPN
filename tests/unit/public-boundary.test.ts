@@ -37,6 +37,6 @@ test("public pages read only through the public service", () => {
 test("no internal route is reachable without a session: only the listed public paths bypass the proxy", () => {
   const src = readFileSync(path.join(root, "src/proxy.ts"), "utf8");
   const list = /PUBLIC_PATHS = \[([^\]]*)\]/.exec(src)![1].match(/"([^"]+)"/g)!.map((x) => x.replace(/"/g, ""));
-  assert.deepEqual(list.sort(), ["/actualites", "/avis-de-recherche", "/commissariats", "/contact", "/forgot-password", "/login", "/plaintes", "/reset-password", "/signalement", "/suivi", "/verify"].sort());
+  assert.deepEqual(list.sort(), ["/actualites", "/avis-de-recherche", "/commissariats", "/contact", "/forgot-password", "/login", "/payer", "/plaintes", "/reset-password", "/signalement", "/suivi", "/verify"].sort());
   for (const internal of ["/dashboard", "/wanted", "/alerts", "/biometric", "/hr", "/admin", "/public-admin", "/complaints"]) assert.ok(!list.some((p) => internal === p || internal.startsWith(p + "/")), `${internal} must stay internal`);
 });

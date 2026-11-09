@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 const SESSION_COOKIE = "pms_session";
 // /verify serves the public QR-code checks of PV and receipts (minimal, non-identifying data; rate-limited).
 // The public portal (SIGPN-T v2.0, section 2.2): home, intake forms, tracking, directory, public notices, news. Nothing internal lives under these paths.
-const PUBLIC_PATHS = ["/login", "/forgot-password", "/reset-password", "/verify", "/plaintes", "/signalement", "/suivi", "/contact", "/commissariats", "/avis-de-recherche", "/actualites"];
+const PUBLIC_PATHS = ["/login", "/forgot-password", "/reset-password", "/verify", "/plaintes", "/signalement", "/suivi", "/payer", "/contact", "/commissariats", "/avis-de-recherche", "/actualites"];
 
 function isPublic(pathname: string) {
   if (pathname === "/") return true;

@@ -25,11 +25,20 @@ export const LIMITS = {
   passwordReset: { limit: 5, windowMs: 60 * 60_000 },
   api: { limit: 240, windowMs: 60_000 },
   apiWrite: { limit: 60, windowMs: 60_000 },
+  // The payment operator notifications: signed, so cheap to refuse, and a burst of them is normal (not shared with the public forms).
+  webhook: { limit: 600, windowMs: 60_000 },
+  // The public fine-payment routes: their own per-IP and per-PV buckets (publicFine, publicPay...) do the real limiting.
+  payApi: { limit: 240, windowMs: 60_000 },
   upload: { limit: 30, windowMs: 60_000 },
   // Per client IP (behind a trusted proxy). Overridable for load tests / demonstrations: PUBLIC_SUBMIT_LIMIT, PUBLIC_TRACK_LIMIT.
   publicSubmit: { limit: Number(process.env.PUBLIC_SUBMIT_LIMIT) || 5, windowMs: 60 * 60_000 },
   publicTrack: { limit: Number(process.env.PUBLIC_TRACK_LIMIT) || 10, windowMs: 15 * 60_000 },
   publicTrackRef: { limit: 8, windowMs: 60 * 60_000 },
+  // Online payment of a fine: looking a fine up (per IP, and per PV number), starting a payment (per IP), following one (per IP).
+  publicFine: { limit: Number(process.env.PUBLIC_FINE_LIMIT) || 20, windowMs: 15 * 60_000 },
+  publicFinePv: { limit: 10, windowMs: 60 * 60_000 },
+  publicPay: { limit: Number(process.env.PUBLIC_PAY_LIMIT) || 10, windowMs: 60 * 60_000 },
+  publicPayStatus: { limit: 120, windowMs: 15 * 60_000 },
 } as const;
 export type LimitKey = keyof typeof LIMITS;
 
