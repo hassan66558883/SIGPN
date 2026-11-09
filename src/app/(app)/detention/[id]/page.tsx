@@ -53,7 +53,7 @@ export default async function DetentionDetailPage({ params, searchParams }: Page
                 { label: t("detention.cell"), value: d.cellNumber ?? "—" },
                 { label: t("detention.startedAt"), value: fmtDateTime(d.startedAt, locale) },
                 { label: t("detention.deadline"), value: `${fmtDateTime(dl, locale)}${open && !late ? ` · ${t("detention.remaining", { h: hoursLeft })}` : ""}` },
-                ...(d.extendedUntil ? [{ label: t("detention.extend"), value: `${d.extensionAuthority} — ${d.extensionReason}` }] : []),
+                ...(d.extendedUntil ? [{ label: t("detention.extension"), value: `${d.extensionAuthority} — ${d.extensionReason}` }] : []),
                 { label: t("detention.medical"), value: d.medicalNotes ?? "—" },
                 ...(d.endedAt ? [{ label: t("detention.endedOn"), value: `${fmtDateTime(d.endedAt, locale)} · ${d.endReason ? labelOf(DETENTION_END_REASON, d.endReason, locale).label : ""} — ${d.endNotes ?? ""}` }] : []),
               ]}
