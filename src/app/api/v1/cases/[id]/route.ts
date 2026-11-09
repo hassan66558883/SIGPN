@@ -8,8 +8,8 @@ import { caseAssignSchema, noteSchema, partySchema, taskSchema } from "@/server/
 type P = { id: string };
 
 /** GET /api/v1/cases/{id} — case with team, parties, counts, timeline and tasks (404 outside scope / sensitive rule). */
-export const GET = withApi<P>({ permission: "cases:view" }, async ({ actor, params }) => {
-  const k = await svc.getCase(actor, params.id);
+export const GET = withApi<P>({ permission: "cases:view" }, async ({ actor, ctx, params }) => {
+  const k = await svc.viewCase(actor, params.id, ctx);
   const [timeline, tasks] = await Promise.all([caseTimeline(k.id, 100), caseTasks(k.id)]);
   return apiOk({ ...k, timeline, tasks });
 });

@@ -114,3 +114,23 @@ Please state which lots you approve, and in which order. Lots 1 and 6 can start 
 2. The sub-directions and services of each direction, and the commissariats, wait for the ministerial arrêté.
 3. Mapping the functional heads (HR, forensic, Interpol, IT) to their roles is not done; it needs the Direction's confirmation.
 4. Not browsed in the interface; Arabic names of the central units are not stored (French names only).
+
+## 9. Lot 6 — status (implemented 2026-11-09)
+
+**Done.** The audit log is tamper-evident and the reading of sensitive records is logged.
+
+| Item | Result |
+|---|---|
+| Hash chain | Every audit row carries its position (`chainSeq`), the hash of the previous row (`prevHash`) and its own SHA-256 hash over the previous hash and its content. The database sets them on every insert, whatever the code path (application, seed, raw SQL). An advisory lock serialises writers so two rows can never take the same position. Additive migration; the append-only triggers are unchanged. |
+| Existing history | The 24,034 rows that already existed were chained in time order by the migration (the append-only trigger lifted for that block only, then enabled again). |
+| Verification | `pms_audit_verify()` walks the whole chain and returns the first break with its reason (row altered, row removed, link rewritten, row without position) and the head (position and hash). Exposed as `GET /api/v1/audit/verify` and as a button on the security page, for holders of `audit:view` (the security administrator and the auditor; not the technical administrator). Every verification is itself audited, and a broken chain is logged as a failure. |
+| Reads logged | Consulting a **sensitive case** (`CASE_VIEWED`) and **any warrant** (`WARRANT_VIEWED`) is audited with the reader's identity, on the page and through the API. Wanted notices, HR dossiers, disciplinary files, pay and public submissions were already logged. An ordinary case read is not. |
+| Tests | `tsc` clean, 138 unit, 209 integration (6 new on the real server and database), 35 security. The new tests alter, remove and re-link a row inside transactions that are always rolled back, and check that each is located; 60 concurrent writers keep the chain intact. |
+
+**Limits, stated plainly.**
+1. The history before the migration is chained from that day on: it proves nothing about changes made before.
+2. Removing the **newest** rows cannot be seen from inside the database. The security administrator must record the head (position and hash) outside the database from time to time; the page prints it for that purpose.
+3. Someone with full control of the database server can disable the triggers and rewrite the whole chain consistently. The chain defeats an application-level or partial tampering and makes any other change detectable only against an external record of the head.
+4. Documents are not built yet, so reading confidential documents is not logged; it must be added with that module.
+5. The verification walks the whole log (about two seconds for 25,000 rows); it runs on request only. The audit writes are serialised by the lock, a small cost per write.
+6. Not browsed in the interface (the security administrator needs MFA enrolment).

@@ -2910,6 +2910,10 @@ model AuditLog {
   ipAddress   String?
   userAgent   String?
   sessionId   String?
+  /// Tamper evidence (lot 6): position, previous hash and own hash, set by the database on every insert.
+  chainSeq    Int?         @unique
+  prevHash    String?
+  hash        String?
 
   @@index([at])
   @@index([actorId, at])

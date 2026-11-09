@@ -42,6 +42,13 @@ export async function getWarrant(actor: Actor, id: string) {
   return w;
 }
 
+/** Consultation of a warrant: always audited (who looked at which warrant, and when). */
+export async function viewWarrant(actor: Actor, id: string, ctx: RequestContext) {
+  const w = await getWarrant(actor, id);
+  await logAudit({ actor, action: "WARRANT_VIEWED", module: "warrants", entityType: "Warrant", entityId: w.id, entityLabel: w.number, summary: `Warrant ${w.number} consulted`, context: ctx });
+  return w;
+}
+
 export async function listWarrants(actor: Actor, filter: { q?: string; status?: string; type?: string; page?: number; pageSize?: number } = {}) {
   const page = filter.page ?? 1;
   const pageSize = Math.min(filter.pageSize ?? 25, 100);

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePermission } from "@/server/auth/dal";
-import { getWarrant } from "@/server/warrants/service";
+import { viewWarrant } from "@/server/warrants/service";
+import { getRequestContext } from "@/server/request-context";
 import { NotFoundError } from "@/server/errors";
 import { Alert, Badge, Card, DL, PageHeader } from "@/components/ui";
 import { WARRANT_STATUS, WARRANT_TYPE, labelOf } from "@/lib/labels";
@@ -20,7 +21,7 @@ export default async function WarrantDetailPage({ params, searchParams }: PagePr
   const [{ id }, sp, t, locale] = await Promise.all([params, searchParams, getT(), getLocale()]);
   let w;
   try {
-    w = await getWarrant(actor, id);
+    w = await viewWarrant(actor, id, await getRequestContext());
   } catch (e) {
     if (e instanceof NotFoundError) notFound();
     throw e;

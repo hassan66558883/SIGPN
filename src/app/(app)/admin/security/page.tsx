@@ -7,18 +7,43 @@ import { fmtDateTime, fmtRelative } from "@/lib/format";
 import { env } from "@/server/env";
 import { LIMITS } from "@/server/auth/rate-limit";
 import { getLocale, getT } from "@/server/i18n";
+import { getRequestContext } from "@/server/request-context";
+import { verifyAuditChain } from "@/server/audit-chain";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
   return { title: t("sec.title") };
 }
 
-export default async function SecurityPage() {
-  await requirePermission("security:view");
-  const [o, sessions, t, locale] = await Promise.all([securityOverview(), listActiveSessions(), getT(), getLocale()]);
+export default async function SecurityPage({ searchParams }: PageProps<"/admin/security">) {
+  const actor = await requirePermission("security:view");
+  const [o, sessions, t, locale, sp] = await Promise.all([securityOverview(), listActiveSessions(), getT(), getLocale(), searchParams]);
+  const canVerify = actor.permissions.has("audit:view");
+  // The walk over the whole chain is run on request only, never on every page view.
+  const chain = canVerify && sp.verify === "1" ? await verifyAuditChain(actor, await getRequestContext()) : null;
   return (
     <div>
       <PageHeader eyebrow={t("admin.eyebrow")} title={t("sec.title")} subtitle={t("sec.subtitle")} />
+      {canVerify ? (
+        <Card className="mb-4" title={t("sec.chain.title")}>
+          <p className="text-sm text-slate">{t("sec.chain.intro")}</p>
+          <form method="get" className="mt-3">
+            <input type="hidden" name="verify" value="1" />
+            <button type="submit" className="rounded-md bg-navy px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90">
+              {t("sec.chain.run")}
+            </button>
+          </form>
+          {chain ? (
+            <div className="mt-3 space-y-1 text-sm" role="status">
+              {chain.intact ? <Badge tone="success">{t("sec.chain.intact", { n: chain.checked })}</Badge> : <Badge tone="danger">{t("sec.chain.broken", { n: chain.brokenSeq ?? 0, reason: chain.reason ?? "" })}</Badge>}
+              <p className="text-xs text-slate">
+                {t("sec.chain.head", { n: chain.headSeq })} <span className="break-all font-mono">{chain.headHash ?? "—"}</span>
+              </p>
+              <p className="text-xs text-slate">{t("sec.chain.record")}</p>
+            </div>
+          ) : null}
+        </Card>
+      ) : null}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label={t("sec.activeSessions")} value={o.activeSessions} tone="info" />
         <StatCard label={t("sec.failed24h")} value={o.failed24h} tone={o.failed24h > 20 ? "danger" : "warning"} hint={t("sec.successful", { n: o.success24h })} />

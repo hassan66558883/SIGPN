@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requirePermission } from "@/server/auth/dal";
-import { getCase } from "@/server/cases/service";
+import { viewCase } from "@/server/cases/service";
+import { getRequestContext } from "@/server/request-context";
 import { caseAuditTrail, caseNotes, caseTasks, caseTimeline } from "@/server/cases/queries";
 import { assignableInvestigators } from "@/server/complaints/queries";
 import { caseBiometricActivity } from "@/server/biometric/queries";
@@ -27,7 +28,7 @@ export default async function CasePage({ params, searchParams }: PageProps<"/cas
   const [{ id }, sp, t, locale] = await Promise.all([params, searchParams, getT(), getLocale()]);
   let k;
   try {
-    k = await getCase(actor, id);
+    k = await viewCase(actor, id, await getRequestContext());
   } catch (e) {
     if (e instanceof NotFoundError) notFound();
     throw e;

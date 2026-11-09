@@ -1328,4 +1328,11 @@ export const fr = {
   "detention.endedOn": "Terminée le",
   "detention.extension": "Prolongation accordée",
   "warrants.details": "Détails du mandat",
+  "sec.chain.title": "Intégrité du journal d'audit",
+  "sec.chain.intro": "Chaque ligne du journal est reliée à la précédente par une empreinte : modifier, retirer ou insérer une ligne casse la chaîne. La vérification parcourt tout le journal.",
+  "sec.chain.run": "Vérifier maintenant",
+  "sec.chain.intact": "Chaîne intacte : {n} lignes vérifiées.",
+  "sec.chain.broken": "CHAÎNE ROMPUE à la position {n} : {reason}",
+  "sec.chain.head": "Dernière ligne : position {n}, empreinte",
+  "sec.chain.record": "Notez la position et l'empreinte hors de la base : seules elles permettent de détecter la suppression des lignes les plus récentes.",
 } as const;

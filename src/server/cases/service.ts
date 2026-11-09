@@ -60,6 +60,13 @@ export async function getCase(actor: Actor, id: string) {
   return k;
 }
 
+/** Consultation of a case: audited when the case is flagged sensitive (who looked at which sensitive case, and when). */
+export async function viewCase(actor: Actor, id: string, ctx: RequestContext) {
+  const k = await getCase(actor, id);
+  if (k.isSensitive) await logAudit({ actor, action: "CASE_VIEWED", module: "cases", entityType: "Case", entityId: k.id, entityLabel: k.number, summary: `Sensitive case ${k.number} consulted`, context: ctx });
+  return k;
+}
+
 function isTeam(actor: Actor, k: { lead: { id: string } | null; supervisor: { id: string } | null; createdBy: { id: string }; assignments: { userId: string }[] }) {
   return k.lead?.id === actor.id || k.supervisor?.id === actor.id || k.createdBy.id === actor.id || k.assignments.some((a) => a.userId === actor.id);
 }

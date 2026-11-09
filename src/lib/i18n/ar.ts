@@ -1327,4 +1327,11 @@ export const ar: Record<keyof typeof fr, string> = {
   "detention.endedOn": "انتهى في",
   "detention.extension": "التمديد الممنوح",
   "warrants.details": "تفاصيل المذكرة",
+  "sec.chain.title": "سلامة سجل التدقيق",
+  "sec.chain.intro": "كل سطر في السجل مرتبط بالسطر السابق ببصمة: أي تعديل أو حذف أو إدراج يكسر السلسلة. يمرّ التحقق على كامل السجل.",
+  "sec.chain.run": "تحقق الآن",
+  "sec.chain.intact": "السلسلة سليمة: تم التحقق من {n} سطرًا.",
+  "sec.chain.broken": "السلسلة مكسورة عند الموضع {n}: {reason}",
+  "sec.chain.head": "آخر سطر: الموضع {n}، البصمة",
+  "sec.chain.record": "دوّن الموضع والبصمة خارج قاعدة البيانات: هما الوحيدان القادران على كشف حذف أحدث الأسطر.",
 } as const;
