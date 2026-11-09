@@ -7,6 +7,12 @@ import { Badge, ButtonLink, Card, EmptyState, PageHeader, Pagination, Select, Ta
 import { DANGER_LEVEL, WANTED_STATUS, labelOf, optionsOf } from "@/lib/labels";
 import { fmtDate } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
+import { getRequestContext } from "@/server/request-context";
+import { searchWanted } from "@/server/wanted/search";
+import { SEARCH_SOURCES, parseSearchParams } from "@/server/wanted/search-criteria";
+import { GENDER } from "@/lib/labels";
+import { SearchShell, type SourceInfo } from "./search-shell";
+import { SearchResults } from "./search-results";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -20,6 +26,12 @@ export default async function WantedPage({ searchParams }: PageProps<"/wanted">)
   const [p, t, locale] = await Promise.all([searchParams, getT(), getLocale()]);
   const filter = { q: str(p.q), status: str(p.status) as WantedStatus | undefined, dangerLevel: str(p.dangerLevel) as DangerLevel | undefined, page: Number(p.page ?? 1) || 1 };
   const { items, total, page, pageSize } = await listWantedPersons(actor, filter);
+  // The search of the mock-up: one request across the sources that exist; the list below stays as it was.
+  const params = parseSearchParams(p);
+  const outcome = await searchWanted(actor, params, await getRequestContext());
+  const SRC = { NATIONAL_DB: "wsearch.src.db", WANTED: "wsearch.src.wanted", BORDERS: "wsearch.src.borders", VIDEO: "wsearch.src.video", INTEROP: "wsearch.src.interop" } as const;
+  const sources: SourceInfo[] = SEARCH_SOURCES.map((s) => ({ key: s.key, label: (t as (k: string) => string)(SRC[s.key]), available: s.available, allowed: s.key !== "NATIONAL_DB" || actor.permissions.has("persons:view") }));
+  const genders = ["MALE", "FEMALE", "OTHER"].map((g) => ({ value: g, label: labelOf(GENDER, g, locale).label }));
   const qs = (n: number) => {
     const s = new URLSearchParams();
     for (const [k, v] of Object.entries(p)) if (typeof v === "string" && v && k !== "page") s.set(k, v);
@@ -28,7 +40,13 @@ export default async function WantedPage({ searchParams }: PageProps<"/wanted">)
   };
   return (
     <div>
-      <PageHeader eyebrow={t("wanted.eyebrow")} title={t("wanted.title")} subtitle={t("wanted.subtitle", { n: total })} actions={actor.permissions.has("wanted:create") ? <ButtonLink href="/wanted/new">{t("wanted.new")}</ButtonLink> : null} />
+      <PageHeader eyebrow={t("wanted.eyebrow")} title={t("wanted.title")} subtitle={t("wsearch.subtitle")} actions={actor.permissions.has("wanted:create") ? <ButtonLink href="/wanted/new">{t("wanted.new")}</ButtonLink> : null} />
+      <SearchShell init={{ mode: params.mode, q: params.q, sources: params.sources, firstName: params.firstName, lastName: params.lastName, dateOfBirth: params.dateOfBirth, gender: params.gender, idNumber: params.idNumber, alias: params.alias, offense: params.offense }} sources={sources} genders={genders}>
+        <SearchResults outcome={outcome} params={params} locale={locale} t={t} canPrint={actor.permissions.has("wanted:publish")} />
+      </SearchShell>
+      <h2 id="notices" className="mb-3 mt-8 text-base font-bold text-ink">
+        {t("wsearch.allNotices", { n: total })}
+      </h2>
       <Card className="mb-4">
         <form method="get" className="grid gap-3 sm:grid-cols-4">
           <input name="q" defaultValue={filter.q ?? ""} placeholder={t("wanted.searchPlaceholder")} className="input sm:col-span-2" aria-label={t("common.search")} />
