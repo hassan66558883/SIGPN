@@ -4,6 +4,10 @@
  * Unknown strings pass through unchanged (English) if no translation exists for the locale.
  */
 import type { Locale } from "@/lib/i18n";
+import { roleName } from "@/lib/i18n/catalog";
+
+const CLEARANCE_FR: Record<string, string> = { STANDARD: "Standard", SENSITIVE: "Sensible", CONFIDENTIAL: "Confidentiel" };
+const CLEARANCE_AR: Record<string, string> = { STANDARD: "عادي", SENSITIVE: "حساس", CONFIDENTIAL: "سري" };
 
 const EXACT_FR: Record<string, string> = {
   // action-utils
@@ -68,6 +72,15 @@ const EXACT_FR: Record<string, string> = {
   "Could not create the user.": "Impossible de créer l'utilisateur.",
   "Could not update the user.": "Impossible de mettre à jour l'utilisateur.",
   "User updated.": "Utilisateur mis à jour.",
+  "User updated. The change of role or clearance awaits approval (see Approvals).": "Utilisateur mis à jour. Le changement de rôle ou d'habilitation attend une approbation (voir Approbations).",
+  "Permissions saved, except the sensitive ones added: they await the approval of two national approvers (see Approvals).": "Permissions enregistrées, sauf les permissions sensibles ajoutées : elles attendent l'approbation de deux approbateurs nationaux (voir Approbations).",
+  "Approval recorded. A second approval is still needed.": "Approbation enregistrée. Une seconde approbation est encore nécessaire.",
+  "Approval recorded.": "Approbation enregistrée.",
+  "Request rejected.": "Demande refusée.",
+  "Request cancelled.": "Demande annulée.",
+  "Could not record the decision.": "Impossible d'enregistrer la décision.",
+  "Could not cancel the request.": "Impossible d'annuler la demande.",
+  "An API key must expire: choose a validity between 1 and 90 days.": "Une clé d'API doit expirer : choisissez une durée de validité de 1 à 90 jours.",
   "Invalid status.": "Statut invalide.",
   "Could not change the status.": "Impossible de changer le statut.",
   "One-time reset link issued. Hand it to the user through a secure channel; it is shown only once.": "Lien de réinitialisation à usage unique émis. Remettez-le à l'utilisateur par un canal sécurisé ; il n'est affiché qu'une fois.",
@@ -270,9 +283,6 @@ const EXACT_FR: Record<string, string> = {
   "Could not save the roll-call.": "Impossible d'enregistrer l'appel.",
   "Could not file the request.": "Impossible de déposer la demande.",
   "Decision recorded.": "Décision enregistrée.",
-  "Could not record the decision.": "Impossible d'enregistrer la décision.",
-  "Request cancelled.": "Demande annulée.",
-  "Could not cancel the request.": "Impossible d'annuler la demande.",
   "Evaluation recorded.": "Évaluation enregistrée.",
   "Could not record the evaluation.": "Impossible d'enregistrer l'évaluation.",
   "Certificate issued.": "Attestation délivrée.",
@@ -588,6 +598,15 @@ const EXACT_AR: Record<string, string> = {
   "Could not create the user.": "تعذّر إنشاء المستخدم.",
   "Could not update the user.": "تعذّر تحديث المستخدم.",
   "User updated.": "تم تحديث المستخدم.",
+  "User updated. The change of role or clearance awaits approval (see Approvals).": "تم تحديث المستخدم. تغيير الدور أو التصريح ينتظر الموافقة (انظر الموافقات).",
+  "Permissions saved, except the sensitive ones added: they await the approval of two national approvers (see Approvals).": "تم حفظ الصلاحيات باستثناء الحساسة المضافة: فهي تنتظر موافقة موافقَين وطنيَّين (انظر الموافقات).",
+  "Approval recorded. A second approval is still needed.": "تم تسجيل الموافقة. لا تزال هناك حاجة إلى موافقة ثانية.",
+  "Approval recorded.": "تم تسجيل الموافقة.",
+  "Request rejected.": "تم رفض الطلب.",
+  "Request cancelled.": "تم إلغاء الطلب.",
+  "Could not record the decision.": "تعذّر تسجيل القرار.",
+  "Could not cancel the request.": "تعذّر إلغاء الطلب.",
+  "An API key must expire: choose a validity between 1 and 90 days.": "يجب أن ينتهي مفتاح API: اختر مدة صلاحية من 1 إلى 90 يومًا.",
   "Invalid status.": "حالة غير صالحة.",
   "Could not change the status.": "تعذّر تغيير الحالة.",
   "One-time reset link issued. Hand it to the user through a secure channel; it is shown only once.": "تم إصدار رابط إعادة تعيين لمرة واحدة. سلّمه للمستخدم عبر قناة آمنة؛ يُعرض مرة واحدة فقط.",
@@ -790,9 +809,6 @@ const EXACT_AR: Record<string, string> = {
   "Could not save the roll-call.": "تعذّر تسجيل المناداة.",
   "Could not file the request.": "تعذّر تقديم الطلب.",
   "Decision recorded.": "تم تسجيل القرار.",
-  "Could not record the decision.": "تعذّر تسجيل القرار.",
-  "Request cancelled.": "تم إلغاء الطلب.",
-  "Could not cancel the request.": "تعذّر إلغاء الطلب.",
   "Evaluation recorded.": "تم تسجيل التقييم.",
   "Could not record the evaluation.": "تعذّر تسجيل التقييم.",
   "Certificate issued.": "تم إصدار الشهادة.",
@@ -1075,6 +1091,11 @@ function translateFragment(f: string, fragments: [RegExp, (m: RegExpMatchArray) 
 }
 
 const PATTERNS_FR: [RegExp, (m: RegExpMatchArray) => string][] = [
+  [/^Create account (\S+) \((\w+)\)$/, (m) => `Créer le compte ${m[1]} (${roleName(m[2], m[2], "fr")})`],
+  [/^Change the role of (\S+): (\w+) → (\w+)$/, (m) => `Changer le rôle de ${m[1]} : ${roleName(m[2], m[2], "fr")} → ${roleName(m[3], m[3], "fr")}`],
+  [/^Raise the security clearance of (\S+): (\w+) → (\w+)$/, (m) => `Relever l'habilitation de ${m[1]} : ${CLEARANCE_FR[m[2]] ?? m[2]} → ${CLEARANCE_FR[m[3]] ?? m[3]}`],
+  [/^Restore the (\w+) clearance of (\S+) after the reassignment(?: \((.+)\))?$/, (m) => `Rétablir l'habilitation ${(CLEARANCE_FR[m[1]] ?? m[1]).toLowerCase()} de ${m[2]} après la mutation${m[3] ? ` (${m[3]})` : ""}`],
+  [/^Add sensitive permission\(s\) to the role (\S+): (.+)$/, (m) => `Ajouter des permissions sensibles au rôle ${m[1]} : ${m[2]}`],
   [/^A search-warrant notice needs a linked warrant before (approval|reactivation)\.$/, (m) => `Un avis de mandat de recherche exige un mandat lié avant ${m[1] === "approval" ? "l'approbation" : "la réactivation"}.`],
   [/^The linked warrant must be ACTIVE before (approval|reactivation) \(currently (\w+)\)\.$/, (m) => `Le mandat lié doit être ACTIF avant ${m[1] === "approval" ? "l'approbation" : "la réactivation"} (actuellement ${m[2]}).`],
   [/^The linked warrant has expired; it cannot support (approval|reactivation)\.$/, (m) => `Le mandat lié est expiré ; il ne peut pas fonder ${m[1] === "approval" ? "l'approbation" : "la réactivation"}.`],
@@ -1141,6 +1162,11 @@ const PATTERNS_FR: [RegExp, (m: RegExpMatchArray) => string][] = [
 ];
 
 const PATTERNS_AR: [RegExp, (m: RegExpMatchArray) => string][] = [
+  [/^Create account (\S+) \((\w+)\)$/, (m) => `إنشاء الحساب ${m[1]} (${roleName(m[2], m[2], "ar")})`],
+  [/^Change the role of (\S+): (\w+) → (\w+)$/, (m) => `تغيير دور ${m[1]}: ${roleName(m[2], m[2], "ar")} ← ${roleName(m[3], m[3], "ar")}`],
+  [/^Raise the security clearance of (\S+): (\w+) → (\w+)$/, (m) => `رفع التصريح الأمني لـ ${m[1]}: ${CLEARANCE_AR[m[2]] ?? m[2]} ← ${CLEARANCE_AR[m[3]] ?? m[3]}`],
+  [/^Restore the (\w+) clearance of (\S+) after the reassignment(?: \((.+)\))?$/, (m) => `إعادة التصريح الأمني (${CLEARANCE_AR[m[1]] ?? m[1]}) لـ ${m[2]} بعد النقل${m[3] ? ` (${m[3]})` : ""}`],
+  [/^Add sensitive permission\(s\) to the role (\S+): (.+)$/, (m) => `إضافة صلاحيات حساسة إلى الدور ${m[1]}: ${m[2]}`],
   [/^A search-warrant notice needs a linked warrant before (approval|reactivation)\.$/, (m) => `يتطلب إعلان مذكرة البحث مذكرة مرتبطة قبل ${m[1] === "approval" ? "الموافقة" : "إعادة التفعيل"}.`],
   [/^The linked warrant must be ACTIVE before (approval|reactivation) \(currently (\w+)\)\.$/, (m) => `يجب أن تكون المذكرة المرتبطة نشطة قبل ${m[1] === "approval" ? "الموافقة" : "إعادة التفعيل"} (الحالة الحالية ${m[2]}).`],
   [/^The linked warrant has expired; it cannot support (approval|reactivation)\.$/, (m) => `المذكرة المرتبطة منتهية الصلاحية؛ لا يمكن أن تؤسس ${m[1] === "approval" ? "للموافقة" : "لإعادة التفعيل"}.`],

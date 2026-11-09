@@ -11,6 +11,7 @@ import { optionalText } from "@/server/action-utils";
 import type { RequestContext } from "@/server/request-context";
 import { notify } from "@/server/notifications";
 import { LOCKED_ROLE_CODES } from "@/server/rbac/roles";
+import { permissionsMissingToGrant } from "@/server/rbac/grants";
 import { CLEARANCE_LEVELS } from "@/server/rbac/sensitivity";
 
 export const userCreateSchema = z.object({
@@ -72,10 +73,7 @@ const publicUser = {
 export async function assertCanGrantRole(actor: Actor, roleId: string) {
   const role = await prisma.role.findUnique({ where: { id: roleId }, select: { id: true, code: true, isActive: true, scopeLevel: true, permissions: { select: { permission: { select: { code: true } } } } } });
   if (!role || !role.isActive) throw new BusinessError("Selected role is invalid or inactive.");
-  // Separation of duties (security audit, lot 1): the security administrator provisions accounts without holding police permissions
-  // (granting is not holding). The two administrator roles stay under the "cannot grant what you do not hold" rule. Lot 4 adds approval.
-  const grantsWithoutHolding = actor.permissions.has("security:manage") && !LOCKED_ROLE_CODES.includes(role.code);
-  const excess = grantsWithoutHolding ? [] : role.permissions.map((p) => p.permission.code).filter((c) => !actor.permissions.has(c));
+  const excess = permissionsMissingToGrant(actor, { code: role.code, permissionCodes: role.permissions.map((p) => p.permission.code) });
   if (excess.length > 0) throw new BusinessError(`You cannot grant the role "${role.code}": it holds permissions you do not have (${excess.slice(0, 3).join(", ")}${excess.length > 3 ? "…" : ""}).`, "STATE");
   if (actor.scopeLevel !== "NATIONAL" && role.scopeLevel === "NATIONAL") throw new BusinessError("Only national-scope administrators can grant national roles.", "STATE");
   return role;

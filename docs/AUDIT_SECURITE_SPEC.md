@@ -259,3 +259,16 @@ Please state which lots you approve, and in which order. Lots 1 and 6 can start 
 4. The 15-minute timeout, the 7-day expiry of an approval and the 48-hour custody limit.
 5. Not yet built: the real `OWN` scope, a retry of an approved change stopped between its vote and its execution, a list screen of work to reassign, reading of confidential documents (the documents module itself).
 6. None of the new screens has been browsed in the interface, and no external security audit has been carried out.
+
+## 15. Walkthrough of the screens (2026-11-09)
+
+The new screens were driven through the real interface on the demonstration database (rebuilt from nothing with every migration, second factor enabled on the accounts used): `. scripts/demo/env.sh && npx tsx scripts/demo/audit-lots.ts` (31 checks, 13 screenshots `docs/demo/screens/aud-*.png`). It covers the security centre (audit-chain verification, API-key oversight, session policy), the locked administrator roles, an ordinary account requested then approved by the commissaire, a commander account needing two approvers from two levels, the clearance field and the request created by raising it, the technical administrator's menu and the refusal of the warrants page, the Arabic view (right to left) and the phone view.
+
+**Three defects were found by looking at the screens, which the automated tests had missed, and corrected.**
+1. **The user form did not offer operational roles to the security administrator.** The server guard allowed it since lot 1, but the role list of the form still used the old "you can only grant what you hold" filter, so the form offered almost nothing. Both now use one rule (`permissionsMissingToGrant`), with a unit test and an integration test on the form lists.
+2. **The approval requests were described in English** in the French and Arabic interfaces ("Create account …", "Raise the security clearance …"), as were five messages of the workflow. They are now translated (summary patterns and messages), with a unit test.
+3. **The security centre still announced the old session policy** (60 minutes), without the 15-minute and single-session rule of sensitive accounts. The line now states both.
+
+**Result.** After the corrections: `tsc` clean, 158 unit, 235 integration, 35 security tests, and the 31 checks of the walkthrough all pass.
+
+**Still not checked.** Real network conditions, an external security review, and the screens of roles and approvals with a screen reader or on a real phone. The demonstration database only was used: the development data was not touched.

@@ -404,7 +404,7 @@ export const fr = {
   "sec.allEnrolled": "tous les utilisateurs privilégiés sont enrôlés",
   "sec.policy": "Politique en vigueur",
   "sec.policy1": "Verrouillage après {n} tentatives échouées pendant {m} min",
-  "sec.policy2": "Expiration de session : inactivité {n} min · absolue {m} h",
+  "sec.policy2": "Expiration de session : inactivité {n} min ({s} min et une seule session pour un compte sensible) · absolue {m} h",
   "sec.policy3": "Mot de passe ≥ {n} caractères, 3 catégories sur 4, historique {h}, âge maximal {d} j",
   "sec.policy4": "2FA : TOTP (RFC 6238) requise pour les rôles marqués « 2FA requise »",
   "sec.policy5": "Limites de débit : connexion {a}/identifiant & {b}/IP par 15 min · 2FA 10 par 10 min · API 240/min",

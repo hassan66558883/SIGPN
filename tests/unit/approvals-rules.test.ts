@@ -100,3 +100,19 @@ test("no code path writes an account, a role change or a role's permissions arou
   }
   assert.deepEqual(offenders, []);
 });
+
+test("the summary of a request is shown in the language of the reader (French and Arabic), and the messages of the workflow are translated", async () => {
+  const { translateMessage } = await import("../../src/lib/i18n/errors");
+  const fr = (m: string) => translateMessage(m, "fr");
+  const ar = (m: string) => translateMessage(m, "ar");
+  assert.equal(fr("Create account it.x (DESK_OFFICER)"), "Créer le compte it.x (Agent d'accueil / de permanence)");
+  assert.match(fr("Change the role of it.x: INVESTIGATOR → DESK_OFFICER"), /^Changer le rôle de it\.x : Enquêteur → Agent d'accueil/);
+  assert.equal(fr("Raise the security clearance of it.x: STANDARD → SENSITIVE"), "Relever l'habilitation de it.x : Standard → Sensible");
+  assert.equal(fr("Restore the SENSITIVE clearance of it.x after the reassignment (MUT-2026-00001)"), "Rétablir l'habilitation sensible de it.x après la mutation (MUT-2026-00001)");
+  assert.equal(fr("Add sensitive permission(s) to the role IT_ROLE: system:backup"), "Ajouter des permissions sensibles au rôle IT_ROLE : system:backup");
+  assert.match(ar("Create account it.x (DESK_OFFICER)"), /^إنشاء الحساب it\.x/);
+  assert.match(ar("Raise the security clearance of it.x: STANDARD → SENSITIVE"), /رفع التصريح الأمني لـ it\.x: عادي ← حساس/);
+  assert.equal(fr("Approval recorded. A second approval is still needed."), "Approbation enregistrée. Une seconde approbation est encore nécessaire.");
+  assert.match(ar("User updated. The change of role or clearance awaits approval (see Approvals)."), /تغيير الدور أو التصريح ينتظر الموافقة/);
+  assert.equal(fr("Something never translated"), "Something never translated", "an unknown text is left as it is");
+});

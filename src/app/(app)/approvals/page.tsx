@@ -6,6 +6,7 @@ import { Alert, Badge, Card, EmptyState, PageHeader } from "@/components/ui";
 import { APPROVAL_KIND, APPROVAL_STATUS, labelOf } from "@/lib/labels";
 import { fmtDateTime } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
+import { translateMessage } from "@/lib/i18n/errors";
 import { ApprovalDecisionForm, CancelApprovalForm } from "./approval-forms";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -52,7 +53,7 @@ export default async function ApprovalsPage({ searchParams }: PageProps<"/approv
                   <Badge tone={st.tone}>{st.label}</Badge>
                   <Badge>{t("approvals.progress", { n: a.approvalsSoFar, m: a.requiredApprovals })}</Badge>
                 </div>
-                <p className="mt-2 text-sm font-semibold text-ink">{a.summary}</p>
+                <p className="mt-2 text-sm font-semibold text-ink">{translateMessage(a.summary, locale)}</p>
                 <p className="text-xs text-slate">
                   {t("approvals.requestedBy", { who: name(a.requestedBy) })} · {fmtDateTime(a.createdAt, locale)} · {t("approvals.expires", { when: fmtDateTime(a.expiresAt, locale) })}
                 </p>

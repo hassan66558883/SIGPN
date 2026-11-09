@@ -112,3 +112,22 @@ test("both administrator roles are locked against edition (service layer, same c
   const after = await pool.query(`SELECT count(*)::int n FROM "RolePermission" rp JOIN "Role" r ON r.id=rp."roleId" JOIN "Permission" p ON p.id=rp."permissionId" WHERE r.code IN ('SUPER_ADMIN','SECURITY_ADMIN') AND p.code='warrants:approve'`);
   assert.equal(after.rows[0].n, 0);
 });
+
+test("the role list of the user forms offers the security administrator the roles the server lets them grant", async () => {
+  const Module = (await import("node:module")).default as unknown as { _resolveFilename: (request: string, ...rest: unknown[]) => string };
+  const orig = Module._resolveFilename;
+  Module._resolveFilename = function (request: string, ...rest: unknown[]) {
+    return request === "server-only" ? require.resolve("../../scripts/empty.cjs") : orig.call(this, request, ...rest);
+  };
+  const { referenceLists } = await import("../../src/server/admin/queries");
+  const { loadUserRow, buildActor } = await import("../../src/server/auth/dal");
+  const { prisma } = await import("../../src/server/db");
+  const actorOf = async (username: string) => (await buildActor((await loadUserRow((await pool.query(`SELECT id FROM "User" WHERE username=$1`, [username])).rows[0].id))!, { id: null, mfaVerified: true }, "api_key"))!;
+  const offered = async (username: string) => (await referenceLists({ grantableBy: await actorOf(username) })).roles.map((r) => r.code);
+  const sec = await offered("security.admin");
+  for (const r of ["DESK_OFFICER", "INVESTIGATOR", "STATION_COMMANDER", "REGIONAL_COMMANDER", "NATIONAL_COMMANDER", "SECURITY_ADMIN"]) assert.ok(sec.includes(r), `${r} is offered to the security administrator`);
+  assert.ok(!sec.includes("SUPER_ADMIN"), "the technical administrator role is not");
+  const chief = await offered("chief.cs1");
+  assert.ok(chief.includes("DESK_OFFICER") && !chief.includes("NATIONAL_COMMANDER") && !chief.includes("SUPER_ADMIN"), "a commissaire keeps the plain rule");
+  await prisma.$disconnect();
+});

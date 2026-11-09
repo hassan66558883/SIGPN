@@ -58,7 +58,7 @@ export default async function SecurityPage({ searchParams }: PageProps<"/admin/s
         <Card title={t("sec.policy")}>
           <ul className="space-y-1 text-sm text-ink">
             <li>{t("sec.policy1", { n: env.login.maxFailures, m: env.login.lockMinutes })}</li>
-            <li>{t("sec.policy2", { n: env.session.idleMinutes, m: env.session.absoluteHours })}</li>
+            <li>{t("sec.policy2", { n: env.session.idleMinutes, m: env.session.absoluteHours, s: env.session.sensitiveIdleMinutes })}</li>
             <li>{t("sec.policy3", { n: env.password.minLength, h: env.password.historySize, d: env.password.maxAgeDays })}</li>
             <li>{t("sec.policy4")}</li>
             <li>{t("sec.policy5", { a: LIMITS.loginIdentifier.limit, b: LIMITS.loginIp.limit })}</li>

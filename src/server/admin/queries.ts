@@ -3,6 +3,7 @@ import type { AuditOutcome } from "@/generated/prisma/client";
 import { prisma } from "@/server/db";
 import type { Actor } from "@/server/auth/dal";
 import { SENSITIVE_PERMISSIONS } from "@/server/rbac/sensitivity";
+import { permissionsMissingToGrant } from "@/server/rbac/grants";
 
 export async function listAuditLogs(filter: { q?: string; module?: string; action?: string; actorId?: string; entityType?: string; entityId?: string; outcome?: AuditOutcome; from?: Date; to?: Date; page?: number; pageSize?: number }) {
   const page = filter.page ?? 1;
@@ -60,7 +61,7 @@ export async function unreadCount(actor: Actor) {
 
 /**
  * Reference lists for the user forms. With `grantableBy`, the role list only holds roles the actor may really assign
- * (same rule as the server guard: every permission of the role must be held by the actor), plus `keepRoleId` (the user's current role).
+ * (exactly the rule of the server guard, `permissionsMissingToGrant`), plus `keepRoleId` (the user's current role).
  */
 export async function referenceLists(opts: { grantableBy?: Actor; keepRoleId?: string } = {}) {
   const [allRoles, regions, adminDepartments, stations] = await Promise.all([
@@ -71,7 +72,7 @@ export async function referenceLists(opts: { grantableBy?: Actor; keepRoleId?: s
   ]);
   const grantor = opts.grantableBy;
   const roles = allRoles
-    .filter((r) => !grantor || r.id === opts.keepRoleId || r.permissions.every((p) => grantor.permissions.has(p.permission.code as never)))
+    .filter((r) => !grantor || r.id === opts.keepRoleId || (permissionsMissingToGrant(grantor, { code: r.code, permissionCodes: r.permissions.map((p) => p.permission.code) }).length === 0 && (grantor.scopeLevel === "NATIONAL" || r.scopeLevel !== "NATIONAL")))
     .map(({ permissions: _p, ...r }) => r);
   return { roles, regions, adminDepartments, stations };
 }

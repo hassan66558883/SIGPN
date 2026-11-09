@@ -53,3 +53,18 @@ test("operational approvals remain reachable by the police command so the platfo
     assert.ok(!h.includes("SUPER_ADMIN") && !h.includes("SECURITY_ADMIN"), `${p} is not held by an administrator`);
   }
 });
+
+test("one rule decides who may grant a role: the security administrator grants operational roles, never the technical administrator role", async () => {
+  const { permissionsMissingToGrant } = await import("../../src/server/rbac/grants");
+  const perms = (code: string) => SYSTEM_ROLES.find((r) => r.code === code)!.permissions as readonly string[];
+  const sec = { permissions: new Set<string>(perms("SECURITY_ADMIN")) };
+  const missing = (actor: { permissions: ReadonlySet<string> }, code: string) => permissionsMissingToGrant(actor, { code, permissionCodes: perms(code) });
+  for (const r of ["DESK_OFFICER", "INVESTIGATOR", "STATION_COMMANDER", "NATIONAL_COMMANDER", "HR_DIRECTOR"]) assert.deepEqual(missing(sec, r), [], `the security administrator can grant ${r}`);
+  assert.deepEqual(missing(sec, "SECURITY_ADMIN"), [], "its own role is within its own permissions");
+  assert.ok(missing(sec, "SUPER_ADMIN").length > 0, "the technical administrator role stays out of reach");
+  // anyone else keeps the plain rule: a role is grantable only when every permission is held
+  const chief = { permissions: new Set<string>(perms("STATION_COMMANDER")) };
+  assert.deepEqual(missing(chief, "DESK_OFFICER"), []);
+  assert.ok(missing(chief, "NATIONAL_COMMANDER").length > 0);
+  assert.ok(missing(chief, "SUPER_ADMIN").length > 0);
+});
