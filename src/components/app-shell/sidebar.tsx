@@ -60,10 +60,13 @@ function Brand() {
 export function Sidebar({ sections }: { sections: SidebarSection[] }) {
   const t = useT();
   return (
-    <aside className="no-print hidden w-64 shrink-0 flex-col bg-navy text-white lg:flex">
-      <Brand />
+    <aside className="no-print sticky top-16 hidden h-[calc(100vh-4rem)] w-64 shrink-0 flex-col self-start bg-navy text-white lg:flex">
       <NavList sections={sections} />
-      <p className="border-t border-white/10 px-5 py-3 text-[10px] leading-snug text-white/45">{t("app.sidebarFooter")}</p>
+      <div className="border-t border-white/10 px-5 py-3">
+        <p className="text-sm font-extrabold tracking-wide">TECHNOTCHAD</p>
+        <p className="text-[10px] text-white/60">Smart Solutions. Real Transformation</p>
+        <p className="mt-1 text-[10px] leading-snug text-white/40">{t("app.sidebarFooter")}</p>
+      </div>
     </aside>
   );
 }
@@ -84,7 +87,7 @@ export function MobileNav({ sections }: { sections: SidebarSection[] }) {
   }, [open]);
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className="rounded-md p-2 text-slate hover:bg-mist hover:text-ink lg:hidden" aria-label={t("nav.openMenu")} aria-expanded={open} aria-controls="mobile-nav">
+      <button type="button" onClick={() => setOpen(true)} className="rounded-md p-2 text-white/85 hover:bg-white/10 hover:text-white lg:hidden" aria-label={t("nav.openMenu")} aria-expanded={open} aria-controls="mobile-nav">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
           <path d="M4 6h16M4 12h16M4 18h16" />
         </svg>

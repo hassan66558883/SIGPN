@@ -1431,4 +1431,5 @@ export const fr = {
   "wsearch.notQueried": "Sources non interrogées (non connectées) : {list}.",
   "wsearch.allNotices": "Tous les avis de recherche ({n})",
   "app.mfaOff": "Authentification à deux facteurs DÉSACTIVÉE — réglage temporaire (MFA_ENFORCEMENT=off)",
+  "wsearch.pendingNote": "La recherche se poursuit jusqu'à la réception d'un résultat (trouvé ou non).",
 } as const;

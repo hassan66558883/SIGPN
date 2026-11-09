@@ -6,6 +6,7 @@ import type { Locale } from "@/lib/i18n";
 import type { SearchOutcome } from "@/server/wanted/search";
 import type { SearchParams } from "@/server/wanted/search-criteria";
 import { describeCriteria } from "@/server/wanted/search-criteria";
+import { IconAlert, IconCheckCircle, IconDocSearch, IconEye, IconPin, IconPrinter, IconRefresh, IconTarget, IconUser } from "./icons";
 
 type T = (key: never, vars?: Record<string, string | number>) => string;
 const tt = (t: unknown) => t as (key: string, vars?: Record<string, string | number>) => string;
@@ -17,7 +18,7 @@ const SRC_LABEL = { NATIONAL_DB: "wsearch.src.db", WANTED: "wsearch.src.wanted",
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[9rem_1fr] gap-2 border-b border-line/60 py-1.5 text-sm last:border-0">
-      <dt className="text-slate">{label}</dt>
+      <dt className="text-slate">{label} :</dt>
       <dd className="font-semibold text-ink">{value}</dd>
     </div>
   );
@@ -50,7 +51,7 @@ export function SearchResults({ outcome, params, locale, t: tRaw, canPrint }: { 
       <div>
         <section className="overflow-hidden rounded-xl border border-danger bg-white shadow-sm" role="status">
           <header className="flex items-center gap-3 bg-danger-soft px-4 py-3 text-danger">
-            <span aria-hidden className="text-2xl">◎</span>
+            <IconTarget size={28} />
             <h2 className="text-lg font-extrabold uppercase tracking-wide">{t("wsearch.matchTitle")}</h2>
             <Badge tone="danger">{t("wsearch.matchCount", { n: outcome.matches.length })}</Badge>
           </header>
@@ -86,22 +87,30 @@ export function SearchResults({ outcome, params, locale, t: tRaw, canPrint }: { 
                     </dl>
                     <div className="mt-3 flex flex-wrap gap-2">
                       {m.dossierAccessible ? (
-                        <Link href={`/wanted/${m.noticeId}`} className="rounded-md bg-blue px-3 py-2 text-sm font-bold text-white hover:bg-blue-dark">
+                        <Link href={`/wanted/${m.noticeId}`} className="inline-flex items-center gap-2 rounded-md bg-blue px-3 py-2 text-sm font-bold text-white hover:bg-blue-dark">
+                          <IconEye size={16} />
                           {t("wsearch.viewFile")}
                         </Link>
                       ) : null}
-                      <button type="button" disabled title={t("wsearch.videoOff")} className="rounded-md border border-line px-3 py-2 text-sm font-semibold text-slate opacity-60">
+                      <button type="button" disabled title={t("wsearch.videoOff")} className="inline-flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm font-semibold text-slate opacity-60">
+                        <IconPin size={16} />
                         {t("wsearch.locate")}
                       </button>
                       {canPrint && m.dossierAccessible ? (
-                        <Link href={`/wanted/${m.noticeId}/notice`} className="rounded-md border border-line px-3 py-2 text-sm font-semibold text-ink hover:bg-mist-2">
+                        <Link href={`/wanted/${m.noticeId}/notice`} className="inline-flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm font-semibold text-ink hover:bg-mist-2">
+                          <IconPrinter size={16} />
                           {t("wsearch.print")}
                         </Link>
                       ) : null}
                     </div>
                     {m.kind === "SEARCH_WARRANT" ? (
                       <Alert tone="danger" className="mt-3">
-                        <strong>{t("wsearch.procedure")}</strong> {t("wsearch.procedureText")}
+                        <span className="inline-flex items-start gap-2">
+                          <IconAlert size={20} className="mt-0.5 shrink-0" />
+                          <span>
+                            <strong>{t("wsearch.procedure")}</strong> {t("wsearch.procedureText")}
+                          </span>
+                        </span>
                       </Alert>
                     ) : null}
                     <p className="mt-2 text-xs text-slate">
@@ -133,14 +142,16 @@ export function SearchResults({ outcome, params, locale, t: tRaw, canPrint }: { 
     <div>
       <section className="overflow-hidden rounded-xl border border-success bg-white shadow-sm" role="status">
         <header className="flex items-center gap-3 bg-success-soft px-4 py-3 text-success">
-          <span aria-hidden className="text-2xl">✓</span>
+          <IconCheckCircle size={28} />
           <h2 className="text-lg font-extrabold uppercase tracking-wide">{t("wsearch.noneTitle")}</h2>
         </header>
         <div className="p-6 text-center">
+          <IconDocSearch size={72} className="mx-auto mb-3 text-slate/70" />
           <p className="text-lg font-bold text-ink">{t("wsearch.noneHead")}</p>
           <p className="mx-auto mt-1 max-w-xl text-sm text-slate">{t("wsearch.noneBody", { q: describeCriteria(params) })}</p>
-          <Link href="/wanted" className="mt-4 inline-block rounded-md border border-line px-5 py-2 text-sm font-semibold text-ink hover:bg-mist-2">
-            ↻ {t("wsearch.newSearch")}
+          <Link href="/wanted" className="mt-4 inline-flex items-center gap-2 rounded-md border border-line px-5 py-2 text-sm font-semibold text-ink hover:bg-mist-2">
+            <IconRefresh size={16} />
+            {t("wsearch.newSearch")}
           </Link>
         </div>
       </section>
@@ -153,7 +164,7 @@ function KnownList({ outcome, t, locale, compact }: { outcome: SearchOutcome; t:
   return (
     <section className={`overflow-hidden rounded-xl border border-info bg-white shadow-sm ${compact ? "mt-4" : ""}`} role="status">
       <header className="flex items-center gap-3 bg-info-soft px-4 py-3 text-info">
-        <span aria-hidden className="text-2xl">☺</span>
+        <IconUser size={28} />
         <h2 className="text-lg font-extrabold uppercase tracking-wide">{t("wsearch.knownTitle")}</h2>
       </header>
       <div className="p-4">

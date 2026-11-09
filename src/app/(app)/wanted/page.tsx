@@ -13,6 +13,7 @@ import { SEARCH_SOURCES, parseSearchParams } from "@/server/wanted/search-criter
 import { GENDER } from "@/lib/labels";
 import { SearchShell, type SourceInfo } from "./search-shell";
 import { SearchResults } from "./search-results";
+import { IconSearch } from "./icons";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -40,7 +41,7 @@ export default async function WantedPage({ searchParams }: PageProps<"/wanted">)
   };
   return (
     <div>
-      <PageHeader eyebrow={t("wanted.eyebrow")} title={t("wanted.title")} subtitle={t("wsearch.subtitle")} actions={actor.permissions.has("wanted:create") ? <ButtonLink href="/wanted/new">{t("wanted.new")}</ButtonLink> : null} />
+      <PageHeader title={<span className="inline-flex items-center gap-3"><IconSearch size={34} className="text-navy" />{t("wanted.title")}</span>} subtitle={t("wsearch.subtitle")} actions={actor.permissions.has("wanted:create") ? <ButtonLink href="/wanted/new">{t("wanted.new")}</ButtonLink> : null} />
       <SearchShell init={{ mode: params.mode, q: params.q, sources: params.sources, firstName: params.firstName, lastName: params.lastName, dateOfBirth: params.dateOfBirth, gender: params.gender, idNumber: params.idNumber, alias: params.alias, offense: params.offense }} sources={sources} genders={genders}>
         <SearchResults outcome={outcome} params={params} locale={locale} t={t} canPrint={actor.permissions.has("wanted:publish")} />
       </SearchShell>

@@ -134,3 +134,35 @@ body {
 /* Sign-in page: institutional photograph on the left from the large breakpoint up. */
 .login-hero { display: none; background-image: url(/login-hero.jpg); background-size: cover; background-position: center; }
 @media (min-width: 1024px) { .login-hero { display: block; width: 50%; } }
+
+/* Light content area of the application shell (the client's mock-up): white cards on a pale blue-grey page, navy text, a stronger blue.
+   The sidebar and the top bar are outside this scope and keep the navy palette. The tokens are not `inline`, so every utility follows. */
+.theme-light {
+  --background: #eef3f9;
+  --foreground: #10243e;
+  --color-ink: #10243e;
+  --color-slate: #5a6b80;
+  --color-mist: #eef3f9;
+  --color-mist-2: #e3ebf5;
+  --color-line: #d6e0ec;
+  --color-card: #ffffff;
+  --color-navy-2: #ffffff;
+  --color-blue: #1a5bb4;
+  --color-blue-dark: #134a96;
+  --color-success: #15803d;
+  --color-success-soft: #e2f5e9;
+  --color-warning: #a65a07;
+  --color-warning-soft: #fdf0d3;
+  --color-danger: #c62828;
+  --color-danger-soft: #fde8e8;
+  --color-info: #1c5fb4;
+  --color-info-soft: #e3eefc;
+  --color-violet: #6b4bd1;
+  --color-violet-soft: #ece7fb;
+  background-color: var(--color-mist);
+  color: var(--color-ink);
+  color-scheme: light;
+}
+.theme-light .text-navy { color: #0b2545; }
+.theme-light .shadow-sm { --tw-shadow-color: rgba(16, 36, 62, 0.08); }
+.theme-light .bg-white\/95 { background-color: rgba(255, 255, 255, 0.95); }
