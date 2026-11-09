@@ -41,7 +41,7 @@ export default async function WantedPage({ searchParams }: PageProps<"/wanted">)
   };
   return (
     <div>
-      <PageHeader title={<span className="inline-flex items-center gap-3"><IconSearch size={34} className="text-navy" />{t("wanted.title")}</span>} subtitle={t("wsearch.subtitle")} actions={actor.permissions.has("wanted:create") ? <ButtonLink href="/wanted/new">{t("wanted.new")}</ButtonLink> : null} />
+      <PageHeader title={<span className="inline-flex items-center gap-3"><IconSearch size={40} className="text-navy" />{t("wanted.title")}</span>} subtitle={t("wsearch.subtitle")} actions={actor.permissions.has("wanted:create") ? <ButtonLink href="/wanted/new">{t("wanted.new")}</ButtonLink> : null} />
       <SearchShell init={{ mode: params.mode, q: params.q, sources: params.sources, firstName: params.firstName, lastName: params.lastName, dateOfBirth: params.dateOfBirth, gender: params.gender, idNumber: params.idNumber, alias: params.alias, offense: params.offense }} sources={sources} genders={genders}>
         <SearchResults outcome={outcome} params={params} locale={locale} t={t} canPrint={actor.permissions.has("wanted:publish")} />
       </SearchShell>

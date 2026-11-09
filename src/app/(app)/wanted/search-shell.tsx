@@ -59,7 +59,7 @@ export function SearchShell({ init, sources, genders, children }: { init: Search
             <div className="flex flex-col gap-3 sm:flex-row">
               <div className="relative flex-1">
                 <span aria-hidden className="pointer-events-none absolute inset-y-0 start-3 flex items-center text-slate">
-                  <IconUser size={18} />
+                  <IconUser size={22} />
                 </span>
                 <input name="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("wsearch.placeholder")} aria-label={t("wsearch.placeholder")} autoComplete="off" className="input w-full py-3 text-base" style={{ paddingInlineStart: "2.4rem", paddingInlineEnd: "2.4rem" }} />
                 {q ? (
@@ -69,7 +69,7 @@ export function SearchShell({ init, sources, genders, children }: { init: Search
                 ) : null}
               </div>
               <button type="submit" disabled={pending} className="inline-flex items-center justify-center gap-2 rounded-md bg-blue px-6 py-3 text-base font-bold text-white hover:bg-blue-dark disabled:opacity-60">
-                <IconSearch size={18} />
+                <IconSearch size={22} />
                 {t("wsearch.submit")}
               </button>
             </div>
@@ -147,11 +147,11 @@ export function SearchShell({ init, sources, genders, children }: { init: Search
               ))}
             </ul>
             <p className="mt-3 inline-flex items-center justify-center gap-2 text-sm font-semibold text-ink">
-              <IconClock size={16} className="text-slate" />
+              <IconClock size={20} className="text-slate" />
               {t("wsearch.elapsed", { t: mmss(elapsed) })}
             </p>
             <p className="mx-auto mt-3 flex max-w-md items-start gap-2 rounded-md bg-info-soft px-3 py-2 text-start text-sm text-info">
-              <IconInfo size={18} className="mt-0.5 shrink-0" />
+              <IconInfo size={22} className="mt-0.5 shrink-0" />
               {t("wsearch.pendingNote")}
             </p>
           </div>

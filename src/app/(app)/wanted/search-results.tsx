@@ -51,7 +51,7 @@ export function SearchResults({ outcome, params, locale, t: tRaw, canPrint }: { 
       <div>
         <section className="overflow-hidden rounded-xl border border-danger bg-white shadow-sm" role="status">
           <header className="flex items-center gap-3 bg-danger-soft px-4 py-3 text-danger">
-            <IconTarget size={28} />
+            <IconTarget size={34} />
             <h2 className="text-lg font-extrabold uppercase tracking-wide">{t("wsearch.matchTitle")}</h2>
             <Badge tone="danger">{t("wsearch.matchCount", { n: outcome.matches.length })}</Badge>
           </header>
@@ -88,17 +88,17 @@ export function SearchResults({ outcome, params, locale, t: tRaw, canPrint }: { 
                     <div className="mt-3 flex flex-wrap gap-2">
                       {m.dossierAccessible ? (
                         <Link href={`/wanted/${m.noticeId}`} className="inline-flex items-center gap-2 rounded-md bg-blue px-3 py-2 text-sm font-bold text-white hover:bg-blue-dark">
-                          <IconEye size={16} />
+                          <IconEye size={20} />
                           {t("wsearch.viewFile")}
                         </Link>
                       ) : null}
                       <button type="button" disabled title={t("wsearch.videoOff")} className="inline-flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm font-semibold text-slate opacity-60">
-                        <IconPin size={16} />
+                        <IconPin size={20} />
                         {t("wsearch.locate")}
                       </button>
                       {canPrint && m.dossierAccessible ? (
                         <Link href={`/wanted/${m.noticeId}/notice`} className="inline-flex items-center gap-2 rounded-md border border-line px-3 py-2 text-sm font-semibold text-ink hover:bg-mist-2">
-                          <IconPrinter size={16} />
+                          <IconPrinter size={20} />
                           {t("wsearch.print")}
                         </Link>
                       ) : null}
@@ -106,7 +106,7 @@ export function SearchResults({ outcome, params, locale, t: tRaw, canPrint }: { 
                     {m.kind === "SEARCH_WARRANT" ? (
                       <Alert tone="danger" className="mt-3">
                         <span className="inline-flex items-start gap-2">
-                          <IconAlert size={20} className="mt-0.5 shrink-0" />
+                          <IconAlert size={24} className="mt-0.5 shrink-0" />
                           <span>
                             <strong>{t("wsearch.procedure")}</strong> {t("wsearch.procedureText")}
                           </span>
@@ -142,15 +142,15 @@ export function SearchResults({ outcome, params, locale, t: tRaw, canPrint }: { 
     <div>
       <section className="overflow-hidden rounded-xl border border-success bg-white shadow-sm" role="status">
         <header className="flex items-center gap-3 bg-success-soft px-4 py-3 text-success">
-          <IconCheckCircle size={28} />
+          <IconCheckCircle size={34} />
           <h2 className="text-lg font-extrabold uppercase tracking-wide">{t("wsearch.noneTitle")}</h2>
         </header>
         <div className="p-6 text-center">
-          <IconDocSearch size={72} className="mx-auto mb-3 text-slate/70" />
+          <IconDocSearch size={88} className="mx-auto mb-3 text-slate/70" />
           <p className="text-lg font-bold text-ink">{t("wsearch.noneHead")}</p>
           <p className="mx-auto mt-1 max-w-xl text-sm text-slate">{t("wsearch.noneBody", { q: describeCriteria(params) })}</p>
           <Link href="/wanted" className="mt-4 inline-flex items-center gap-2 rounded-md border border-line px-5 py-2 text-sm font-semibold text-ink hover:bg-mist-2">
-            <IconRefresh size={16} />
+            <IconRefresh size={20} />
             {t("wsearch.newSearch")}
           </Link>
         </div>
@@ -164,7 +164,7 @@ function KnownList({ outcome, t, locale, compact }: { outcome: SearchOutcome; t:
   return (
     <section className={`overflow-hidden rounded-xl border border-info bg-white shadow-sm ${compact ? "mt-4" : ""}`} role="status">
       <header className="flex items-center gap-3 bg-info-soft px-4 py-3 text-info">
-        <IconUser size={28} />
+        <IconUser size={34} />
         <h2 className="text-lg font-extrabold uppercase tracking-wide">{t("wsearch.knownTitle")}</h2>
       </header>
       <div className="p-4">
