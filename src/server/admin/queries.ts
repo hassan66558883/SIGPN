@@ -56,12 +56,20 @@ export async function unreadCount(actor: Actor) {
   return prisma.notification.count({ where: { userId: actor.id, readAt: null } });
 }
 
-export async function referenceLists() {
-  const [roles, regions, adminDepartments, stations] = await Promise.all([
-    prisma.role.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, scopeLevel: true, requiresMfa: true } }),
+/**
+ * Reference lists for the user forms. With `grantableBy`, the role list only holds roles the actor may really assign
+ * (same rule as the server guard: every permission of the role must be held by the actor), plus `keepRoleId` (the user's current role).
+ */
+export async function referenceLists(opts: { grantableBy?: Actor; keepRoleId?: string } = {}) {
+  const [allRoles, regions, adminDepartments, stations] = await Promise.all([
+    prisma.role.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, scopeLevel: true, requiresMfa: true, permissions: { select: { permission: { select: { code: true } } } } } }),
     prisma.region.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true } }),
     prisma.adminDepartment.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, regionId: true } }),
     prisma.station.findMany({ where: { isActive: true }, orderBy: { name: "asc" }, select: { id: true, code: true, name: true, regionId: true, adminDepartmentId: true } }),
   ]);
+  const grantor = opts.grantableBy;
+  const roles = allRoles
+    .filter((r) => !grantor || r.id === opts.keepRoleId || r.permissions.every((p) => grantor.permissions.has(p.permission.code as never)))
+    .map(({ permissions: _p, ...r }) => r);
   return { roles, regions, adminDepartments, stations };
 }

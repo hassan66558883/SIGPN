@@ -29,7 +29,7 @@ export default async function UserDetailPage({ params, searchParams }: PageProps
     if (e instanceof NotFoundError) notFound();
     throw e;
   }
-  const [refs, sessions] = await Promise.all([referenceLists(), actor.permissions.has("users:manage_sessions") ? listUserSessions(actor, id) : Promise.resolve([])]);
+  const [refs, sessions] = await Promise.all([referenceLists({ grantableBy: actor, keepRoleId: user.roleId }), actor.permissions.has("users:manage_sessions") ? listUserSessions(actor, id) : Promise.resolve([])]);
   const st = labelOf(USER_STATUS, user.status, locale);
   const canStatus = actor.permissions.has("users:manage_status") && user.id !== actor.id;
   return (

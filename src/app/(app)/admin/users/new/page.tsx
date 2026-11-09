@@ -13,8 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function NewUserPage({ searchParams }: PageProps<"/admin/users/new">) {
-  await requirePermission("users:create");
-  const [refs, t, sp] = await Promise.all([referenceLists(), getT(), searchParams]);
+  const actor = await requirePermission("users:create");
+  const [refs, t, sp] = await Promise.all([referenceLists({ grantableBy: actor }), getT(), searchParams]);
   // Optional pre-fill from an officer record (link "Create an account" on the officer page).
   let values: UserFormValues = {};
   let officerLabel: string | null = null;
