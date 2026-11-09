@@ -77,7 +77,8 @@ export const SEVERITY: LabelMap = {
 
 export const STATION_TYPE: LabelMap = {
   HEADQUARTERS: def("Direction générale", "الإدارة العامة", "violet"),
-  DELEGATION: def("Délégation de police", "مندوبية الشرطة", "violet"),
+  DELEGATION: def("Délégation provinciale de Police", "مندوبية الشرطة الولائية", "violet"),
+  CENTRAL_DIRECTION: def("Direction ou unité centrale", "إدارة أو وحدة مركزية", "violet"),
   PROVINCIAL_DIRECTION: def("Direction provinciale", "المديرية الإقليمية", "violet"),
   DEPARTMENTAL_DIRECTION: def("Direction départementale", "المديرية المحافظاتية", "info"),
   CENTRAL_STATION: def("Commissariat central", "المركز المركزي", "info"),

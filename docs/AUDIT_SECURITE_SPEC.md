@@ -95,3 +95,22 @@ Please state which lots you approve, and in which order. Lots 1 and 6 can start 
 5. Creating a second technical or security administrator is possible only through the bootstrap variables for now.
 
 **Not proven.** The change has not been browsed in the interface (the administrator accounts need MFA enrolment, which was not done on the development data), and French and Arabic role labels were not looked at on screen.
+
+## 8. Lot 2 — status (implemented 2026-11-09)
+
+**Source.** Decree N° 0572/PT/PM/MSPI/2023 of 11 April 2023 on the organisation of the Ministry of Public Security and Immigration (supplied by the client). It sets the DGPN (a Director General with two deputies), its central directions (articles 24 to 42), the provincial police delegations led by a "délégué provincial de Police" (articles 87 and 94), and says the detailed organisation is fixed by a ministerial arrêté (article 91). That arrêté has **not** been supplied, so the commissariat level is not modelled beyond what already exists.
+
+| Item | Result |
+|---|---|
+| Provincial title | "Délégué provincial de Police" (French) and "المندوب الولائي للشرطة" (Arabic) replace "Directeur provincial". The unit type "Délégation" is labelled "Délégation provinciale de Police" and can now be created from the organisation screen. |
+| Central directions | New unit type `CENTRAL_DIRECTION` (additive migration). The 10 directions and 4 units of the decree (DSP, DLGDEAM, DPTSCI, DIE, DRHM, DITT, DLS, DSPSM, DBCN-IP, DENP, GMIP, GSR, USIP, UNILT) are created under the DGPN headquarters at start-up, idempotent, never renamed or moved afterwards. Applied to the development database. |
+| Alerts | Central directions have no duty desk and receive no alert of the national network. They are also excluded from the complaint and operations unit pickers. |
+| Departmental level | Not in the decree. It stays available as a geographic level; the departmental commander role is described as "awaiting confirmation by the Direction, not to be assigned". |
+| Chain of command | The existing tree already follows it: DGPN, province (délégation), commissariat, attached post or unit (`Station.parentId`). No new relation was added. |
+| Tests | `tsc` clean, 138 unit, 203 integration (9 new across lots 1 and 2), 35 security. |
+
+**Not done in this lot.**
+1. The real `OWN` scope is not built: no system role uses it today, and building it means an ownership rule in every module. It is left until a role needs it.
+2. The sub-directions and services of each direction, and the commissariats, wait for the ministerial arrêté.
+3. Mapping the functional heads (HR, forensic, Interpol, IT) to their roles is not done; it needs the Direction's confirmation.
+4. Not browsed in the interface; Arabic names of the central units are not stored (French names only).

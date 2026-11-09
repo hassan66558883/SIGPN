@@ -16,11 +16,13 @@ m._resolveFilename = function (request: string, ...rest: unknown[]) {
 async function main() {
   const { syncPermissionCatalog, syncSystemRoles } = await import("../src/server/rbac/sync");
   const { seedDemoAccounts } = await import("../src/server/demo/seed-foundation");
+  const { syncCentralDirections } = await import("../src/server/org/central");
   const { prisma } = await import("../src/server/db");
   const permissions = await syncPermissionCatalog();
   const roles = await syncSystemRoles();
   const users = process.argv.includes("--demo-accounts") ? await seedDemoAccounts() : 0;
-  console.log(`[roles:sync] ${permissions} permissions, ${roles} roles, ${users} new demo accounts`);
+  const central = await syncCentralDirections();
+  console.log(`[roles:sync] ${permissions} permissions, ${roles} roles, ${users} new demo accounts, ${central} new central directions`);
   await prisma.$disconnect();
 }
 main().catch((e) => {

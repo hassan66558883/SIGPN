@@ -142,7 +142,7 @@ export async function supervisionOverview(actor: Actor, filter: SupervisionFilte
     const c = counts.get(a.id) ?? { PENDING: 0, DELIVERED: 0, READ: 0, ACKNOWLEDGED: 0, FAILED: 0 };
     return { ...a, counts: c, total: Object.values(c).reduce((s, n) => s + n, 0) };
   });
-  const unitWhere: Prisma.StationWhereInput = { isActive: true, ...(scope.station ? (scope.station as Prisma.StationWhereInput) : {}), ...(filter.regionId ? { regionId: filter.regionId } : {}), ...(filter.stationId ? { id: filter.stationId } : {}) };
+  const unitWhere: Prisma.StationWhereInput = { isActive: true, type: { not: "CENTRAL_DIRECTION" }, ...(scope.station ? (scope.station as Prisma.StationWhereInput) : {}), ...(filter.regionId ? { regionId: filter.regionId } : {}), ...(filter.stationId ? { id: filter.stationId } : {}) };
   const units = await prisma.station.findMany({ where: unitWhere, orderBy: [{ region: { name: "asc" } }, { name: "asc" }], take: 400, select: { id: true, code: true, name: true, region: { select: { id: true, name: true } }, presence: { select: { lastSeenAt: true, lastSyncAt: true, simulatedOffline: true } } } });
   const pendingByUnit = await prisma.alertDelivery.groupBy({ by: ["stationId"], where: { status: "PENDING", stationId: { in: units.map((u) => u.id) } }, _count: true });
   const pend = new Map(pendingByUnit.map((p) => [p.stationId, p._count]));

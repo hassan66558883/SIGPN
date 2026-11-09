@@ -75,7 +75,7 @@ export async function patrolCounts(actor: Actor) {
 /** Stations an actor can plan operations for (operational structures inside the scope). */
 export async function operationalStations(actor: Actor) {
   const where: Prisma.StationWhereInput = actor.scopeLevel === "NATIONAL" ? {} : actor.scopeLevel === "REGIONAL" ? { regionId: actor.regionId ?? "__none__" } : { id: { in: actor.stationIds?.length ? actor.stationIds : ["__none__"] } };
-  return prisma.station.findMany({ where: { isActive: true, ...where, type: { notIn: ["HEADQUARTERS", "PROVINCIAL_DIRECTION", "DEPARTMENTAL_DIRECTION"] } }, orderBy: [{ name: "asc" }], select: { id: true, code: true, name: true } });
+  return prisma.station.findMany({ where: { isActive: true, ...where, type: { notIn: ["HEADQUARTERS", "CENTRAL_DIRECTION", "DELEGATION", "PROVINCIAL_DIRECTION", "DEPARTMENTAL_DIRECTION"] } }, orderBy: [{ name: "asc" }], select: { id: true, code: true, name: true } });
 }
 
 export async function zonesOf(stationIds: string[], includeInactive = false) {

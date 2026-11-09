@@ -46,7 +46,7 @@ async function assertCoversAllUnits(alertId: string) {
   const d = await deliveries(alertId);
   const have = new Set(d.map((x) => x.stationId));
   assert.equal(have.size, d.length, "one delivery per unit");
-  const missing = await pool.query(`SELECT s.code FROM "Station" s, "NationalAlert" a WHERE a.id=$1 AND s."isActive" AND s."createdAt" < a."createdAt" - interval '2 seconds' AND NOT (s.id = ANY($2))`, [alertId, [...have]]);
+  const missing = await pool.query(`SELECT s.code FROM "Station" s, "NationalAlert" a WHERE a.id=$1 AND s."isActive" AND s.type <> 'CENTRAL_DIRECTION' AND s."createdAt" < a."createdAt" - interval '2 seconds' AND NOT (s.id = ANY($2))`, [alertId, [...have]]);
   assert.equal(missing.rowCount, 0, `units without delivery: ${missing.rows.map((r) => r.code).join(",")}`);
   assert.ok(d.length >= activeStations - 5, "delivered to the whole network");
   return d;
@@ -56,7 +56,7 @@ before(async () => {
   for (const u of ["commander.national", "inv.diallo", "chief.cs1", "chief.mdu", "chief.arr5", "desk.post1", "desk.cs1", "analyst"]) keys[u] = await keyFor(u);
   ids.cs1 = (await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`)).rows[0].id;
   ids.ns1 = (await pool.query(`SELECT id FROM "Station" WHERE code='NS-01'`)).rows[0].id;
-  activeStations = (await pool.query(`SELECT count(*)::int n FROM "Station" WHERE "isActive"`)).rows[0].n;
+  activeStations = (await pool.query(`SELECT count(*)::int n FROM "Station" WHERE "isActive" AND type <> 'CENTRAL_DIRECTION'`)).rows[0].n;
   const free = await pool.query(`SELECT id FROM "Person" p WHERE p."deletedAt" IS NULL AND p."mergedIntoId" IS NULL AND NOT EXISTS (SELECT 1 FROM "WantedPerson" w WHERE w."personId"=p.id AND w.status IN ('DRAFT','PENDING_APPROVAL','ACTIVE','LOCATED','SUSPENDED')) ORDER BY random() LIMIT 1`);
   assert.ok(free.rowCount, "need a person without a live notice");
   ids.person = free.rows[0].id;

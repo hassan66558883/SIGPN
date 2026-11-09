@@ -31,8 +31,9 @@ export const NOTIFICATION_TEXT = { title: "Nouvel avis du réseau national", bod
 
 /** Active units that must receive an alert of the given diffusion perimeter (the source unit's sub-units included). */
 export async function recipientStations(db: Db, diffusion: WantedDiffusion, source: { stationId: string; regionId: string }): Promise<string[]> {
-  if (diffusion === "NATIONAL") return (await db.station.findMany({ where: { isActive: true }, select: { id: true } })).map((s) => s.id);
-  if (diffusion === "REGIONAL") return (await db.station.findMany({ where: { isActive: true, regionId: source.regionId }, select: { id: true } })).map((s) => s.id);
+  // The central directions (decree 0572, articles 24 to 42) keep no duty desk: they are not alert recipients.
+  if (diffusion === "NATIONAL") return (await db.station.findMany({ where: { isActive: true, type: { not: "CENTRAL_DIRECTION" } }, select: { id: true } })).map((s) => s.id);
+  if (diffusion === "REGIONAL") return (await db.station.findMany({ where: { isActive: true, type: { not: "CENTRAL_DIRECTION" }, regionId: source.regionId }, select: { id: true } })).map((s) => s.id);
   const rows = await db.$queryRaw<{ id: string }[]>`
     WITH RECURSIVE tree AS (
       SELECT id FROM "Station" WHERE id = ${source.stationId}

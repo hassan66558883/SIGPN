@@ -53,7 +53,7 @@ export const localitySchema = z.object({
 });
 export type LocalityInput = z.infer<typeof localitySchema>;
 
-export const STATION_TYPES = ["HEADQUARTERS", "PROVINCIAL_DIRECTION", "DEPARTMENTAL_DIRECTION", "CENTRAL_STATION", "STATION", "POST", "UNIT", "BRIGADE", "SPECIAL_UNIT"] as const;
+export const STATION_TYPES = ["HEADQUARTERS", "CENTRAL_DIRECTION", "DELEGATION", "PROVINCIAL_DIRECTION", "DEPARTMENTAL_DIRECTION", "CENTRAL_STATION", "STATION", "POST", "UNIT", "BRIGADE", "SPECIAL_UNIT"] as const;
 export const STATION_STATUSES = ["ACTIVE", "INACTIVE", "UNDER_CONSTRUCTION", "PLANNED"] as const;
 /** Types that must hang under a parent structure. */
 export const CHILD_STATION_TYPES: readonly string[] = ["POST", "UNIT"];

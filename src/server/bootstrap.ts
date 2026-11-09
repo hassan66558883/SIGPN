@@ -4,6 +4,7 @@ import { logAudit } from "@/server/audit";
 import { hashPassword, passwordPolicyErrors } from "@/server/auth/password";
 import { syncPermissionCatalog, syncSystemRoles } from "@/server/rbac/sync";
 import { CHAD_PROVINCES } from "@/server/demo/seed-territory";
+import { syncCentralDirections } from "@/server/org/central";
 
 /**
  * Production bootstrap, run once at every server start (idempotent, no demonstration data):
@@ -30,6 +31,12 @@ export async function bootstrap(log: (m: string) => void = console.log) {
   if ((await prisma.region.count()) === 0) {
     for (const p of CHAD_PROVINCES) await prisma.region.create({ data: { organizationId: org.id, code: p.code, name: p.name, capital: p.capital, isDemo: false } });
     log(`[bootstrap] ${CHAD_PROVINCES.length} official provinces created`);
+  }
+  try {
+    const central = await syncCentralDirections();
+    if (central) log(`[bootstrap] ${central} central directions of the DGPN created (decree 0572/2023)`);
+  } catch (e) {
+    log(`[bootstrap] central directions NOT created (is the latest migration applied?): ${(e as Error).message}`);
   }
 
   // The technical administrator (SUPER_ADMIN) and the security administrator (SECURITY_ADMIN) are separate people:
