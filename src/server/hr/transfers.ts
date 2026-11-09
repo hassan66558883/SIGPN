@@ -10,6 +10,9 @@ import { getOfficer } from "@/server/org/service";
 import { nextNumber } from "@/server/sequences";
 import { getRotationSettings } from "@/server/hr/rotation-settings";
 import { notify, notifyPermission } from "@/server/notifications";
+import { revokeAllSessions } from "@/server/auth/session";
+import { requestClearanceRestore } from "@/server/approvals/service";
+import type { Clearance } from "@/server/rbac/sensitivity";
 import type { ProposeTransferInput, TransferDecisionInput } from "@/server/hr/transfer-schemas";
 
 const nul = (v: string | undefined | null) => (v ? v : null);
@@ -198,7 +201,7 @@ export async function cancelTransfer(actor: Actor, id: string, reason: string, c
 
 // ---------------- Execution ----------------
 
-export type Notice = { transferId: string; number: string; decisionNumber: string; officerName: string; badgeNumber: string; officerUserId: string | null; proposedById: string | null; fromStationId: string; toStationId: string; fromName: string; toName: string };
+export type Notice = { suspendedClearance: string | null; openCases: number; openTasks: number; toRegionId: string; toAdminDepartmentId: string | null; transferId: string; number: string; decisionNumber: string; officerName: string; badgeNumber: string; officerUserId: string | null; proposedById: string | null; fromStationId: string; toStationId: string; fromName: string; toName: string };
 
 /** Moves the officer. Re-checks every precondition against the CURRENT state: a stale approval cannot corrupt the dossier. */
 export async function applyTransfer(tx: Prisma.TransactionClient, id: string, actor: Actor | null, ctx: RequestContext): Promise<Notice> {
@@ -220,13 +223,29 @@ export async function applyTransfer(tx: Prisma.TransactionClient, id: string, ac
   await tx.officer.update({ where: { id: o.id }, data: { stationId: t.toStationId, departmentId: t.toDepartmentId, currentPostSince: t.effectiveDate, ...(position ? { positionId: position.id } : {}) } });
   await tx.rotationAlert.deleteMany({ where: { officerId: o.id } }); // a new post tenure starts: rotation alerts of the previous one no longer apply
   if (o.userId) await tx.user.update({ where: { id: o.userId }, data: { stationId: t.toStationId, regionId: t.toStation.regionId, adminDepartmentId: t.toStation.adminDepartmentId } });
+  // Reassignment effects (security audit, lot 5): the scope has switched above; end the sessions, suspend the sensitive permissions
+  // until a supervisor of the new unit re-approves them, and count the work that stays with the old unit for its supervisors.
+  let suspendedClearance: string | null = null;
+  let openCases = 0;
+  let openTasks = 0;
+  if (o.userId && t.toStationId !== t.fromStationId) {
+    const person = await tx.user.findUnique({ where: { id: o.userId }, select: { username: true, clearance: true } });
+    await revokeAllSessions(o.userId, "reassigned", null, tx);
+    if (person && person.clearance !== "STANDARD") {
+      await tx.user.update({ where: { id: o.userId }, data: { clearance: "STANDARD" } });
+      suspendedClearance = person.clearance;
+      await logAudit({ actor, action: "USER_CLEARANCE_SUSPENDED", module: "users", entityType: "User", entityId: o.userId, entityLabel: person.username, summary: `Transfer ${t.number}: clearance ${person.clearance} of ${person.username} suspended until a supervisor of the new unit re-approves it`, before: { clearance: person.clearance }, after: { clearance: "STANDARD" }, context: ctx }, tx);
+    }
+    openCases = await tx.case.count({ where: { deletedAt: null, status: { notIn: ["CLOSED", "ARCHIVED"] }, OR: [{ leadId: o.userId }, { supervisorId: o.userId }, { assignments: { some: { userId: o.userId, endedAt: null } } }] } });
+    openTasks = await tx.task.count({ where: { assignedToId: o.userId, status: { in: ["TODO", "IN_PROGRESS", "BLOCKED"] } } });
+  }
   await tx.careerEvent.create({
     data: { officerId: o.id, type: "TRANSFER", effectiveDate: t.effectiveDate, reference: t.decisionNumber, reason: t.reason, fromStationId: t.fromStationId, toStationId: t.toStationId, fromPositionId: position ? o.positionId : null, toPositionId: position?.id ?? null, recordedById: actor?.id ?? null },
   });
   const u = await tx.transferRequest.updateMany({ where: { id, status: "APPROVED" }, data: { status: "EXECUTED", executedAt: new Date() } });
   if (u.count !== 1) throw new BusinessError("The record was modified concurrently. Reload and retry.", "CONFLICT");
   await logAudit({ actor, action: "TRANSFER_EXECUTED", module: "hr", entityType: "TransferRequest", entityId: id, entityLabel: t.number, summary: `Transfer ${t.number} executed (${t.decisionNumber}): ${o.badgeNumber} ${t.fromStation.name} → ${t.toStation.name}`, before: { stationId: t.fromStationId, departmentId: t.fromDepartmentId }, after: { stationId: t.toStationId, departmentId: t.toDepartmentId, effectiveDate: t.effectiveDate }, context: ctx }, tx);
-  return { transferId: id, number: t.number, decisionNumber: t.decisionNumber, officerName: `${o.firstName} ${o.lastName}`, badgeNumber: o.badgeNumber, officerUserId: o.userId, proposedById: t.proposedById, fromStationId: t.fromStationId, toStationId: t.toStationId, fromName: t.fromStation.name, toName: t.toStation.name };
+  return { suspendedClearance, openCases, openTasks, toRegionId: t.toStation.regionId, toAdminDepartmentId: t.toStation.adminDepartmentId, transferId: id, number: t.number, decisionNumber: t.decisionNumber, officerName: `${o.firstName} ${o.lastName}`, badgeNumber: o.badgeNumber, officerUserId: o.userId, proposedById: t.proposedById, fromStationId: t.fromStationId, toStationId: t.toStationId, fromName: t.fromStation.name, toName: t.toStation.name };
 }
 
 /** Step 7: notify the officer, the proposer and the HR/command users of both structures. */
@@ -235,6 +254,10 @@ export async function sendExecutionNotices(n: Notice) {
   const body = `${n.decisionNumber}: ${n.officerName} (${n.badgeNumber}), ${n.fromName} → ${n.toName}.`;
   if (n.officerUserId) await notify({ userId: n.officerUserId, kind: "ASSIGNMENT", title: "New posting", body, href });
   if (n.proposedById) await notify({ userId: n.proposedById, kind: "INFO", title: "Transfer executed", body, href });
+  // The sensitive permissions stay suspended until a supervisor of the new unit re-approves them.
+  if (n.officerUserId && n.suspendedClearance) await requestClearanceRestore({ userId: n.officerUserId, clearance: n.suspendedClearance as Clearance, regionId: n.toRegionId, adminDepartmentId: n.toAdminDepartmentId, stationId: n.toStationId, reference: n.number }, null);
+  // The open cases and tasks stay with the old unit: its supervisors are told to reassign them.
+  if (n.openCases + n.openTasks > 0) await notifyPermission({ permission: "cases:assign", kind: "ASSIGNMENT", title: "Work to reassign", body: `${n.officerName} left the unit: ${n.openCases} open case(s) and ${n.openTasks} open task(s) need a new owner.`, href: "/cases", stationId: n.fromStationId });
   for (const stationId of [n.fromStationId, n.toStationId]) await notifyPermission({ permission: "hr:view", kind: "ASSIGNMENT", title: stationId === n.toStationId ? "Officer arriving" : "Officer leaving", body, href, stationId, excludeUserId: n.proposedById });
 }
 

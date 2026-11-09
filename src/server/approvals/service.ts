@@ -9,7 +9,8 @@ import type { RequestContext } from "@/server/request-context";
 import { notifyPermission, notify } from "@/server/notifications";
 import { LOCKED_ROLE_CODES } from "@/server/rbac/roles";
 import { isPermission } from "@/server/rbac/permissions";
-import { isSensitivePermission, type Clearance } from "@/server/rbac/sensitivity";
+import { CLEARANCE_RANK, isSensitivePermission, type Clearance } from "@/server/rbac/sensitivity";
+import { revokeAllSessions } from "@/server/auth/session";
 import { assertCanGrantRole, assertCanSetClearance, checkUserCreation, createUser, getUser, updateUser, type UserCreateInput, type UserUpdateInput } from "@/server/admin/users";
 import { getRole, setRolePermissions } from "@/server/admin/roles";
 import { APPROVAL_TTL_DAYS, approvalsForAccount, isClearanceRaise, whyCannotDecide, type Approver, type ApprovalTarget, type PriorApproval, type ScopeName } from "@/server/approvals/rules";
@@ -49,17 +50,17 @@ const approverOf = (a: Actor): Approver => ({ id: a.id, scopeLevel: a.scopeLevel
 const targetOf = (r: Pick<RequestRow, "kind" | "requiredApprovals" | "requestedById" | "targetUserId" | "regionId" | "adminDepartmentId" | "stationId">): ApprovalTarget => ({ kind: r.kind, requiredApprovals: r.requiredApprovals, requestedById: r.requestedById, targetUserId: r.targetUserId, regionId: r.regionId, adminDepartmentId: r.adminDepartmentId, stationId: r.stationId });
 const priorOf = (r: RequestRow): PriorApproval[] => r.decisions.map((d) => ({ approverId: d.approverId, approverScope: d.approverScope as ScopeName, vote: d.vote }));
 
-async function createRequest(actor: Actor, ctx: RequestContext, data: { kind: ApprovalKind; requiredApprovals: 1 | 2; summary: string; payload: Prisma.InputJsonValue; targetUserId?: string | null; targetRoleId?: string | null; regionId?: string | null; adminDepartmentId?: string | null; stationId?: string | null }) {
+async function createRequest(actor: Actor | null, ctx: RequestContext | null, data: { requestedById?: string; kind: ApprovalKind; requiredApprovals: 1 | 2; summary: string; payload: Prisma.InputJsonValue; targetUserId?: string | null; targetRoleId?: string | null; regionId?: string | null; adminDepartmentId?: string | null; stationId?: string | null }) {
   const expiresAt = new Date(Date.now() + APPROVAL_TTL_DAYS * 86_400_000);
   const r = await prisma.$transaction(async (tx) => {
     const created = await tx.approvalRequest.create({
-      data: { kind: data.kind, requiredApprovals: data.requiredApprovals, summary: data.summary.slice(0, 500), payload: data.payload, targetUserId: data.targetUserId ?? null, targetRoleId: data.targetRoleId ?? null, regionId: data.regionId ?? null, adminDepartmentId: data.adminDepartmentId ?? null, stationId: data.stationId ?? null, requestedById: actor.id, expiresAt },
+      data: { kind: data.kind, requiredApprovals: data.requiredApprovals, summary: data.summary.slice(0, 500), payload: data.payload, targetUserId: data.targetUserId ?? null, targetRoleId: data.targetRoleId ?? null, regionId: data.regionId ?? null, adminDepartmentId: data.adminDepartmentId ?? null, stationId: data.stationId ?? null, requestedById: data.requestedById ?? actor!.id, expiresAt },
       select: requestSelect,
     });
     await logAudit({ actor, action: "APPROVAL_REQUESTED", module: "approvals", entityType: "ApprovalRequest", entityId: created.id, entityLabel: created.kind, summary: `Approval requested (${created.kind}, ${created.requiredApprovals} needed): ${created.summary}`, after: { kind: created.kind, requiredApprovals: created.requiredApprovals, targetUserId: created.targetUserId }, context: ctx }, tx);
     return created;
   });
-  await notifyPermission({ permission: "approvals:decide", title: "Approval request", body: "A sensitive change awaits your decision.", href: "/approvals", excludeUserId: actor.id });
+  await notifyPermission({ permission: "approvals:decide", title: "Approval request", body: "A sensitive change awaits your decision.", href: "/approvals", excludeUserId: r.requestedById });
   return r;
 }
 
@@ -109,6 +110,11 @@ export async function submitUserUpdate(actor: Actor, id: string, input: UserUpda
     requests.push(await createRequest(actor, ctx, { kind: "USER_CLEARANCE_RAISE", requiredApprovals: 2, summary: `Raise the security clearance of ${before.username}: ${before.clearance} → ${input.clearance}`, payload: { clearance: input.clearance } as Prisma.InputJsonValue, targetUserId: id, ...placement }));
   }
   const user = await updateUser(actor, id, { ...input, roleId: before.roleId, clearance: raise ? undefined : input.clearance }, ctx);
+  // Reassignment: updateUser suspended the clearance; a supervisor of the new unit is asked to re-approve it.
+  if ((before.stationId ?? null) !== (user.stationId ?? null) && before.clearance !== "STANDARD" && user.clearance === "STANDARD") {
+    const restore = await requestClearanceRestore({ userId: id, clearance: before.clearance as Clearance, regionId: user.regionId, adminDepartmentId: user.adminDepartmentId, stationId: user.stationId }, ctx);
+    if (restore) requests.push(restore);
+  }
   return { user, requests };
 }
 
@@ -130,6 +136,17 @@ export async function submitRolePermissions(actor: Actor, roleId: string, codes:
   if (sensitiveAdded.length === 0) return { applied: true as const, request: null };
   const request = await createRequest(actor, ctx, { kind: "ROLE_PERMISSIONS_ADD", requiredApprovals: 2, summary: `Add sensitive permission(s) to the role ${before.code}: ${sensitiveAdded.join(", ")}`, payload: { roleId, permissions: sensitiveAdded } as Prisma.InputJsonValue, targetRoleId: roleId });
   return { applied: false as const, request };
+}
+
+/**
+ * Reassignment (lot 5): the sensitive permissions of a person who changed unit were suspended; this request asks a supervisor of the
+ * NEW unit (a commander whose scope covers it) to give them back. One approval is enough (the clearance was already granted through
+ * the full workflow). The person is the requester, so they cannot approve it themselves.
+ */
+export async function requestClearanceRestore(input: { userId: string; clearance: Clearance; regionId: string | null; adminDepartmentId: string | null; stationId: string | null; reference?: string }, ctx: RequestContext | null) {
+  const u = await prisma.user.findUnique({ where: { id: input.userId }, select: { username: true } });
+  if (!u) return null;
+  return createRequest(null, ctx, { requestedById: input.userId, kind: "USER_CLEARANCE_RESTORE", requiredApprovals: 1, summary: `Restore the ${input.clearance} clearance of ${u.username} after the reassignment${input.reference ? ` (${input.reference})` : ""}`, payload: { clearance: input.clearance } as Prisma.InputJsonValue, targetUserId: input.userId, regionId: input.regionId, adminDepartmentId: input.adminDepartmentId, stationId: input.stationId });
 }
 
 // ---------------------------------------------------------------- reading
@@ -221,26 +238,40 @@ async function executeApproved(id: string, ctx: RequestContext) {
   let resultEntityId: string | null = null;
   let failure: string | null = null;
   try {
-    const requester = await requesterActor(r.requestedById);
-    if (!requester) throw new BusinessError("The requester's account is no longer active.", "STATE");
+    // A restore is requested for the person themselves and applied directly (a supervisor approved it): no requester rights are needed.
+    const requester = r.kind === "USER_CLEARANCE_RESTORE" ? null : await requesterActor(r.requestedById);
+    if (!requester && r.kind !== "USER_CLEARANCE_RESTORE") throw new BusinessError("The requester's account is no longer active.", "STATE");
     const payload = r.payload as Record<string, any>;
     switch (r.kind) {
+      case "USER_CLEARANCE_RESTORE": {
+        const wanted = payload.clearance as Clearance;
+        const u = await prisma.user.findUnique({ where: { id: r.targetUserId! }, select: { id: true, username: true, clearance: true, status: true, deletedAt: true } });
+        if (!u || u.deletedAt || u.status !== "ACTIVE") throw new BusinessError("The account is no longer active.", "STATE");
+        resultEntityId = u.id;
+        if (CLEARANCE_RANK[u.clearance as Clearance] >= CLEARANCE_RANK[wanted]) break; // already restored or raised meanwhile
+        await prisma.$transaction(async (tx) => {
+          await tx.user.update({ where: { id: u.id }, data: { clearance: wanted } });
+          await revokeAllSessions(u.id, "clearance_restored", null, tx);
+          await logAudit({ actor: null, action: "USER_CLEARANCE_CHANGED", module: "users", entityType: "User", entityId: u.id, entityLabel: u.username, summary: `Security clearance of ${u.username} restored after the reassignment: ${u.clearance} → ${wanted} (approved by a supervisor of the new unit)`, before: { clearance: u.clearance }, after: { clearance: wanted }, context: ctx }, tx);
+        });
+        break;
+      }
       case "USER_CREATE": {
-        const created = await createUser(requester, payload.input as UserCreateInput, ctx, { passwordHash: payload.passwordHash as string });
+        const created = await createUser(requester!, payload.input as UserCreateInput, ctx, { passwordHash: payload.passwordHash as string });
         resultEntityId = created.id;
         break;
       }
       case "USER_ROLE_CHANGE":
       case "USER_CLEARANCE_RAISE": {
-        const u = await getUser(requester, r.targetUserId!);
+        const u = await getUser(requester!, r.targetUserId!);
         const input: UserUpdateInput = { email: u.email, firstName: u.firstName, lastName: u.lastName, phone: u.phone ?? undefined, roleId: r.kind === "USER_ROLE_CHANGE" ? (payload.roleId as string) : u.roleId, regionId: u.regionId ?? undefined, adminDepartmentId: u.adminDepartmentId ?? undefined, stationId: u.stationId ?? undefined, clearance: r.kind === "USER_CLEARANCE_RAISE" ? (payload.clearance as Clearance) : undefined };
-        await updateUser(requester, r.targetUserId!, input, ctx);
+        await updateUser(requester!, r.targetUserId!, input, ctx);
         resultEntityId = r.targetUserId;
         break;
       }
       case "ROLE_PERMISSIONS_ADD": {
         const role = await getRole(payload.roleId as string);
-        await setRolePermissions(requester, role.id, Array.from(new Set([...role.permissionCodes, ...(payload.permissions as string[])])), ctx);
+        await setRolePermissions(requester!, role.id, Array.from(new Set([...role.permissionCodes, ...(payload.permissions as string[])])), ctx);
         resultEntityId = role.id;
         break;
       }

@@ -86,6 +86,7 @@ export const APPROVAL_KIND: LabelMap = {
   USER_CREATE: def("Création de compte", "إنشاء حساب", "info"),
   USER_ROLE_CHANGE: def("Changement de rôle", "تغيير الدور", "warning"),
   USER_CLEARANCE_RAISE: def("Relèvement d'habilitation", "رفع التصريح الأمني", "danger"),
+  USER_CLEARANCE_RESTORE: def("Rétablissement d'habilitation après mutation", "إعادة التصريح الأمني بعد النقل", "warning"),
   ROLE_PERMISSIONS_ADD: def("Permissions sensibles ajoutées à un rôle", "إضافة صلاحيات حساسة إلى دور", "danger"),
 };
 

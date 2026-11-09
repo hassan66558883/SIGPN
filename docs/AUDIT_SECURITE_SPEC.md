@@ -189,3 +189,28 @@ Please state which lots you approve, and in which order. Lots 1 and 6 can start 
 2. The account creation screen now ends on the Approbations page, and the new account appears only after approval; the roles screen can only reach this workflow for custom roles (the two administrator roles stay locked).
 3. Not browsed in the interface (the approvers need MFA enrolment); French and Arabic texts not looked at on screen.
 4. The bootstrap accounts and the demonstration seed are written directly, by design (nobody exists yet to approve).
+
+## 12. Lot 5 — status (implemented 2026-11-09)
+
+**Done.** A reassignment no longer carries sensitive access along (decision 10).
+
+| Effect | Result |
+|---|---|
+| Scope | Switches to the new unit when the transfer is executed (already the case; now tested). |
+| Sessions | All the person's sessions end at the moment of the move (reason `reassigned`). |
+| Sensitive permissions | Suspended: the clearance goes back to **standard**, so every sensitive permission becomes unusable at once (audited as `USER_CLEARANCE_SUSPENDED`). |
+| Re-approval | A request `USER_CLEARANCE_RESTORE` is created automatically for the **supervisors of the new unit** (a commander whose scope covers it); **one approval** gives the previous clearance back, and the person's sessions end again so the new rights apply. The commander of the old unit has no authority over it, and the person cannot approve their own. |
+| Open cases and tasks | They **stay with the old unit** and nothing is reassigned silently. The supervisors of the old unit (holders of `cases:assign`) are notified how many open cases and tasks of the person need a new owner. |
+| Same rule everywhere | The effects apply to the three ways a person changes unit: a transfer validated by hand, a transfer executed by the automatic rotation, and an administrator moving the account to another station. A change that is not a change of unit (a name, a role) leaves clearance and sessions alone. |
+| Tests | `tsc` clean, 152 unit, 227 integration (4 new on the real server, including a real transfer through the whole circuit), 35 security. |
+
+**Choices made, to confirm.**
+1. The re-approval needs **one** approval, not two: the clearance was already granted through the full workflow, and the new unit's supervisor is the person best placed to decide. Say so if the Direction wants two.
+2. The re-approval request expires after the 7 days of every request; after that the clearance stays at standard until the security administrator raises it again through the normal workflow.
+3. Only a change of **station** counts as a reassignment. A change of service inside the same station does not suspend anything.
+
+**Limits.**
+1. The count of open work is given in a notification; there is no dedicated "to reassign" list screen yet.
+2. The person keeps being recorded as lead of their old cases until a supervisor reassigns them; they can no longer see them through their new scope, which is the intended effect.
+3. A person who commands a station or heads a service cannot be transferred at all (existing rule): the effects above therefore concern everyone else.
+4. Not browsed in the interface.

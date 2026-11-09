@@ -216,10 +216,14 @@ export async function updateUser(actor: Actor, id: string, input: UserUpdateInpu
   assertPlacementInScope(actor, placement);
   const dup = await prisma.user.findFirst({ where: { email: input.email, id: { not: id } }, select: { id: true } });
   if (dup) throw new BusinessError("This e-mail is already registered.", "CONFLICT");
+  // Reassignment (lot 5): a change of unit ends the sessions and suspends the sensitive permissions (clearance back to standard)
+  // until a supervisor of the new unit re-approves them; the approval service creates that request.
+  const moved = (before.stationId ?? null) !== (placement.stationId ?? null);
+  const suspend = moved && !clearanceChanged && before.clearance !== "STANDARD";
   const after = await prisma.$transaction(async (tx) => {
     const u = await tx.user.update({
       where: { id },
-      data: { email: input.email, firstName: input.firstName, lastName: input.lastName, phone: input.phone || null, roleId: input.roleId, ...(clearanceChanged ? { clearance: input.clearance } : {}), regionId: placement.regionId, adminDepartmentId: placement.adminDepartmentId, stationId: placement.stationId },
+      data: { email: input.email, firstName: input.firstName, lastName: input.lastName, phone: input.phone || null, roleId: input.roleId, ...(clearanceChanged ? { clearance: input.clearance } : suspend ? { clearance: "STANDARD" as const } : {}), regionId: placement.regionId, adminDepartmentId: placement.adminDepartmentId, stationId: placement.stationId },
       select: publicUser,
     });
     if (input.officerId !== undefined) {
@@ -231,7 +235,8 @@ export async function updateUser(actor: Actor, id: string, input: UserUpdateInpu
         await tx.officer.update({ where: { id: input.officerId }, data: { userId: id } });
       }
     }
-    if (roleChanged || clearanceChanged) await revokeAllSessions(id, roleChanged ? "role_changed" : "clearance_changed", null, tx);
+    if (roleChanged || clearanceChanged || moved) await revokeAllSessions(id, roleChanged ? "role_changed" : clearanceChanged ? "clearance_changed" : "reassigned", null, tx);
+    if (suspend) await logAudit({ actor, action: "USER_CLEARANCE_SUSPENDED", module: "users", entityType: "User", entityId: id, entityLabel: u.username, summary: `Reassignment of ${u.username}: clearance ${before.clearance} suspended until a supervisor of the new unit re-approves it`, before: { clearance: before.clearance }, after: { clearance: "STANDARD" }, context: ctx }, tx);
     if (clearanceChanged) await logAudit({ actor, action: "USER_CLEARANCE_CHANGED", module: "users", entityType: "User", entityId: id, entityLabel: u.username, summary: `Security clearance of ${u.username}: ${before.clearance} → ${input.clearance}; sessions revoked`, before: { clearance: before.clearance }, after: { clearance: input.clearance }, context: ctx }, tx);
     await logAudit({ actor, action: roleChanged ? "USER_ROLE_CHANGED" : "USER_UPDATED", module: "users", entityType: "User", entityId: id, entityLabel: u.username, summary: roleChanged ? `Role of ${u.username} changed ${before.role.code} → ${u.role.code}; sessions revoked` : `Updated user ${u.username}`, before, after: u, context: ctx }, tx);
     return u;

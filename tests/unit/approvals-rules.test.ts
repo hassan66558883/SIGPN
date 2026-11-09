@@ -67,6 +67,15 @@ test("a national target, and a change to a role's permissions, need approvers wi
   assert.match(whyCannotDecide(decider({ id: "chief" }), roleChange, []) ?? "", /national/);
 });
 
+test("after a reassignment, one supervisor of the NEW unit gives the sensitive permissions back; the old unit and the person cannot", () => {
+  // the request is for the new placement (station S2), requested by the person (also its target)
+  const restore = account({ kind: "USER_CLEARANCE_RESTORE", requestedById: "moved", targetUserId: "moved", stationId: "S2", requiredApprovals: 1 });
+  assert.equal(whyCannotDecide(decider({ id: "newChief", stationIds: ["S2"] }), restore, []), null, "the commander of the new unit");
+  assert.equal(whyCannotDecide(decider({ id: "oldChief", stationIds: ["S1"] }), restore, []) !== null, true, "the commander of the old unit has no authority");
+  assert.match(whyCannotDecide(decider({ id: "moved", stationIds: ["S2"] }), restore, []) ?? "", /yourself/);
+  assert.equal(whyCannotDecide(decider({ id: "delegue", scopeLevel: "REGIONAL" }), restore, []), null, "a délégué provincial above the new unit");
+});
+
 /** The direct write functions are executors of the approval service: nothing else may call them, or the workflow could be bypassed. */
 function walk(dir: string, out: string[] = []): string[] {
   for (const name of readdirSync(dir)) {

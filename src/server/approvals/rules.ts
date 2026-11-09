@@ -9,7 +9,7 @@ import { CLEARANCE_RANK, isSensitivePermission, type Clearance } from "@/server/
 
 export const APPROVAL_TTL_DAYS = 7;
 
-export type ApprovalKindName = "USER_CREATE" | "USER_ROLE_CHANGE" | "USER_CLEARANCE_RAISE" | "ROLE_PERMISSIONS_ADD";
+export type ApprovalKindName = "USER_CREATE" | "USER_ROLE_CHANGE" | "USER_CLEARANCE_RAISE" | "USER_CLEARANCE_RESTORE" | "ROLE_PERMISSIONS_ADD";
 export type ScopeName = "NATIONAL" | "REGIONAL" | "DEPARTMENTAL" | "STATION" | "OWN";
 
 /** The two administrator roles can never be granted on a single approval, whatever permissions they hold. */
