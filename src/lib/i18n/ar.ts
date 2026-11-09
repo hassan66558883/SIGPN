@@ -1334,4 +1334,7 @@ export const ar: Record<keyof typeof fr, string> = {
   "sec.chain.broken": "السلسلة مكسورة عند الموضع {n}: {reason}",
   "sec.chain.head": "آخر سطر: الموضع {n}، البصمة",
   "sec.chain.record": "دوّن الموضع والبصمة خارج قاعدة البيانات: هما الوحيدان القادران على كشف حذف أحدث الأسطر.",
+  "userForm.clearance": "التصريح الأمني",
+  "userForm.clearanceHint": "مستويات مؤقتة. لا تُمارَس الصلاحيات الحساسة إلا بالتصريح المناسب؛ وأي تصريح أعلى من «عادي» يفرض العامل الثاني.",
+  "user.clearance": "التصريح الأمني",
 } as const;

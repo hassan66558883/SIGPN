@@ -75,6 +75,13 @@ export const SEVERITY: LabelMap = {
   CRITICAL: def("Critique", "حرجة", "danger"),
 };
 
+/** Provisional security clearance tiers (lot 3) until the Direction supplies the official levels. */
+export const CLEARANCE_LEVEL: LabelMap = {
+  STANDARD: def("Standard", "عادي", "neutral"),
+  SENSITIVE: def("Sensible", "حساس", "warning"),
+  CONFIDENTIAL: def("Confidentiel", "سري", "danger"),
+};
+
 export const STATION_TYPE: LabelMap = {
   HEADQUARTERS: def("Direction générale", "الإدارة العامة", "violet"),
   DELEGATION: def("Délégation provinciale de Police", "مندوبية الشرطة الولائية", "violet"),

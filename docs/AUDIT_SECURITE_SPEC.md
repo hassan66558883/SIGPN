@@ -134,3 +134,28 @@ Please state which lots you approve, and in which order. Lots 1 and 6 can start 
 4. Documents are not built yet, so reading confidential documents is not logged; it must be added with that module.
 5. The verification walks the whole log (about two seconds for 25,000 rows); it runs on request only. The audit writes are serialised by the lock, a small cost per write.
 6. Not browsed in the interface (the security administrator needs MFA enrolment).
+
+## 10. Lot 3 — status (implemented 2026-11-09)
+
+**Done.** Sensitive permissions, clearance tiers and multi-factor authentication by sensitivity.
+
+| Item | Result |
+|---|---|
+| Sensitive permissions | One catalogue (19 permissions) built from decision 7: warrant approval, wanted-notice approval and publication, custody extension, role management, sensitive and confidential records, HR discipline and pay, exports of data (reports, audit, wanted, traffic) and backups. In `src/server/rbac/sensitivity.ts`. |
+| Clearance | New field on the user (`STANDARD`, `SENSITIVE`, `CONFIDENTIAL`, provisional tiers). A sensitive permission is **usable only by a user cleared for it** (documents: confidential tier). It is enforced once, where the actor is built, so every page, action and API route follows without change. Withdrawing a clearance withdraws the permissions at once. |
+| No regression | The migration backfilled every existing user from the permissions their role already holds (8 sensitive, 11 confidential, 18 standard on the development database), so nobody lost access on the day. |
+| Who grants it | Only the security administrator, never for their own account; each change revokes the user's sessions, notifies them and is audited (`USER_CLEARANCE_CHANGED`). A field in the user form, visible to the security administrator only. |
+| MFA | Mandatory when the role says so, **or** the role holds a sensitive permission, **or** the user is cleared above standard. Optional for ordinary accounts, as decided. Only the Crime Analyst role is newly affected among system roles. The security overview counts the pending enrolments with this rule. |
+| First accounts | Accounts created by the bootstrap and the demonstration seed receive the clearance their role implies. |
+| Tests | `tsc` clean, 143 unit, 214 integration (5 new on the real server), 35 security. |
+
+**Effects to know.**
+1. An account created by anyone other than the security administrator starts at `STANDARD`: its sensitive permissions exist in the role but cannot be used until the security administrator clears it. This is the intended control, and a visible change for commanders who create deputies.
+2. The Crime Analyst role (and any custom role holding a sensitive permission) now requires MFA: existing analyst accounts must enrol at their next sign-in.
+
+**Limits.**
+1. Record tiers reuse the flags that already exist (a case or evidence item flagged sensitive, a restricted document); no new classification column was added. A member of a sensitive case's team still sees it without clearance, as before.
+2. Clearance changes are made by one person, without approval, until lot 4 adds the approval workflow.
+3. The role and user lists still show the role's own MFA flag; the rule is enforced and counted correctly, but those two badges do not yet show the sensitive-permission cause.
+4. API keys are not subject to MFA (unchanged).
+5. Not browsed in the interface; the French and Arabic texts of the new field were not looked at on screen.

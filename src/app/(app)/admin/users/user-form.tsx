@@ -5,7 +5,7 @@ import { ActionForm, SubmitButton } from "@/components/forms";
 import type { FormState } from "@/components/forms";
 import { Field, Select } from "@/components/ui";
 import { useLocale, useT } from "@/components/i18n-provider";
-import { SCOPE_LEVEL, labelOf } from "@/lib/labels";
+import { CLEARANCE_LEVEL, SCOPE_LEVEL, labelOf } from "@/lib/labels";
 import { roleName } from "@/lib/i18n/catalog";
 
 export type Refs = {
@@ -15,9 +15,9 @@ export type Refs = {
   stations: { id: string; code: string; name: string; regionId: string; adminDepartmentId: string | null }[];
 };
 
-export type UserFormValues = { id?: string; username?: string; email?: string; firstName?: string; lastName?: string; phone?: string | null; roleId?: string; regionId?: string | null; adminDepartmentId?: string | null; stationId?: string | null; officerId?: string | null };
+export type UserFormValues = { id?: string; username?: string; email?: string; firstName?: string; lastName?: string; phone?: string | null; roleId?: string; regionId?: string | null; adminDepartmentId?: string | null; stationId?: string | null; officerId?: string | null; clearance?: string };
 
-export function UserForm({ action, refs, values = {}, mode }: { action: (prev: FormState, fd: FormData) => Promise<FormState>; refs: Refs; values?: UserFormValues; mode: "create" | "edit" }) {
+export function UserForm({ action, refs, values = {}, mode, canSetClearance = false, ownAccount = false }: { action: (prev: FormState, fd: FormData) => Promise<FormState>; refs: Refs; values?: UserFormValues; mode: "create" | "edit"; canSetClearance?: boolean; ownAccount?: boolean }) {
   const [roleId, setRoleId] = useState(values.roleId ?? "");
   const [regionId, setRegionId] = useState(values.regionId ?? "");
   const [adminDepartmentId, setAdminDepartmentId] = useState(values.adminDepartmentId ?? "");
@@ -65,6 +65,16 @@ export function UserForm({ action, refs, values = {}, mode }: { action: (prev: F
             >
               <Select id="roleId" name="roleId" required placeholder={t("userForm.selectRole")} value={roleId} onChange={(e) => setRoleId(e.target.value)} options={refs.roles.map((r) => ({ value: r.id, label: `${roleName(r.code, r.name, locale)} (${r.code})` }))} />
             </Field>
+            {canSetClearance && !ownAccount ? (
+              <Field label={t("userForm.clearance")} htmlFor="clearance" hint={t("userForm.clearanceHint")} error={state.fieldErrors?.clearance}>
+                <Select
+                  id="clearance"
+                  name="clearance"
+                  defaultValue={values.clearance ?? "STANDARD"}
+                  options={["STANDARD", "SENSITIVE", "CONFIDENTIAL"].map((c) => ({ value: c, label: labelOf(CLEARANCE_LEVEL, c, locale).label }))}
+                />
+              </Field>
+            ) : null}
             <Field label={t("userForm.region")} htmlFor="regionId" hint={t("userForm.regionHint")} error={state.fieldErrors?.regionId}>
               <Select
                 id="regionId"

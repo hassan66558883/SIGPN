@@ -6,6 +6,8 @@ import { prisma } from "@/server/db";
 import { env } from "@/server/env";
 import { hashPassword } from "@/server/auth/password";
 import { syncPermissionCatalog, syncSystemRoles } from "@/server/rbac/sync";
+import { SYSTEM_ROLES } from "@/server/rbac/roles";
+import { impliedClearance } from "@/server/rbac/sensitivity";
 import { DEMO_ACCOUNTS } from "@/server/demo/accounts";
 import { seedTerritory } from "@/server/demo/seed-territory";
 import { seedOperations } from "@/server/demo/seed-operations";
@@ -44,7 +46,7 @@ export async function seedDemoAccounts() {
       continue;
     }
     await prisma.user.create({
-      data: { username: a.username, email: `${a.username}@pms.example`, firstName: a.firstName, lastName: a.lastName, passwordHash, roleId: role.id, organizationId: org.id, ...placement, mustChangePassword: false, status: "ACTIVE" },
+      data: { username: a.username, email: `${a.username}@pms.example`, firstName: a.firstName, lastName: a.lastName, passwordHash, roleId: role.id, clearance: impliedClearance(SYSTEM_ROLES.find((r) => r.code === a.roleCode)?.permissions ?? []), organizationId: org.id, ...placement, mustChangePassword: false, status: "ACTIVE" },
     });
     created++;
   }

@@ -7,6 +7,7 @@ import { logAudit } from "@/server/audit";
 import { AuthError } from "@/server/errors";
 import { getSessionToken, resolveSession } from "@/server/auth/session";
 import type { Permission } from "@/server/rbac/permissions";
+import { mfaRequired, usablePermissions, type Clearance } from "@/server/rbac/sensitivity";
 
 /**
  * Authorization principle: Role + Organizational scope + Permission.
@@ -26,7 +27,11 @@ export type Actor = {
   roleCode: string;
   roleName: string;
   scopeLevel: ScopeLevel;
+  /** Multi-factor authentication is mandatory: the role says so, OR it holds a sensitive permission, OR the user is cleared above standard (lot 3). */
   roleRequiresMfa: boolean;
+  /** Security clearance of the user (provisional tiers). */
+  clearance: Clearance;
+  /** What the actor can actually do: the role's permissions, minus the sensitive ones the actor is not cleared for. */
   permissions: ReadonlySet<string>;
   organizationId: string | null;
   regionId: string | null;
@@ -54,6 +59,7 @@ const userSelect = {
   status: true,
   deletedAt: true,
   mfaEnabled: true,
+  clearance: true,
   mustChangePassword: true,
   organizationId: true,
   regionId: true,
@@ -105,8 +111,12 @@ export async function buildActor(u: UserRow, session: { id: string | null; mfaVe
     roleCode: u.role.code,
     roleName: u.role.name,
     scopeLevel: u.role.scopeLevel,
-    roleRequiresMfa: u.role.requiresMfa,
-    permissions: new Set(u.role.permissions.map((p) => p.permission.code)),
+    roleRequiresMfa: mfaRequired({ roleRequiresMfa: u.role.requiresMfa, permissions: u.role.permissions.map((p) => p.permission.code), clearance: u.clearance }),
+    clearance: u.clearance,
+    permissions: usablePermissions(
+      u.role.permissions.map((p) => p.permission.code),
+      u.clearance,
+    ),
     organizationId: u.organizationId,
     regionId: u.regionId,
     regionName: u.region?.name ?? null,

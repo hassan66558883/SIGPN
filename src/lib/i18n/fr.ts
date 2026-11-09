@@ -1335,4 +1335,7 @@ export const fr = {
   "sec.chain.broken": "CHAÎNE ROMPUE à la position {n} : {reason}",
   "sec.chain.head": "Dernière ligne : position {n}, empreinte",
   "sec.chain.record": "Notez la position et l'empreinte hors de la base : seules elles permettent de détecter la suppression des lignes les plus récentes.",
+  "userForm.clearance": "Habilitation",
+  "userForm.clearanceHint": "Niveaux provisoires. Les permissions sensibles ne s'exercent qu'avec l'habilitation correspondante ; une habilitation supérieure à « standard » impose le second facteur.",
+  "user.clearance": "Habilitation",
 } as const;

@@ -5,6 +5,8 @@ import { hashPassword, passwordPolicyErrors } from "@/server/auth/password";
 import { syncPermissionCatalog, syncSystemRoles } from "@/server/rbac/sync";
 import { CHAD_PROVINCES } from "@/server/demo/seed-territory";
 import { syncCentralDirections } from "@/server/org/central";
+import { SYSTEM_ROLES } from "@/server/rbac/roles";
+import { impliedClearance } from "@/server/rbac/sensitivity";
 
 /**
  * Production bootstrap, run once at every server start (idempotent, no demonstration data):
@@ -59,7 +61,7 @@ async function bootstrapAdmin(log: (m: string) => void, organizationId: string, 
     return;
   }
   const u = await prisma.user.create({
-    data: { username: username.toLowerCase(), email: email.toLowerCase(), firstName: env[`${o.prefix}_FIRST_NAME`] || o.defaultFirst, lastName: env[`${o.prefix}_LAST_NAME`] || o.defaultLast, passwordHash: await hashPassword(password), roleId: role.id, organizationId, mustChangePassword: true, status: "ACTIVE" },
+    data: { username: username.toLowerCase(), email: email.toLowerCase(), firstName: env[`${o.prefix}_FIRST_NAME`] || o.defaultFirst, lastName: env[`${o.prefix}_LAST_NAME`] || o.defaultLast, passwordHash: await hashPassword(password), roleId: role.id, clearance: impliedClearance(SYSTEM_ROLES.find((r) => r.code === o.roleCode)?.permissions ?? []), organizationId, mustChangePassword: true, status: "ACTIVE" },
   });
   await logAudit({ actor: null, action: "BOOTSTRAP_ADMIN_CREATED", module: "system", entityType: "User", entityId: u.id, entityLabel: u.username, summary: `First ${o.label} "${u.username}" created by the bootstrap (password change and MFA enrolment required at first sign-in)` });
   log(`[bootstrap] first ${o.label} "${u.username}" created — change the password at first sign-in, then remove ${o.prefix}_* from the environment`);

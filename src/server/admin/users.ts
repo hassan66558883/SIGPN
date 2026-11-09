@@ -11,6 +11,7 @@ import { optionalText } from "@/server/action-utils";
 import type { RequestContext } from "@/server/request-context";
 import { notify } from "@/server/notifications";
 import { LOCKED_ROLE_CODES } from "@/server/rbac/roles";
+import { CLEARANCE_LEVELS } from "@/server/rbac/sensitivity";
 
 export const userCreateSchema = z.object({
   username: z
@@ -30,6 +31,8 @@ export const userCreateSchema = z.object({
   stationId: optionalText(64),
   officerId: optionalText(64),
   temporaryPassword: z.string().min(1).max(200),
+  /** Security clearance (lot 3). Empty = standard on creation, unchanged on update. Only the security administrator can set it. */
+  clearance: z.preprocess((v) => (v === "" || v === null ? undefined : v), z.enum(CLEARANCE_LEVELS).optional()),
 });
 export type UserCreateInput = z.infer<typeof userCreateSchema>;
 
@@ -44,6 +47,7 @@ const publicUser = {
   lastName: true,
   phone: true,
   status: true,
+  clearance: true,
   mfaEnabled: true,
   mustChangePassword: true,
   failedLoginCount: true,
@@ -75,6 +79,11 @@ async function assertCanGrantRole(actor: Actor, roleId: string) {
   if (excess.length > 0) throw new BusinessError(`You cannot grant the role "${role.code}": it holds permissions you do not have (${excess.slice(0, 3).join(", ")}${excess.length > 3 ? "…" : ""}).`, "STATE");
   if (actor.scopeLevel !== "NATIONAL" && role.scopeLevel === "NATIONAL") throw new BusinessError("Only national-scope administrators can grant national roles.", "STATE");
   return role;
+}
+
+/** A security clearance is a security decision: only the security administrator grants or changes it, never one's own. */
+function assertCanSetClearance(actor: Actor) {
+  if (!actor.permissions.has("security:manage")) throw new BusinessError("Only the security administrator can grant or change a security clearance.", "STATE");
 }
 
 /** Scope guard for the target user's placement: a regional admin can only place users inside their region, etc. */
@@ -131,6 +140,8 @@ export async function getUser(actor: Actor, id: string) {
 
 export async function createUser(actor: Actor, input: UserCreateInput, ctx: RequestContext) {
   const role = await assertCanGrantRole(actor, input.roleId);
+  const clearance = input.clearance ?? "STANDARD";
+  if (clearance !== "STANDARD") assertCanSetClearance(actor);
   const placement = await resolvePlacement(input);
   assertPlacementInScope(actor, placement);
   if (role.scopeLevel === "REGIONAL" && !placement.regionId) throw new BusinessError("A regional role requires a region.");
@@ -155,6 +166,7 @@ export async function createUser(actor: Actor, input: UserCreateInput, ctx: Requ
         phone: input.phone || null,
         passwordHash: await hashPassword(input.temporaryPassword),
         mustChangePassword: true,
+        clearance,
         roleId: role.id,
         regionId: placement.regionId,
         adminDepartmentId: placement.adminDepartmentId,
@@ -174,6 +186,11 @@ export async function createUser(actor: Actor, input: UserCreateInput, ctx: Requ
 export async function updateUser(actor: Actor, id: string, input: UserUpdateInput, ctx: RequestContext) {
   const before = await getUser(actor, id);
   const roleChanged = before.roleId !== input.roleId;
+  const clearanceChanged = input.clearance !== undefined && input.clearance !== before.clearance;
+  if (clearanceChanged) {
+    if (id === actor.id) throw new BusinessError("You cannot change your own security clearance.", "STATE");
+    assertCanSetClearance(actor);
+  }
   if (roleChanged) {
     if (id === actor.id) throw new BusinessError("You cannot change your own role.", "STATE");
     await assertCanGrantRole(actor, input.roleId);
@@ -189,7 +206,7 @@ export async function updateUser(actor: Actor, id: string, input: UserUpdateInpu
   const after = await prisma.$transaction(async (tx) => {
     const u = await tx.user.update({
       where: { id },
-      data: { email: input.email, firstName: input.firstName, lastName: input.lastName, phone: input.phone || null, roleId: input.roleId, regionId: placement.regionId, adminDepartmentId: placement.adminDepartmentId, stationId: placement.stationId },
+      data: { email: input.email, firstName: input.firstName, lastName: input.lastName, phone: input.phone || null, roleId: input.roleId, ...(clearanceChanged ? { clearance: input.clearance } : {}), regionId: placement.regionId, adminDepartmentId: placement.adminDepartmentId, stationId: placement.stationId },
       select: publicUser,
     });
     if (input.officerId !== undefined) {
@@ -201,11 +218,13 @@ export async function updateUser(actor: Actor, id: string, input: UserUpdateInpu
         await tx.officer.update({ where: { id: input.officerId }, data: { userId: id } });
       }
     }
-    if (roleChanged) await revokeAllSessions(id, "role_changed", null, tx);
+    if (roleChanged || clearanceChanged) await revokeAllSessions(id, roleChanged ? "role_changed" : "clearance_changed", null, tx);
+    if (clearanceChanged) await logAudit({ actor, action: "USER_CLEARANCE_CHANGED", module: "users", entityType: "User", entityId: id, entityLabel: u.username, summary: `Security clearance of ${u.username}: ${before.clearance} → ${input.clearance}; sessions revoked`, before: { clearance: before.clearance }, after: { clearance: input.clearance }, context: ctx }, tx);
     await logAudit({ actor, action: roleChanged ? "USER_ROLE_CHANGED" : "USER_UPDATED", module: "users", entityType: "User", entityId: id, entityLabel: u.username, summary: roleChanged ? `Role of ${u.username} changed ${before.role.code} → ${u.role.code}; sessions revoked` : `Updated user ${u.username}`, before, after: u, context: ctx }, tx);
     return u;
   });
   if (roleChanged) await notify({ userId: id, kind: "SECURITY", title: "Your role was changed", body: `Your role is now ${after.role.name}. Please sign in again.` });
+  else if (clearanceChanged) await notify({ userId: id, kind: "SECURITY", title: "Your security clearance was changed", body: "Your access to sensitive records changed. Please sign in again." });
   return after;
 }
 

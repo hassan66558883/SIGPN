@@ -8,7 +8,7 @@ import { Alert, Badge, Card, DL, PageHeader, Table } from "@/components/ui";
 import { ActionButton } from "@/components/forms";
 import { resetUserMfaAction, revokeUserSessionsAction, setUserStatusAction, updateUserAction } from "@/server/admin/actions";
 import { fmtDateTime } from "@/lib/format";
-import { USER_STATUS, labelOf } from "@/lib/labels";
+import { CLEARANCE_LEVEL, USER_STATUS, labelOf } from "@/lib/labels";
 import { UserForm } from "../user-form";
 import { IssueResetButton } from "./issue-reset";
 import { getLocale, getT } from "@/server/i18n";
@@ -42,6 +42,7 @@ export default async function UserDetailPage({ params, searchParams }: PageProps
         actions={
           <>
             <Badge tone={st.tone}>{st.label}</Badge>
+            {user.clearance !== "STANDARD" ? <Badge tone={labelOf(CLEARANCE_LEVEL, user.clearance, locale).tone}>{`${t("user.clearance")}: ${labelOf(CLEARANCE_LEVEL, user.clearance, locale).label}`}</Badge> : null}
             {user.mfaEnabled ? <Badge tone="success">{t("user.mfaOn")}</Badge> : user.role.requiresMfa ? <Badge tone="danger">{t("user.mfaMissing")}</Badge> : null}
           </>
         }
@@ -55,7 +56,7 @@ export default async function UserDetailPage({ params, searchParams }: PageProps
         <div className="space-y-4 lg:col-span-2">
           <Card title={t("user.accountDetails")}>
             {actor.permissions.has("users:update") ? (
-              <UserForm action={updateUserAction} refs={refs} mode="edit" values={{ id: user.id, username: user.username, email: user.email, firstName: user.firstName, lastName: user.lastName, phone: user.phone, roleId: user.roleId, regionId: user.regionId, adminDepartmentId: user.adminDepartmentId, stationId: user.stationId }} />
+              <UserForm action={updateUserAction} refs={refs} mode="edit" values={{ id: user.id, username: user.username, email: user.email, firstName: user.firstName, lastName: user.lastName, phone: user.phone, roleId: user.roleId, regionId: user.regionId, adminDepartmentId: user.adminDepartmentId, stationId: user.stationId, clearance: user.clearance }} canSetClearance={actor.permissions.has("security:manage")} ownAccount={user.id === actor.id} />
             ) : (
               <DL items={[{ label: t("account.role"), value: roleName(user.role.code, user.role.name, locale) }, { label: t("account.region"), value: user.region?.name ?? "—" }, { label: t("account.station"), value: user.station?.name ?? "—" }, { label: t("user.phone"), value: user.phone ?? "—" }]} />
             )}

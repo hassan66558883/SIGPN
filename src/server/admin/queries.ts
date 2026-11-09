@@ -2,6 +2,7 @@ import "server-only";
 import type { AuditOutcome } from "@/generated/prisma/client";
 import { prisma } from "@/server/db";
 import type { Actor } from "@/server/auth/dal";
+import { SENSITIVE_PERMISSIONS } from "@/server/rbac/sensitivity";
 
 export async function listAuditLogs(filter: { q?: string; module?: string; action?: string; actorId?: string; entityType?: string; entityId?: string; outcome?: AuditOutcome; from?: Date; to?: Date; page?: number; pageSize?: number }) {
   const page = filter.page ?? 1;
@@ -38,7 +39,8 @@ export async function securityOverview() {
     prisma.passwordResetToken.count({ where: { usedAt: null, expiresAt: { gt: new Date() } } }),
     prisma.apiKey.count({ where: { revokedAt: null } }),
   ]);
-  const rolesRequiringMfa = await prisma.user.count({ where: { deletedAt: null, status: "ACTIVE", mfaEnabled: false, role: { requiresMfa: true } } });
+  // Mandatory MFA (lot 3): the role says so, OR the role holds a sensitive permission, OR the user is cleared above standard.
+  const rolesRequiringMfa = await prisma.user.count({ where: { deletedAt: null, status: "ACTIVE", mfaEnabled: false, OR: [{ role: { requiresMfa: true } }, { clearance: { not: "STANDARD" } }, { role: { permissions: { some: { permission: { code: { in: [...SENSITIVE_PERMISSIONS] } } } } } }] } });
   const recentAttempts = await prisma.loginAttempt.findMany({ orderBy: { createdAt: "desc" }, take: 30 });
   const topFailingIps = await prisma.loginAttempt.groupBy({ by: ["ipAddress"], where: { success: false, createdAt: { gte: since24h } }, _count: true, orderBy: { _count: { ipAddress: "desc" } }, take: 10 });
   return { activeSessions, lockedAccounts, failed24h, success24h, mfaEnabled, totalUsers, recentDenied, pendingResets, apiKeys, rolesRequiringMfa, recentAttempts, topFailingIps };

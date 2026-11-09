@@ -34,7 +34,7 @@ export default async function NewUserPage({ searchParams }: PageProps<"/admin/us
         </Alert>
       ) : null}
       <Card>
-        <UserForm action={createUserAction} refs={refs} mode="create" values={values} />
+        <UserForm action={createUserAction} refs={refs} mode="create" values={values} canSetClearance={actor.permissions.has("security:manage")} />
       </Card>
     </div>
   );

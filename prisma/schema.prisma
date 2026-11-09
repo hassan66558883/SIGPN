@@ -20,6 +20,13 @@ datasource db {
 // 1. IDENTITY, ACCESS & SECURITY
 // ------------------------------------------------------------
 
+/// Security clearance of a user (lot 3): provisional tiers until the Direction supplies the official levels.
+enum ClearanceLevel {
+  STANDARD
+  SENSITIVE
+  CONFIDENTIAL
+}
+
 enum UserStatus {
   PENDING
   ACTIVE
@@ -98,6 +105,7 @@ model User {
   passwordChangedAt  DateTime         @default(now())
   mustChangePassword Boolean          @default(false)
   status             UserStatus       @default(ACTIVE)
+  clearance          ClearanceLevel   @default(STANDARD)
   failedLoginCount   Int              @default(0)
   lockedUntil        DateTime?
   mfaEnabled         Boolean          @default(false)
