@@ -38,12 +38,12 @@ const propose = (who: string, to: string, effectiveDate = today(), extra: Record
 const is4xx = (r: { res: Response }) => r.res.status >= 400 && r.res.status < 500;
 
 before(async () => {
-  for (const u of ["admin", "hr.director", "hr.service", "chief.cs1", "desk.post1", "commander.central", "commander.national"]) keys[u] = await keyFor(u);
+  for (const u of ["police.admin", "hr.director", "hr.service", "chief.cs1", "desk.post1", "commander.central", "commander.national"]) keys[u] = await keyFor(u);
   const rows = await pool.query(`SELECT id, code FROM "Station" WHERE code IN ('CS-01','CA-NDJ-05','NS-01')`);
   for (const r of rows.rows) st[r.code] = r.id;
   assert.ok(st["CS-01"] && st["CA-NDJ-05"] && st["NS-01"], "demo structures missing — run npm run db:seed");
   rankId = (await pool.query(`SELECT id FROM "Rank" WHERE code='GP'`)).rows[0].id;
-  const created = await call("admin", "/api/v1/officers", "POST", { badgeNumber: `TRF${RUN}`.toUpperCase(), firstName: "Test", lastName: `MUT${RUN}`, gender: "UNKNOWN", rankId, stationId: st["CS-01"], hiredAt: "2015-01-01" });
+  const created = await call("police.admin", "/api/v1/officers", "POST", { badgeNumber: `TRF${RUN}`.toUpperCase(), firstName: "Test", lastName: `MUT${RUN}`, gender: "UNKNOWN", rankId, stationId: st["CS-01"], hiredAt: "2015-01-01" });
   assert.equal(created.res.status, 201, JSON.stringify(created.json));
   officerId = created.json.data.id;
 });
@@ -105,7 +105,7 @@ test("validation: authority must cover both structures; then decision + executio
 });
 
 test("a regional authority cannot validate a transfer leaving its province; the national one can", async () => {
-  const p = await propose("admin", "NS-01");
+  const p = await propose("police.admin", "NS-01");
   assert.equal(p.res.status, 201, JSON.stringify(p.json));
   const id = p.json.data.id;
   assert.equal((await call("hr.service", `/api/v1/hr/transfers/${id}/review`, "POST", { decision: "APPROVE" })).res.status, 200);
@@ -119,7 +119,7 @@ test("a regional authority cannot validate a transfer leaving its province; the 
 });
 
 test("a future effective date stays APPROVED (no movement, decision available) until its date; it can be cancelled", async () => {
-  const p = await propose("admin", "CS-01", inDays(10));
+  const p = await propose("police.admin", "CS-01", inDays(10));
   assert.equal(p.res.status, 201, JSON.stringify(p.json));
   const id = p.json.data.id;
   await call("hr.director", `/api/v1/hr/transfers/${id}/review`, "POST", { decision: "APPROVE" });
@@ -129,28 +129,28 @@ test("a future effective date stays APPROVED (no movement, decision available) u
   assert.equal((await where()).stationId, st["NS-01"], "not moved before the effective date");
   assert.equal((await call("hr.director", `/api/v1/hr/transfers/${id}/decision`)).res.status, 200, "decision issued at validation");
   assert.ok(is4xx(await call("hr.director", `/api/v1/hr/transfers/${id}/execute`, "POST")), "too early to execute");
-  const c = await call("admin", `/api/v1/hr/transfers/${id}/cancel`, "POST", { reason: "Annulée par le test" });
+  const c = await call("police.admin", `/api/v1/hr/transfers/${id}/cancel`, "POST", { reason: "Annulée par le test" });
   assert.equal(c.json.data.status, "CANCELLED");
   assert.equal((await where()).stationId, st["NS-01"]);
 });
 
 test("rejections need a reason; the reviewer cannot be the proposer", async () => {
-  const p = await propose("admin", "CS-01");
+  const p = await propose("police.admin", "CS-01");
   const id = p.json.data.id;
-  assert.ok(is4xx(await call("admin", `/api/v1/hr/transfers/${id}/review`, "POST", { decision: "APPROVE" })), "four-eyes: proposer cannot examine own proposal");
+  assert.ok(is4xx(await call("police.admin", `/api/v1/hr/transfers/${id}/review`, "POST", { decision: "APPROVE" })), "four-eyes: proposer cannot examine own proposal");
   assert.ok(is4xx(await call("hr.director", `/api/v1/hr/transfers/${id}/review`, "POST", { decision: "REJECT" })), "reason required");
   const r = await call("hr.director", `/api/v1/hr/transfers/${id}/review`, "POST", { decision: "REJECT", note: "Effectif insuffisant à destination" });
   assert.equal(r.json.data.status, "REJECTED");
   assert.equal((await where()).stationId, st["NS-01"]);
   // the same person cannot both examine and validate
-  const p2 = await propose("admin", "CS-01");
+  const p2 = await propose("police.admin", "CS-01");
   await call("hr.director", `/api/v1/hr/transfers/${p2.json.data.id}/review`, "POST", { decision: "APPROVE" });
   const rej = await call("commander.national", `/api/v1/hr/transfers/${p2.json.data.id}/validate`, "POST", { decision: "REJECT", note: "Pas opportun" });
   assert.equal(rej.json.data.status, "REJECTED");
 });
 
 test("database guarantees: one open transfer per officer, decision required, no deletion", async () => {
-  const p = await propose("admin", "CS-01");
+  const p = await propose("police.admin", "CS-01");
   assert.equal(p.res.status, 201);
   const id = p.json.data.id;
   await assert.rejects(pool.query(`UPDATE "TransferRequest" SET status='EXECUTED' WHERE id=$1`, [id]), /executed_has_decision|check constraint/i);
@@ -159,7 +159,7 @@ test("database guarantees: one open transfer per officer, decision required, no 
     pool.query(`INSERT INTO "TransferRequest"(id,number,"officerId","fromStationId","toStationId","effectiveDate",reason,status,"updatedAt") VALUES ($1,$2,$3,$4,$5,now(),'x','PROPOSED',now())`, [`dup_${RUN}`, `DUP-${RUN}`, officerId, st["NS-01"], st["CS-01"]]),
     /one_open_per_officer|unique/i,
   );
-  await call("admin", `/api/v1/hr/transfers/${id}/cancel`, "POST", { reason: "Nettoyage du test" });
+  await call("police.admin", `/api/v1/hr/transfers/${id}/cancel`, "POST", { reason: "Nettoyage du test" });
 });
 
 test("scope: a commander sees transfers touching own structures only", async () => {

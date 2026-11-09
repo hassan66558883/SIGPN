@@ -377,7 +377,7 @@ export const ar: Record<keyof typeof fr, string> = {
   "role.mfaRequired": "المصادقة الثنائية مطلوبة",
   "role.systemRole": "دور نظامي",
   "role.createdAlert": "تم إنشاء الدور. أسند صلاحياته أدناه.",
-  "role.lockedAlert": "يملك SUPER_ADMIN دائمًا جميع الصلاحيات ولا يمكن تعديله.",
+  "role.lockedAlert": "أدوار الإدارة (التقنية والأمنية) ثابتة من قبل النظام: لا تحمل أي سلطة عملياتية شرطية ولا يمكن تعديلها.",
   "role.settings": "إعدادات الدور",
   "role.availability": "الحالة",
   "role.deactivate": "تعطيل الدور",

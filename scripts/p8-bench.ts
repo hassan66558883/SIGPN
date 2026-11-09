@@ -65,7 +65,7 @@ async function main() {
   const units = (await pool.query(`SELECT count(*)::int n FROM "Station" WHERE "isActive"`)).rows[0].n as number;
   console.log(`active units: ${units}`);
 
-  const keys = { admin: await keyFor("admin"), inv: await keyFor("inv.diallo"), chief: await keyFor("chief.cs1") };
+  const keys = { admin: await keyFor("commander.national"), inv: await keyFor("inv.diallo"), chief: await keyFor("chief.cs1") };
   // pollers: every seeded user that can read alerts and belongs to a unit (one key per user: the 240/min limit is per account)
   const pollers: string[] = [];
   for (const r of (await pool.query(`SELECT u.username FROM "User" u JOIN "Role" ro ON ro.id=u."roleId" JOIN "RolePermission" rp ON rp."roleId"=ro.id JOIN "Permission" p ON p.id=rp."permissionId" WHERE p.code='alerts:view' AND u.status='ACTIVE' AND u."stationId" IS NOT NULL LIMIT 30`)).rows) pollers.push(await keyFor(r.username));

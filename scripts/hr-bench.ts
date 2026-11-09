@@ -26,7 +26,7 @@ async function main() {
   };
   const director = await keyFor("hr.director");
   const chief = await keyFor("chief.cs1");
-  const admin = await keyFor("admin");
+  const admin = await keyFor("police.admin");
   const station = (await c.query(`SELECT s.id FROM "Station" s JOIN "Officer" o ON o."stationId"=s.id AND o."isActive" WHERE s.code LIKE 'LD-%' GROUP BY s.id ORDER BY count(*) DESC LIMIT 1`)).rows[0].id as string;
   const officer = (await c.query(`SELECT id FROM "Officer" WHERE "badgeNumber"='LD007000'`)).rows[0].id as string;
   const region = (await c.query(`SELECT "regionId" FROM "Station" WHERE id=$1`, [station])).rows[0].regionId as string;

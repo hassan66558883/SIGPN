@@ -128,15 +128,63 @@ const HR_DIRECTION: Permission[] = [...HR_SERVICE, "hr:leave_approve", "hr:disci
 
 const PAYROLL_BASE: Permission[] = ["dashboard:view", "org:view", "officers:view", "hr:view", "hr:pay_view", "apikeys:manage_own"];
 
+/**
+ * Security audit, decisions 3 and 9: the platform is administered by two roles that hold NO police operational authority
+ * (no warrant, wanted-notice or custody decisions, no case, evidence or personal data). The code SUPER_ADMIN is kept for
+ * compatibility with existing accounts; it now means "technical administrator".
+ */
+export const TECH_ADMIN_PERMISSIONS: readonly Permission[] = [
+  "dashboard:view",
+  "org:view",
+  "org:manage",
+  "roles:view",
+  "roles:manage",
+  "permissions:view",
+  "security:view",
+  "system:settings",
+  "system:backup",
+  "system:demo",
+  "apikeys:manage_own",
+];
+
+/** Security administrator: accounts, sessions, security settings and the audit log. Reads no police data. */
+export const SECURITY_ADMIN_PERMISSIONS: readonly Permission[] = [
+  "dashboard:view",
+  "org:view",
+  "users:view",
+  "users:create",
+  "users:update",
+  "users:manage_status",
+  "users:reset_password",
+  "users:manage_sessions",
+  "roles:view",
+  "permissions:view",
+  "security:view",
+  "security:manage",
+  "audit:view",
+  "audit:export",
+  "apikeys:manage_own",
+];
+
+/** System roles whose permission set is fixed by the system and cannot be edited from the interface. */
+export const LOCKED_ROLE_CODES: readonly string[] = ["SUPER_ADMIN", "SECURITY_ADMIN"];
+
 export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
   {
     code: "SUPER_ADMIN",
-    name: "System Administrator",
-    description: "Full access to every module, including security and system administration.",
+    name: "Technical Administrator",
+    description: "Administers the technical platform (settings, backups, organisation structure, role catalogue). Holds no police operational authority and reads no police data.",
     scopeLevel: "NATIONAL",
     requiresMfa: true,
-    // Separation of duties: the system administrator does not see or change pay data; dedicated payroll roles exist.
-    permissions: PERMISSIONS.filter((p) => !p.startsWith("hr:pay_")),
+    permissions: TECH_ADMIN_PERMISSIONS,
+  },
+  {
+    code: "SECURITY_ADMIN",
+    name: "Security Administrator",
+    description: "Manages accounts, sessions and security settings and reads the audit log. Holds no police operational authority and reads no police data.",
+    scopeLevel: "NATIONAL",
+    requiresMfa: true,
+    permissions: SECURITY_ADMIN_PERMISSIONS,
   },
   {
     code: "NATIONAL_COMMANDER",

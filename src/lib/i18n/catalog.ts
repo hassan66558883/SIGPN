@@ -5,7 +5,8 @@
 import type { Locale } from "@/lib/i18n";
 
 export const ROLE_NAMES_FR: Record<string, string> = {
-  SUPER_ADMIN: "Administrateur système",
+  SUPER_ADMIN: "Administrateur technique",
+  SECURITY_ADMIN: "Administrateur sécurité",
   NATIONAL_COMMANDER: "Commandant national",
   REGIONAL_COMMANDER: "Directeur provincial",
   DEPARTMENTAL_COMMANDER: "Commandant départemental",
@@ -36,7 +37,8 @@ export const ROLE_NAMES_FR: Record<string, string> = {
 };
 
 export const ROLE_NAMES_AR: Record<string, string> = {
-  SUPER_ADMIN: "مسؤول النظام",
+  SUPER_ADMIN: "المسؤول التقني",
+  SECURITY_ADMIN: "مسؤول الأمن",
   NATIONAL_COMMANDER: "القائد الوطني",
   REGIONAL_COMMANDER: "المدير الإقليمي",
   DEPARTMENTAL_COMMANDER: "القائد المحافظاتي",
@@ -67,7 +69,8 @@ export const ROLE_NAMES_AR: Record<string, string> = {
 };
 
 export const ROLE_DESCRIPTIONS_FR: Record<string, string> = {
-  SUPER_ADMIN: "Accès complet à tous les modules, y compris la sécurité et l'administration système.",
+  SUPER_ADMIN: "Administre la plateforme technique (paramètres, sauvegardes, structure de l'organisation, catalogue de rôles). Aucune autorité opérationnelle de police, aucune donnée de police.",
+  SECURITY_ADMIN: "Gère les comptes, les sessions et la sécurité, et consulte le journal d'audit. Aucune autorité opérationnelle de police, aucune donnée de police.",
   NATIONAL_COMMANDER: "Supervision nationale : lecture de tout, approbation des mandats, avis de recherche, opérations et rapports.",
   REGIONAL_COMMANDER: "Dirige toutes les structures policières d'une province.",
   DEPARTMENTAL_COMMANDER: "Commande les structures policières d'un département administratif.",
@@ -98,7 +101,8 @@ export const ROLE_DESCRIPTIONS_FR: Record<string, string> = {
 };
 
 export const ROLE_DESCRIPTIONS_AR: Record<string, string> = {
-  SUPER_ADMIN: "وصول كامل إلى جميع الوحدات، بما في ذلك الأمان وإدارة النظام.",
+  SUPER_ADMIN: "يدير المنصة التقنية (الإعدادات، النسخ الاحتياطية، هيكل المنظمة، فهرس الأدوار). لا سلطة عملياتية شرطية ولا بيانات شرطية.",
+  SECURITY_ADMIN: "يدير الحسابات والجلسات والأمان ويطلع على سجل التدقيق. لا سلطة عملياتية شرطية ولا بيانات شرطية.",
   NATIONAL_COMMANDER: "إشراف وطني: قراءة كل شيء، الموافقة على الأوامر القضائية وإعلانات البحث والعمليات والتقارير.",
   REGIONAL_COMMANDER: "يقود جميع الهياكل الشرطية في إقليم.",
   DEPARTMENTAL_COMMANDER: "يقود الهياكل الشرطية في محافظة إدارية.",

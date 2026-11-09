@@ -32,7 +32,7 @@ async function call(key: string, path: string, method = "GET", body?: unknown) {
 const event = (type: string, extra: Record<string, unknown> = {}) => ({ officerId, type, effectiveDate: new Date().toISOString().slice(0, 10), reference: `ARR-${RUN}-${type}`, ...extra });
 
 before(async () => {
-  for (const u of ["admin", "hr.director", "hr.service", "chief.cs1", "desk.post1"]) keys[u] = await keyFor(u);
+  for (const u of ["police.admin", "hr.director", "hr.service", "chief.cs1", "desk.post1"]) keys[u] = await keyFor(u);
   const ranks = await pool.query(`SELECT id, code FROM "Rank" WHERE code IN ('GP','BRG','IP')`);
   const rk = Object.fromEntries(ranks.rows.map((r) => [r.code, r.id]));
   ids.rankLow = rk.GP;
@@ -43,7 +43,7 @@ before(async () => {
   ids.pos2 = pos.rows[1].id;
   ids.station = (await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`)).rows[0].id;
   assert.ok(ids.rankLow && ids.rankMid && ids.rankHigh && ids.pos2 && ids.station, "reference data missing — run npm run db:seed");
-  const created = await call(keys.admin, "/api/v1/officers", "POST", { badgeNumber: `HRT${RUN}`.toUpperCase(), firstName: "Test", lastName: `RH${RUN}`, gender: "UNKNOWN", rankId: ids.rankLow, stationId: ids.station, hiredAt: "2015-01-01" });
+  const created = await call(keys["police.admin"], "/api/v1/officers", "POST", { badgeNumber: `HRT${RUN}`.toUpperCase(), firstName: "Test", lastName: `RH${RUN}`, gender: "UNKNOWN", rankId: ids.rankLow, stationId: ids.station, hiredAt: "2015-01-01" });
   assert.equal(created.res.status, 201, JSON.stringify(created.json));
   officerId = created.json.data.id;
 });

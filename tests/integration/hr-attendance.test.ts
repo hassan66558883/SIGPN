@@ -36,13 +36,13 @@ const inDays = (n: number) => iso(new Date(Date.now() + n * 86_400_000));
 const today = () => iso(new Date());
 const is4xx = (r: { res: Response }) => r.res.status >= 400 && r.res.status < 500;
 async function newOfficer(tag: string, stationId: string) {
-  const r = await call("admin", "/api/v1/officers", "POST", { badgeNumber: `ATT${tag}${RUN}`.toUpperCase(), firstName: "Test", lastName: `ATT${tag}${RUN}`, gender: "UNKNOWN", rankId: (await pool.query(`SELECT id FROM "Rank" WHERE code='GP'`)).rows[0].id, stationId, hiredAt: "2015-01-01" });
+  const r = await call("police.admin", "/api/v1/officers", "POST", { badgeNumber: `ATT${tag}${RUN}`.toUpperCase(), firstName: "Test", lastName: `ATT${tag}${RUN}`, gender: "UNKNOWN", rankId: (await pool.query(`SELECT id FROM "Rank" WHERE code='GP'`)).rows[0].id, stationId, hiredAt: "2015-01-01" });
   assert.equal(r.res.status, 201, JSON.stringify(r.json));
   return r.json.data.id as string;
 }
 
 before(async () => {
-  for (const u of ["admin", "hr.director", "hr.service", "chief.cs1", "desk.post1", "commander.central"]) keys[u] = await keyFor(u);
+  for (const u of ["police.admin", "hr.director", "hr.service", "chief.cs1", "desk.post1", "commander.central"]) keys[u] = await keyFor(u);
   const region = (await pool.query(`SELECT "regionId" FROM "Station" WHERE code='CS-01'`)).rows[0].regionId;
   station = (await pool.query(`INSERT INTO "Station"(id,"regionId",code,name,type,status,"isActive","isDemo","updatedAt") VALUES ($1,$2,$3,'Structure de test présences','STATION','ACTIVE',true,true,now()) RETURNING id`, [`st_att_${RUN}`, region, `ATT${RUN}`.toUpperCase()])).rows[0].id;
   const other = (await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`)).rows[0].id;

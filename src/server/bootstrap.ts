@@ -32,20 +32,28 @@ export async function bootstrap(log: (m: string) => void = console.log) {
     log(`[bootstrap] ${CHAD_PROVINCES.length} official provinces created`);
   }
 
-  const { BOOTSTRAP_ADMIN_USERNAME: username, BOOTSTRAP_ADMIN_EMAIL: email, BOOTSTRAP_ADMIN_PASSWORD: password } = process.env;
-  if (username && email && password) {
-    const role = await prisma.role.findUnique({ where: { code: "SUPER_ADMIN" }, select: { id: true } });
-    if (role && (await prisma.user.count({ where: { roleId: role.id, deletedAt: null } })) === 0) {
-      const problems = passwordPolicyErrors(password, { username, email });
-      if (problems.length) {
-        log(`[bootstrap] first administrator NOT created: the password does not meet the policy (${problems.join("; ")})`);
-        return;
-      }
-      const u = await prisma.user.create({
-        data: { username: username.toLowerCase(), email: email.toLowerCase(), firstName: process.env.BOOTSTRAP_ADMIN_FIRST_NAME || "Administrateur", lastName: process.env.BOOTSTRAP_ADMIN_LAST_NAME || "Système", passwordHash: await hashPassword(password), roleId: role.id, organizationId: org.id, mustChangePassword: true, status: "ACTIVE" },
-      });
-      await logAudit({ actor: null, action: "BOOTSTRAP_ADMIN_CREATED", module: "system", entityType: "User", entityId: u.id, entityLabel: u.username, summary: `First system administrator "${u.username}" created by the bootstrap (password change and MFA enrolment required at first sign-in)` });
-      log(`[bootstrap] first administrator "${u.username}" created — change the password at first sign-in, then remove BOOTSTRAP_ADMIN_* from the environment`);
-    }
+  // The technical administrator (SUPER_ADMIN) and the security administrator (SECURITY_ADMIN) are separate people:
+  // neither can create the other (a role can only be granted by someone who holds all its permissions), so each has its own bootstrap.
+  await bootstrapAdmin(log, org.id, { roleCode: "SUPER_ADMIN", label: "technical administrator", prefix: "BOOTSTRAP_ADMIN", defaultFirst: "Administrateur", defaultLast: "Technique" });
+  await bootstrapAdmin(log, org.id, { roleCode: "SECURITY_ADMIN", label: "security administrator", prefix: "BOOTSTRAP_SECURITY", defaultFirst: "Administrateur", defaultLast: "Sécurité" });
+}
+
+async function bootstrapAdmin(log: (m: string) => void, organizationId: string, o: { roleCode: string; label: string; prefix: string; defaultFirst: string; defaultLast: string }) {
+  const env = process.env;
+  const username = env[`${o.prefix}_USERNAME`];
+  const email = env[`${o.prefix}_EMAIL`];
+  const password = env[`${o.prefix}_PASSWORD`];
+  if (!(username && email && password)) return;
+  const role = await prisma.role.findUnique({ where: { code: o.roleCode }, select: { id: true } });
+  if (!role || (await prisma.user.count({ where: { roleId: role.id, deletedAt: null } })) > 0) return;
+  const problems = passwordPolicyErrors(password, { username, email });
+  if (problems.length) {
+    log(`[bootstrap] first ${o.label} NOT created: the password does not meet the policy (${problems.join("; ")})`);
+    return;
   }
+  const u = await prisma.user.create({
+    data: { username: username.toLowerCase(), email: email.toLowerCase(), firstName: env[`${o.prefix}_FIRST_NAME`] || o.defaultFirst, lastName: env[`${o.prefix}_LAST_NAME`] || o.defaultLast, passwordHash: await hashPassword(password), roleId: role.id, organizationId, mustChangePassword: true, status: "ACTIVE" },
+  });
+  await logAudit({ actor: null, action: "BOOTSTRAP_ADMIN_CREATED", module: "system", entityType: "User", entityId: u.id, entityLabel: u.username, summary: `First ${o.label} "${u.username}" created by the bootstrap (password change and MFA enrolment required at first sign-in)` });
+  log(`[bootstrap] first ${o.label} "${u.username}" created — change the password at first sign-in, then remove ${o.prefix}_* from the environment`);
 }

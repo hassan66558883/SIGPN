@@ -33,7 +33,7 @@ async function api(key: string, method: string, path: string, body?: unknown) {
 const now = () => new Date(Date.now() - 60_000).toISOString();
 
 before(async () => {
-  for (const u of ["control.cs1", "traffic.cs1", "traffic.supervisor", "finance.central", "readonly.traffic", "desk.cs1", "chief.cs1", "chief.arr5", "admin", "auditor"]) keys[u] = await keyFor(u);
+  for (const u of ["control.cs1", "traffic.cs1", "traffic.supervisor", "finance.central", "readonly.traffic", "desk.cs1", "chief.cs1", "chief.arr5", "police.admin", "auditor"]) keys[u] = await keyFor(u);
   const cs1 = await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`);
   ids.cs1 = cs1.rows[0].id;
   for (const code of ["TRF-043", "TRF-016", "TRF-009", "TRF-002", "TRF-039"]) {
@@ -327,7 +327,7 @@ test("dashboard: figures are computed from the database inside the scope; CSV ex
   assert.ok(k.paidFcfa >= 28600 && k.totalFinesFcfa >= k.paidFcfa);
   assert.equal(k.remainingFcfa, k.totalFinesFcfa - k.paidFcfa);
   assert.ok(s.json.data.topOffences.length > 0 && s.json.data.monthly.fines.length === 12);
-  const nat = await api(keys["admin"], "GET", "/api/v1/traffic/stats");
+  const nat = await api(keys["police.admin"], "GET", "/api/v1/traffic/stats");
   assert.ok(nat.json.data.kpi.controls >= k.controls, "national scope sees at least the station figures");
   const csv = await fetch(`${BASE}/api/v1/traffic/stats?format=csv`, { headers: { authorization: `Bearer ${keys["chief.cs1"]}` } });
   assert.equal(csv.status, 200);

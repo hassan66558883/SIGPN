@@ -1,7 +1,8 @@
 import "server-only";
 import { prisma } from "@/server/db";
 import { PERMISSION_CATALOG } from "@/server/rbac/permissions";
-import { CASH_DEFAULT_GRANTS, HR_DEFAULT_GRANTS, SYSTEM_ROLES, TRAFFIC_DEFAULT_GRANTS } from "@/server/rbac/roles";
+import { logAudit } from "@/server/audit";
+import { CASH_DEFAULT_GRANTS, HR_DEFAULT_GRANTS, SYSTEM_ROLES, TECH_ADMIN_PERMISSIONS, TRAFFIC_DEFAULT_GRANTS } from "@/server/rbac/roles";
 
 export async function syncPermissionCatalog() {
   for (const [code, description] of PERMISSION_CATALOG) {
@@ -27,6 +28,7 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
       await prisma.rolePermission.createMany({ data: def.permissions.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
     }
   }
+  await separateAdministrationOnce(byCode);
   await grantTrafficDefaultsOnce(byCode);
   await grantCashDefaultsOnce(byCode);
   await grantHrDefaultsOnce(byCode);
@@ -40,6 +42,24 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
   await grantBiometricControlOnce(byCode);
   await grantPublicPortalOnce(byCode);
   return SYSTEM_ROLES.length;
+}
+
+/**
+ * Security audit, lot 1: databases created before the separation give SUPER_ADMIN every permission. Remove, ONCE, everything
+ * that is not technical administration (marked in SystemSetting, so a later deliberate change is never overwritten).
+ * Runs before the other one-time grants so they cannot hand operational permissions back through "holders of X".
+ */
+async function separateAdministrationOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.admin_separation_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const role = await prisma.role.findUnique({ where: { code: "SUPER_ADMIN" }, select: { id: true } });
+  let removed = 0;
+  if (role) {
+    const keep = TECH_ADMIN_PERMISSIONS.map((c) => byCode.get(c)!).filter(Boolean);
+    removed = (await prisma.rolePermission.deleteMany({ where: { roleId: role.id, permissionId: { notIn: keep } } })).count;
+    await logAudit({ actor: null, action: "ADMIN_SEPARATION_APPLIED", module: "roles", entityType: "Role", entityId: role.id, entityLabel: "SUPER_ADMIN", summary: `Separation of duties: ${removed} operational permission(s) removed from the technical administrator role`, after: { removed, kept: keep.length } });
+  }
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions opérationnelles ont été retirées du rôle d'administrateur technique (audit de sécurité, lot 1)." } });
 }
 
 /**
@@ -179,7 +199,7 @@ async function grantAlertsOnce(byCode: Map<string, string>) {
   await grant(viewers, "alerts:view");
   await grant(viewers, "alerts:ack");
   await grant(await holders("wanted:approve"), "alerts:supervise");
-  const sim = await prisma.role.findMany({ where: { code: { in: ["SUPER_ADMIN", "NATIONAL_COMMANDER"] } }, select: { id: true } });
+  const sim = await prisma.role.findMany({ where: { code: { in: ["NATIONAL_COMMANDER"] } }, select: { id: true } });
   await grant(sim.map((r) => r.id), "alerts:simulate");
   await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions du réseau d'alertes nationales ont été accordées aux rôles système." } });
 }

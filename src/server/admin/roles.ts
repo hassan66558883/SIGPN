@@ -7,7 +7,7 @@ import { BusinessError, NotFoundError } from "@/server/errors";
 import { revokeAllSessions } from "@/server/auth/session";
 import type { Actor } from "@/server/auth/dal";
 import { isPermission, PERMISSION_CATALOG } from "@/server/rbac/permissions";
-import { SYSTEM_ROLES } from "@/server/rbac/roles";
+import { LOCKED_ROLE_CODES, SYSTEM_ROLES } from "@/server/rbac/roles";
 import type { RequestContext } from "@/server/request-context";
 import { optionalText } from "@/server/action-utils";
 import type { Locale } from "@/lib/i18n";
@@ -53,7 +53,7 @@ export async function createRole(actor: Actor, input: RoleInput, ctx: RequestCon
 
 export async function updateRole(actor: Actor, id: string, input: Omit<RoleInput, "code">, ctx: RequestContext) {
   const before = await getRole(id);
-  if (before.isSystem && before.code === "SUPER_ADMIN") throw new BusinessError("The SUPER_ADMIN role is locked.", "STATE");
+  if (before.isSystem && LOCKED_ROLE_CODES.includes(before.code)) throw new BusinessError("The system administrator roles are fixed by the system and cannot be edited.", "STATE");
   if (actor.scopeLevel !== "NATIONAL" && (input.scopeLevel === "NATIONAL" || before.scopeLevel === "NATIONAL")) throw new BusinessError("Only national administrators can edit national-scope roles.", "STATE");
   const sys = SYSTEM_ROLES.find((r) => r.code === before.code);
   if (sys && sys.requiresMfa && !input.requiresMfa) throw new BusinessError(`MFA cannot be switched off for the system role ${before.code}.`, "STATE");
@@ -68,7 +68,7 @@ export async function updateRole(actor: Actor, id: string, input: Omit<RoleInput
 /** Replaces the permission set of a role. The actor can only grant permissions they hold themselves. */
 export async function setRolePermissions(actor: Actor, id: string, codes: string[], ctx: RequestContext) {
   const before = await getRole(id);
-  if (before.code === "SUPER_ADMIN") throw new BusinessError("The SUPER_ADMIN role always holds every permission and cannot be edited.", "STATE");
+  if (LOCKED_ROLE_CODES.includes(before.code)) throw new BusinessError("The system administrator roles are fixed by the system and cannot be edited.", "STATE");
   const wanted: string[] = Array.from(new Set(codes.filter(isPermission)));
   const excess = wanted.filter((c) => !actor.permissions.has(c));
   if (excess.length) throw new BusinessError(`You cannot grant permissions you do not hold: ${excess.slice(0, 5).join(", ")}${excess.length > 5 ? "…" : ""}.`, "STATE");

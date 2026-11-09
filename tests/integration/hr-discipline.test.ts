@@ -43,7 +43,7 @@ const inDays = (n: number) => iso(new Date(Date.now() + n * 86_400_000));
 const today = () => iso(new Date());
 const is4xx = (r: { res: Response }) => r.res.status >= 400 && r.res.status < 500;
 async function newOfficer(tag: string) {
-  const r = await call("admin", "/api/v1/officers", "POST", { badgeNumber: `DSC${tag}${RUN}`.toUpperCase(), firstName: `Prenom${tag}`, lastName: `DSC${tag}${RUN}`, gender: "UNKNOWN", rankId: (await pool.query(`SELECT id FROM "Rank" WHERE code='GP'`)).rows[0].id, stationId: station, hiredAt: "2012-01-01" });
+  const r = await call("police.admin", "/api/v1/officers", "POST", { badgeNumber: `DSC${tag}${RUN}`.toUpperCase(), firstName: `Prenom${tag}`, lastName: `DSC${tag}${RUN}`, gender: "UNKNOWN", rankId: (await pool.query(`SELECT id FROM "Rank" WHERE code='GP'`)).rows[0].id, stationId: station, hiredAt: "2012-01-01" });
   assert.equal(r.res.status, 201, JSON.stringify(r.json));
   return r.json.data.id as string;
 }
@@ -57,7 +57,7 @@ async function openAndHear(officerId: string, opener = "hr.director") {
 
 before(async () => {
   startedAt = new Date();
-  for (const u of ["admin", "hr.director", "hr.service", "chief.cs1", "commander.national", "commander.central"]) keys[u] = await keyFor(u);
+  for (const u of ["police.admin", "hr.director", "hr.service", "chief.cs1", "commander.national", "commander.central"]) keys[u] = await keyFor(u);
   const region = (await pool.query(`SELECT "regionId" FROM "Station" WHERE code='CS-01'`)).rows[0].regionId;
   station = (await pool.query(`INSERT INTO "Station"(id,"regionId",code,name,type,status,"isActive","isDemo","updatedAt") VALUES ($1,$2,$3,'Structure de test discipline','STATION','ACTIVE',true,true,now()) RETURNING id`, [`st_ds_${RUN}`, region, `DSC${RUN}`.toUpperCase()])).rows[0].id;
   for (const k of ["D1", "D2", "D3"] as const) off[k] = await newOfficer(k.slice(1));
@@ -129,7 +129,7 @@ test("suspension: validated dates, takes effect on the dossier, ends by itself (
   const o = (await pool.query(`SELECT "administrativeStatus","dutyStatus" FROM "Officer" WHERE id=$1`, [off.D2])).rows[0];
   assert.deepEqual(o, { administrativeStatus: "SUSPENDED", dutyStatus: "SUSPENDED" });
   assert.equal((await pool.query(`SELECT count(*)::int n FROM "CareerEvent" WHERE "officerId"=$1 AND type='SUSPENSION'`, [off.D2])).rows[0].n, 1);
-  const tr = await call("admin", "/api/v1/hr/transfers", "POST", { officerId: off.D2, toStationId: (await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`)).rows[0].id, effectiveDate: today(), reason: "Mutation d'un agent suspendu" });
+  const tr = await call("police.admin", "/api/v1/hr/transfers", "POST", { officerId: off.D2, toStationId: (await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`)).rows[0].id, effectiveDate: today(), reason: "Mutation d'un agent suspendu" });
   assert.ok(is4xx(tr), "a suspended officer cannot be transferred");
   // time passes: the suspension is over -> the scheduler step reinstates the officer
   await pool.query(`UPDATE "DisciplinaryCase" SET "sanctionStart"=current_date - 5, "sanctionEnd"=current_date - 1 WHERE id=$1`, [id]);

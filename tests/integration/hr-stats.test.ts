@@ -41,19 +41,19 @@ const is4xx = (r: { res: Response }) => r.res.status >= 400 && r.res.status < 50
 const sum = (rows: { n: number }[]) => rows.reduce((a, r) => a + r.n, 0);
 const stats = async (who: string, q = "") => (await call(who, `/api/v1/hr/stats${q ? `?${q}` : ""}`)).json.data;
 async function newOfficer(tag: string) {
-  const r = await call("admin", "/api/v1/officers", "POST", { badgeNumber: `STA${tag}${RUN}`.toUpperCase(), firstName: "Test", lastName: `STA${tag}${RUN}`, gender: tag === "A" ? "MALE" : "FEMALE", rankId: rankGP, stationId: station, hiredAt: tag === "A" ? "2012-01-01" : inDays(-90) });
+  const r = await call("police.admin", "/api/v1/officers", "POST", { badgeNumber: `STA${tag}${RUN}`.toUpperCase(), firstName: "Test", lastName: `STA${tag}${RUN}`, gender: tag === "A" ? "MALE" : "FEMALE", rankId: rankGP, stationId: station, hiredAt: tag === "A" ? "2012-01-01" : inDays(-90) });
   assert.equal(r.res.status, 201, JSON.stringify(r.json));
   return r.json.data.id as string;
 }
 
 before(async () => {
-  for (const u of ["admin", "hr.director", "chief.cs1", "desk.post1"]) keys[u] = await keyFor(u);
+  for (const u of ["police.admin", "admin", "hr.director", "chief.cs1", "desk.post1"]) keys[u] = await keyFor(u);
   region = (await pool.query(`SELECT "regionId" FROM "Station" WHERE code='CS-01'`)).rows[0].regionId;
   rankGP = (await pool.query(`SELECT id FROM "Rank" WHERE code='GP'`)).rows[0].id;
   station = (await pool.query(`INSERT INTO "Station"(id,"regionId",code,name,type,status,"isActive","isDemo","updatedAt") VALUES ($1,$2,$3,'Structure de test statistiques','STATION','ACTIVE',true,true,now()) RETURNING id`, [`st_stat_${RUN}`, region, `STA${RUN}`.toUpperCase()])).rows[0].id;
   off.A = await newOfficer("A");
   off.B = await newOfficer("B");
-  originalSettings = (await call("admin", "/api/v1/hr/stats/settings")).json.data;
+  originalSettings = (await call("police.admin", "/api/v1/hr/stats/settings")).json.data;
   // controlled data (SQL: the API would otherwise date everything "now")
   const dob = new Date();
   dob.setUTCFullYear(dob.getUTCFullYear() - 60);

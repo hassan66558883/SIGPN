@@ -147,11 +147,11 @@ test("payment and fine-status schemas", () => {
 test("roles: the payment permissions are held only by the finance/administration roles; read-only stays read-only", () => {
   const has = (role: string, p: string) => SYSTEM_ROLES.find((r) => r.code === role)!.permissions.includes(p as never);
   const holders = (p: string) => SYSTEM_ROLES.filter((r) => r.permissions.includes(p as never)).map((r) => r.code).sort();
-  assert.deepEqual(holders("traffic:payment_record"), ["POLICE_ADMIN", "SUPER_ADMIN", "TRAFFIC_PAYMENT_MANAGER"]);
-  assert.deepEqual(holders("traffic:payment_void"), ["POLICE_ADMIN", "SUPER_ADMIN", "TRAFFIC_PAYMENT_MANAGER"]);
-  assert.deepEqual(holders("traffic:catalog_manage"), ["POLICE_ADMIN", "SUPER_ADMIN"]);
+  assert.deepEqual(holders("traffic:payment_record"), ["POLICE_ADMIN", "TRAFFIC_PAYMENT_MANAGER"]);
+  assert.deepEqual(holders("traffic:payment_void"), ["POLICE_ADMIN", "TRAFFIC_PAYMENT_MANAGER"]);
+  assert.deepEqual(holders("traffic:catalog_manage"), ["POLICE_ADMIN"]);
   for (const p of PERMISSION_CATALOG.map(([c]) => c).filter((c) => c.startsWith("traffic:"))) {
-    assert.ok(has("SUPER_ADMIN", p), `SUPER_ADMIN has ${p}`);
+    assert.ok(!has("SUPER_ADMIN", p) && !has("SECURITY_ADMIN", p), `the platform administrators hold no traffic permission (${p})`);
     if (!p.endsWith("_view") && p !== "traffic:view" && p !== "traffic:dashboard") assert.ok(!has("TRAFFIC_READONLY", p), `read-only role must not hold ${p}`);
   }
   assert.ok(has("TRAFFIC_CONTROL_AGENT", "traffic:control_create") && !has("TRAFFIC_CONTROL_AGENT", "traffic:drivers_manage"));

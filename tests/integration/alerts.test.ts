@@ -53,7 +53,7 @@ async function assertCoversAllUnits(alertId: string) {
 }
 
 before(async () => {
-  for (const u of ["admin", "inv.diallo", "chief.cs1", "chief.mdu", "chief.arr5", "desk.post1", "desk.cs1", "commander.national", "analyst"]) keys[u] = await keyFor(u);
+  for (const u of ["commander.national", "inv.diallo", "chief.cs1", "chief.mdu", "chief.arr5", "desk.post1", "desk.cs1", "analyst"]) keys[u] = await keyFor(u);
   ids.cs1 = (await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`)).rows[0].id;
   ids.ns1 = (await pool.query(`SELECT id FROM "Station" WHERE code='NS-01'`)).rows[0].id;
   activeStations = (await pool.query(`SELECT count(*)::int n FROM "Station" WHERE "isActive"`)).rows[0].n;
@@ -75,7 +75,7 @@ test("approving a notice publishes ONE national event to every active unit, in P
   ids.wanted = created.json.data.id;
   assert.equal((await api(keys["chief.cs1"], "PATCH", `/api/v1/wanted/${ids.wanted}`, { op: "verify" })).res.status, 200);
   assert.equal((await pool.query(`SELECT count(*)::int n FROM "NationalAlert" WHERE "wantedPersonId"=$1`, [ids.wanted])).rows[0].n, 0, "nothing is published before approval");
-  const approved = await api(keys["admin"], "PATCH", `/api/v1/wanted/${ids.wanted}`, { op: "status", status: "ACTIVE" });
+  const approved = await api(keys["commander.national"], "PATCH", `/api/v1/wanted/${ids.wanted}`, { op: "status", status: "ACTIVE" });
   assert.equal(approved.res.status, 200, JSON.stringify(approved.json));
   const alerts = await pool.query(`SELECT id, kind, diffusion, priority, payload FROM "NationalAlert" WHERE "wantedPersonId"=$1`, [ids.wanted]);
   assert.equal(alerts.rowCount, 1);
@@ -114,18 +114,18 @@ test("a unit receives it on its next synchronisation: fetching is the delivery r
 });
 
 test("an offline unit gets nothing, keeps the alert pending, and catches up on reconnection (new alerts are cumulative)", async () => {
-  assert.equal((await api(keys["admin"], "POST", `/api/v1/alerts/units/${ids.cs1}/presence`, { offline: true })).res.status, 200);
+  assert.equal((await api(keys["commander.national"], "POST", `/api/v1/alerts/units/${ids.cs1}/presence`, { offline: true })).res.status, 200);
   const hb = await api(keys["chief.cs1"], "POST", "/api/v1/alerts/heartbeat");
   assert.equal(hb.json.data.online, false);
   const off = await api(keys["chief.cs1"], "GET", "/api/v1/alerts");
   assert.equal(off.json.meta?.offline, true);
   assert.deepEqual(off.json.data, []);
-  const sim = await api(keys["admin"], "POST", "/api/v1/alerts/simulate", { title: `Exercice ${RUN}`, diffusion: "NATIONAL", stationId: ids.cs1 });
+  const sim = await api(keys["commander.national"], "POST", "/api/v1/alerts/simulate", { title: `Exercice ${RUN}`, diffusion: "NATIONAL", stationId: ids.cs1 });
   assert.equal(sim.res.status, 201, JSON.stringify(sim.json));
   ids.sim = sim.json.data.id;
   const stillPending = (await deliveries(ids.sim)).find((x) => x.stationId === ids.cs1);
   assert.equal(stillPending?.status, "PENDING", "offline unit: still pending");
-  assert.equal((await api(keys["admin"], "POST", `/api/v1/alerts/units/${ids.cs1}/presence`, { offline: false })).res.status, 200);
+  assert.equal((await api(keys["commander.national"], "POST", `/api/v1/alerts/units/${ids.cs1}/presence`, { offline: false })).res.status, 200);
   const back = await api(keys["chief.cs1"], "GET", "/api/v1/alerts?limit=200");
   assert.ok((back.json.meta?.caughtUp ?? 0) >= 2, `caught up ${back.json.meta?.caughtUp}`);
   const items = back.json.data as { alert: { id: string; isSimulation: boolean }; status: string }[];
@@ -151,7 +151,7 @@ test("a LOCAL notice goes to the issuing unit and its sub-units only; a notice n
   assert.equal(c.res.status, 201, JSON.stringify(c.json));
   const id = c.res.status === 201 ? c.json.data.id : "";
   await api(keys["chief.cs1"], "PATCH", `/api/v1/wanted/${id}`, { op: "verify" });
-  assert.equal((await api(keys["admin"], "PATCH", `/api/v1/wanted/${id}`, { op: "status", status: "ACTIVE" })).res.status, 200);
+  assert.equal((await api(keys["commander.national"], "PATCH", `/api/v1/wanted/${id}`, { op: "status", status: "ACTIVE" })).res.status, 200);
   const a = (await pool.query(`SELECT id FROM "NationalAlert" WHERE "wantedPersonId"=$1`, [id])).rows[0].id;
   const d = await deliveries(a);
   assert.ok(d.length >= 1 && d.length < activeStations, `local scope: ${d.length} of ${activeStations}`);

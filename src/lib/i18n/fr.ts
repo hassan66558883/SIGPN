@@ -378,7 +378,7 @@ export const fr = {
   "role.mfaRequired": "2FA requise",
   "role.systemRole": "rôle système",
   "role.createdAlert": "Rôle créé. Attribuez ses permissions ci-dessous.",
-  "role.lockedAlert": "SUPER_ADMIN détient toujours toutes les permissions et ne peut pas être modifié.",
+  "role.lockedAlert": "Les rôles d'administration (technique et sécurité) sont fixés par le système : ils ne portent aucune autorité opérationnelle de police et ne peuvent pas être modifiés.",
   "role.settings": "Paramètres du rôle",
   "role.availability": "Disponibilité",
   "role.deactivate": "Désactiver le rôle",

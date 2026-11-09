@@ -3,7 +3,8 @@
  * `station` / `department` / `province` codes place the account in the territorial hierarchy.
  */
 export const DEMO_ACCOUNTS = [
-  { username: "admin", roleCode: "SUPER_ADMIN", roleName: "System Administrator", firstName: "Aisha", lastName: "Mbaye", hint: "national · MFA required" },
+  { username: "admin", roleCode: "SUPER_ADMIN", roleName: "Technical Administrator", firstName: "Aisha", lastName: "Mbaye", hint: "technique · national · MFA required" },
+  { username: "security.admin", roleCode: "SECURITY_ADMIN", roleName: "Security Administrator", firstName: "Moussa", lastName: "Dagache", hint: "sécurité et audit · national · MFA required" },
   { username: "commander.national", roleCode: "NATIONAL_COMMANDER", roleName: "National Commander", firstName: "Daniel", lastName: "Okafor", hint: "Direction générale · MFA required" },
   { username: "commander.central", roleCode: "REGIONAL_COMMANDER", roleName: "Regional Commander", firstName: "Grace", lastName: "Abubakar", hint: "Province de N'Djamena · MFA required", province: "NDJ" },
   { username: "commander.dept", roleCode: "DEPARTMENTAL_COMMANDER", roleName: "Departmental Commander", firstName: "Hamid", lastName: "Doumro", hint: "Département Ville de N'Djamena · MFA required", province: "NDJ", department: "DEP-NDJ" },

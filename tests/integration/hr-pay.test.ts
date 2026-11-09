@@ -43,7 +43,7 @@ const is4xx = (r: { res: Response }) => r.res.status >= 400 && r.res.status < 50
 const FROM = "1990-01-01";
 
 async function newOfficer(tag: string) {
-  const r = await call("admin", "/api/v1/officers", "POST", { badgeNumber: `PAY${tag}${RUN}`.toUpperCase(), firstName: "Test", lastName: `PAY${tag}${RUN}`, gender: "UNKNOWN", rankId, stationId: station, hiredAt: "2012-01-01" });
+  const r = await call("police.admin", "/api/v1/officers", "POST", { badgeNumber: `PAY${tag}${RUN}`.toUpperCase(), firstName: "Test", lastName: `PAY${tag}${RUN}`, gender: "UNKNOWN", rankId, stationId: station, hiredAt: "2012-01-01" });
   assert.equal(r.res.status, 201, JSON.stringify(r.json));
   return r.json.data.id as string;
 }
@@ -66,7 +66,7 @@ async function freePeriod() {
 }
 
 before(async () => {
-  for (const u of ["admin", "hr.director", "chief.cs1", "desk.post1", "payroll.officer", "payroll.control"]) keys[u] = await keyFor(u);
+  for (const u of ["police.admin", "hr.director", "chief.cs1", "desk.post1", "payroll.officer", "payroll.control"]) keys[u] = await keyFor(u);
   const region = (await pool.query(`SELECT "regionId" FROM "Station" WHERE code='CS-01'`)).rows[0].regionId;
   station = (await pool.query(`INSERT INTO "Station"(id,"regionId",code,name,type,status,"isActive","isDemo","updatedAt") VALUES ($1,$2,$3,'Structure de test solde','STATION','ACTIVE',true,true,now()) RETURNING id`, [`st_py_${RUN}`, region, `PAY${RUN}`.toUpperCase()])).rows[0].id;
   rankId = (await pool.query(`INSERT INTO "Rank"(id,code,name,level,category,"isActive") VALUES ($1,$2,'Grade de test solde',1,'CIVILIAN',true) RETURNING id`, [`rk_py_${RUN}`, `TP${RUN}`.toUpperCase()])).rows[0].id;
@@ -92,7 +92,7 @@ after(async () => {
 });
 
 test("access: only the dedicated payroll roles, and each only for its own duties", async () => {
-  for (const who of ["admin", "hr.director", "chief.cs1", "desk.post1"]) {
+  for (const who of ["police.admin", "hr.director", "chief.cs1", "desk.post1"]) {
     for (const path of ["/api/v1/hr/pay", "/api/v1/hr/pay/scale", "/api/v1/hr/pay/components", "/api/v1/hr/pay/elements", "/api/v1/hr/pay/runs", `/api/v1/hr/pay/officers/${off.P1}`]) assert.equal((await call(who, path)).res.status, 403, `${who} ${path}`);
   }
   assert.equal((await call("payroll.officer", "/api/v1/hr/pay")).res.status, 200);

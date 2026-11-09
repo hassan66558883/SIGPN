@@ -10,6 +10,7 @@ import { SCOPE_LEVEL, labelOf } from "@/lib/labels";
 import { RoleForm } from "../role-form";
 import { getLocale, getT } from "@/server/i18n";
 import { roleDescription, roleName } from "@/lib/i18n/catalog";
+import { LOCKED_ROLE_CODES } from "@/server/rbac/roles";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getT();
@@ -28,7 +29,7 @@ export default async function RoleDetailPage({ params, searchParams }: PageProps
   }
   const groups = permissionCatalogGrouped(locale);
   const canManage = actor.permissions.has("roles:manage");
-  const locked = role.code === "SUPER_ADMIN";
+  const locked = LOCKED_ROLE_CODES.includes(role.code);
   const sc = labelOf(SCOPE_LEVEL, role.scopeLevel, locale);
   const held = new Set(role.permissionCodes);
   const displayName = roleName(role.code, role.name, locale);

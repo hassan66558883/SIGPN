@@ -40,7 +40,7 @@ async function api(key: string, method: string, p: string, body?: unknown) {
 const unitRows = async (alertId: string, stationId: string) => (await pool.query(`SELECT status, "deliveredAt", "readAt", "ackAt", "escalationLevel" FROM "AlertDelivery" WHERE "alertId"=$1 AND "stationId"=$2`, [alertId, stationId])).rows;
 
 before(async () => {
-  for (const u of ["admin", "chief.cs1", "commander.national"]) keys[u] = await keyFor(u);
+  for (const u of ["commander.national", "chief.cs1"]) keys[u] = await keyFor(u);
   ids.cs1 = (await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`)).rows[0].id;
   await pool.query(`UPDATE "StationPresence" SET "simulatedOffline"=false WHERE "stationId"=$1`, [ids.cs1]);
 });
@@ -51,17 +51,17 @@ after(async () => {
 });
 
 async function simulate(title: string) {
-  const r = await api(keys.admin, "POST", "/api/v1/alerts/simulate", { title, diffusion: "NATIONAL", stationId: ids.cs1 });
+  const r = await api(keys["commander.national"], "POST", "/api/v1/alerts/simulate", { title, diffusion: "NATIONAL", stationId: ids.cs1 });
   assert.equal(r.res.status, 201, JSON.stringify(r.json));
   return r.json.data.id as string;
 }
 
 test("a long outage accumulates alerts in order and one reconnection delivers every one of them exactly once", async () => {
-  assert.equal((await api(keys.admin, "POST", `/api/v1/alerts/units/${ids.cs1}/presence`, { offline: true })).res.status, 200);
+  assert.equal((await api(keys["commander.national"], "POST", `/api/v1/alerts/units/${ids.cs1}/presence`, { offline: true })).res.status, 200);
   const made: string[] = [];
   for (let i = 1; i <= 5; i++) made.push(await simulate(`Panne ${RUN} #${i}`));
   for (const id of made) assert.equal((await unitRows(id, ids.cs1))[0].status, "PENDING", "kept in the durable queue while the unit is offline");
-  assert.equal((await api(keys.admin, "POST", `/api/v1/alerts/units/${ids.cs1}/presence`, { offline: false })).res.status, 200);
+  assert.equal((await api(keys["commander.national"], "POST", `/api/v1/alerts/units/${ids.cs1}/presence`, { offline: false })).res.status, 200);
   const back = await api(keys["chief.cs1"], "GET", "/api/v1/alerts?limit=200");
   const items = back.json.data as { alert: { id: string; seq: number } }[];
   // a chief sees one entry per unit of the scope (the unit and its sub-units), so count distinct alerts

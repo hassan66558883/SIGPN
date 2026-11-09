@@ -15,6 +15,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
+    "roles:sync": "tsx scripts/sync-roles.ts",
     "db:studio": "prisma studio",
     "db:backup": "sh deploy/backup/backup.sh",
     "db:restore": "sh deploy/backup/restore.sh",

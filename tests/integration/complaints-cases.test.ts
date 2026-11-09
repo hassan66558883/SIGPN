@@ -28,7 +28,7 @@ async function api(key: string, method: string, path: string, body?: unknown) {
 }
 
 before(async () => {
-  for (const u of ["desk.cs1", "chief.cs1", "inv.diallo", "chief.arr5", "desk.post1", "admin"]) keys[u] = await keyFor(u);
+  for (const u of ["desk.cs1", "chief.cs1", "inv.diallo", "chief.arr5", "desk.post1", "commander.national"]) keys[u] = await keyFor(u);
 });
 after(async () => {
   await pool.query(`DELETE FROM "ApiKey" WHERE name='cc-test' AND "keyPrefix"=$1`, [`cc${RUN}`]);
@@ -170,6 +170,6 @@ test("merge persons: identifiers and involvements move to the surviving record; 
   assert.equal(merge.res.status, 405);
   // perform the merge through the DB-level service contract by calling the server action is not possible here;
   // verify instead that the seed's merge guards hold: merged persons cannot be re-registered as duplicates.
-  const list = await api(keys.admin, "GET", `/api/v1/persons?q=Doublon${RUN}&pageSize=10`);
+  const list = await api(keys["commander.national"], "GET", `/api/v1/persons?q=Doublon${RUN}&pageSize=10`);
   assert.equal((list.json.data as unknown as unknown[]).length, 2);
 });

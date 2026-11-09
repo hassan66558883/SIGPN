@@ -37,7 +37,7 @@ async function api(key: string, method: string, path: string, body?: unknown) {
 }
 
 before(async () => {
-  keys.admin = await keyFor("admin");
+  keys.admin = await keyFor("security.admin");
   keys.chief = await keyFor("chief.cs1");
   keys.desk = await keyFor("desk.cs1");
 });
@@ -54,7 +54,8 @@ test("GET /roles returns system roles with permission sets", async () => {
   const roles = json.data as unknown as { code: string; permissions: string[]; isSystem: boolean }[];
   const sa = roles.find((r) => r.code === "SUPER_ADMIN")!;
   assert.ok(sa.isSystem);
-  assert.ok(sa.permissions.includes("users:create"));
+  assert.ok(!sa.permissions.includes("users:create"), "the technical administrator no longer manages accounts");
+  assert.ok(roles.find((r) => r.code === "SECURITY_ADMIN")!.permissions.includes("users:create"));
   const inv = roles.find((r) => r.code === "INVESTIGATOR")!;
   assert.ok(!inv.permissions.includes("users:create"));
 });

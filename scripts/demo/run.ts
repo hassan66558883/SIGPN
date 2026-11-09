@@ -158,7 +158,7 @@ async function s3(b: Browser) {
 
 async function s4(b: Browser) {
   console.log("# Scénario 4 — supervision nationale, unité hors ligne, reprise");
-  const adminKey = await apiKey("admin");
+  const adminKey = await apiKey("commander.national");
   const abeId = (await pool.query(`SELECT id FROM "Station" WHERE code='CC-ABE'`)).rows[0].id as string;
   await heartbeats();
   const sup = await session(b, "commander.national");

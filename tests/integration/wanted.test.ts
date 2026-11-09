@@ -36,7 +36,7 @@ async function api(key: string, method: string, path: string, body?: unknown) {
 }
 
 before(async () => {
-  for (const u of ["chief.cs1", "inv.diallo", "desk.cs1", "chief.arr5", "admin"]) keys[u] = await keyFor(u);
+  for (const u of ["chief.cs1", "inv.diallo", "desk.cs1", "chief.arr5", "commander.national"]) keys[u] = await keyFor(u);
   const cs1 = await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`);
   ids.cs1 = cs1.rows[0].id;
   // persons without a live notice (the service refuses a second live notice for the same person)
@@ -123,21 +123,21 @@ test("a search-warrant notice needs a legal basis, an authority and an ACTIVE wa
   ids.swWanted = id;
   const self = await api(keys["chief.cs1"], "PATCH", `/api/v1/wanted/${id}`, { op: "verify" });
   assert.equal(self.res.status, 409, "the issuer cannot verify (four-eyes)");
-  const noBasis = await api(keys["admin"], "PATCH", `/api/v1/wanted/${id}`, { op: "verify" });
+  const noBasis = await api(keys["commander.national"], "PATCH", `/api/v1/wanted/${id}`, { op: "verify" });
   assert.equal(noBasis.res.status, 409, "legal basis / authority missing: " + JSON.stringify(noBasis.json));
   await pool.query(`UPDATE "WantedPerson" SET "legalBasis"='Mandat de recherche du juge d instruction (test)', "issuingAuthority"='Tribunal de grande instance (test)' WHERE id=$1`, [id]);
-  const noWarrant = await api(keys["admin"], "PATCH", `/api/v1/wanted/${id}`, { op: "verify" });
+  const noWarrant = await api(keys["commander.national"], "PATCH", `/api/v1/wanted/${id}`, { op: "verify" });
   assert.equal(noWarrant.res.status, 409, "a search-warrant notice needs a linked warrant");
   const w = await api(keys["chief.cs1"], "POST", `/api/v1/wanted/${id}/warrant`, { type: "ARREST", issuingAuthority: "Tribunal de grande instance", grounds: "Charges suffisantes réunies dans le cadre de l'enquête (test)." });
   assert.equal(w.res.status, 201, JSON.stringify(w.json));
-  const verified = await api(keys["admin"], "PATCH", `/api/v1/wanted/${id}`, { op: "verify" });
+  const verified = await api(keys["commander.national"], "PATCH", `/api/v1/wanted/${id}`, { op: "verify" });
   assert.equal(verified.res.status, 200, JSON.stringify(verified.json));
-  const draftWarrant = await api(keys["admin"], "PATCH", `/api/v1/wanted/${id}`, { op: "status", status: "ACTIVE" });
+  const draftWarrant = await api(keys["commander.national"], "PATCH", `/api/v1/wanted/${id}`, { op: "status", status: "ACTIVE" });
   assert.equal(draftWarrant.res.status, 409, "the warrant is still a draft: " + JSON.stringify(draftWarrant.json));
   await pool.query(`UPDATE "Warrant" SET status='ACTIVE' WHERE id=$1`, [w.json.data!.id]);
   const selfApprove = await api(keys["chief.cs1"], "PATCH", `/api/v1/wanted/${id}`, { op: "status", status: "ACTIVE" });
   assert.equal(selfApprove.res.status, 409, "the issuer cannot approve (four-eyes)");
-  const ok = await api(keys["admin"], "PATCH", `/api/v1/wanted/${id}`, { op: "status", status: "ACTIVE" });
+  const ok = await api(keys["commander.national"], "PATCH", `/api/v1/wanted/${id}`, { op: "status", status: "ACTIVE" });
   assert.equal(ok.res.status, 200, JSON.stringify(ok.json));
 });
 

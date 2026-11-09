@@ -118,10 +118,10 @@ const ROUTES: { method: string; path: string; body?: () => unknown }[] = [
 ];
 
 before(async () => {
-  for (const u of ["admin", "hr.director", "hr.service", "chief.cs1", "desk.post1", "analyst"]) keys[u] = await keyFor(u);
+  for (const u of ["police.admin", "hr.director", "hr.service", "chief.cs1", "desk.post1", "analyst"]) keys[u] = await keyFor(u);
   const region = (await pool.query(`SELECT "regionId" FROM "Station" WHERE code='CS-01'`)).rows[0].regionId;
   station = (await pool.query(`INSERT INTO "Station"(id,"regionId",code,name,type,status,"isActive","isDemo","updatedAt") VALUES ($1,$2,$3,'Structure de test sécurité','STATION','ACTIVE',true,true,now()) RETURNING id`, [`st_sc_${RUN}`, region, `SEC${RUN}`.toUpperCase()])).rows[0].id;
-  const r = await call("admin", "/api/v1/officers", "POST", { badgeNumber: `SEC${RUN}`.toUpperCase(), firstName: "Test", lastName: `SEC${RUN}`, gender: "UNKNOWN", rankId: (await pool.query(`SELECT id FROM "Rank" WHERE code='GP'`)).rows[0].id, stationId: station, hiredAt: "2013-01-01" });
+  const r = await call("police.admin", "/api/v1/officers", "POST", { badgeNumber: `SEC${RUN}`.toUpperCase(), firstName: "Test", lastName: `SEC${RUN}`, gender: "UNKNOWN", rankId: (await pool.query(`SELECT id FROM "Rank" WHERE code='GP'`)).rows[0].id, stationId: station, hiredAt: "2013-01-01" });
   assert.equal(r.res.status, 201, JSON.stringify(r.json));
   officerId = r.json.data.id;
 });
@@ -241,7 +241,7 @@ test("a new dossier gets the HR defaults (post tenure, corps, recruitment event)
 });
 
 test("an officer who leaves the service has their open transfers cancelled", async () => {
-  const p = await call("admin", "/api/v1/hr/transfers", "POST", { officerId, toStationId: (await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`)).rows[0].id, effectiveDate: today(), reason: "Mutation avant départ" });
+  const p = await call("police.admin", "/api/v1/hr/transfers", "POST", { officerId, toStationId: (await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`)).rows[0].id, effectiveDate: today(), reason: "Mutation avant départ" });
   assert.equal(p.res.status, 201, JSON.stringify(p.json));
   const ret = await call("hr.director", "/api/v1/hr/career-events", "POST", { officerId, type: "RETIREMENT", effectiveDate: today(), reference: `ARR-${RUN}-R` });
   assert.equal(ret.res.status, 201, JSON.stringify(ret.json));
@@ -256,7 +256,7 @@ test("integrity checks: access is national-audit only, anomalies are detected an
   assert.equal(base.res.status, 200, JSON.stringify(base.json));
   const count = (r: any, code: string) => r.json.data.issues.find((i: any) => i.code === code)?.count ?? 0;
   const before = count(base, "STATUS_LEFT_BUT_ACTIVE");
-  const o2 = (await call("admin", "/api/v1/officers", "POST", { badgeNumber: `SCX${RUN}`.toUpperCase(), firstName: "Test", lastName: `SCX${RUN}`, gender: "UNKNOWN", rankId: (await pool.query(`SELECT id FROM "Rank" WHERE code='GP'`)).rows[0].id, stationId: station })).json.data.id;
+  const o2 = (await call("police.admin", "/api/v1/officers", "POST", { badgeNumber: `SCX${RUN}`.toUpperCase(), firstName: "Test", lastName: `SCX${RUN}`, gender: "UNKNOWN", rankId: (await pool.query(`SELECT id FROM "Rank" WHERE code='GP'`)).rows[0].id, stationId: station })).json.data.id;
   await pool.query(`UPDATE "Officer" SET "administrativeStatus"='RETIRED' WHERE id=$1`, [o2]); // contradictory on purpose: left the service but still flagged active
   const after = await call("hr.director", "/api/v1/hr/integrity");
   assert.equal(count(after, "STATUS_LEFT_BUT_ACTIVE"), before + 1, "the contradiction is detected");

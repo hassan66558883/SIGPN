@@ -41,18 +41,18 @@ const monthsAgoSql = (m: number, plusDays = 0) => {
 };
 const setSince = (id: string, d: Date) => pool.query(`UPDATE "Officer" SET "currentPostSince"=$2 WHERE id=$1`, [id, d]);
 const cfg = (over: Record<string, unknown> = {}) => ({ enabled: true, durationMonths: 12, warningDays: 30, categories: [], excludedPositionIds: [], sameProvinceOnly: true, effectiveDelayDays: 0, validatorRoleCodes: [], pilotStationIds: [st.T1], maxProposalsPerRun: 5, ...over });
-const save = (over: Record<string, unknown> = {}) => call("admin", "/api/v1/hr/rotation/settings", "PUT", cfg(over));
+const save = (over: Record<string, unknown> = {}) => call("police.admin", "/api/v1/hr/rotation/settings", "PUT", cfg(over));
 const run = () => call("hr.director", "/api/v1/hr/rotation/run", "POST");
 const autoTransfers = async (officerId: string) => (await pool.query(`SELECT * FROM "TransferRequest" WHERE "officerId"=$1 AND origin='AUTOMATIC' ORDER BY "createdAt"`, [officerId])).rows;
 async function newOfficer(tag: string) {
-  const r = await call("admin", "/api/v1/officers", "POST", { badgeNumber: `ROT${tag}${RUN}`.toUpperCase(), firstName: "Test", lastName: `ROT${tag}${RUN}`, gender: "UNKNOWN", rankId: (await pool.query(`SELECT id FROM "Rank" WHERE code='GP'`)).rows[0].id, stationId: st.T1, hiredAt: "2001-01-01" });
+  const r = await call("police.admin", "/api/v1/officers", "POST", { badgeNumber: `ROT${tag}${RUN}`.toUpperCase(), firstName: "Test", lastName: `ROT${tag}${RUN}`, gender: "UNKNOWN", rankId: (await pool.query(`SELECT id FROM "Rank" WHERE code='GP'`)).rows[0].id, stationId: st.T1, hiredAt: "2001-01-01" });
   assert.equal(r.res.status, 201, JSON.stringify(r.json));
   return r.json.data.id as string;
 }
 
 before(async () => {
   startedAt = new Date();
-  for (const u of ["admin", "hr.director", "hr.service", "desk.post1", "commander.central", "commander.national", "chief.cs1"]) keys[u] = await keyFor(u);
+  for (const u of ["police.admin", "hr.director", "hr.service", "desk.post1", "commander.central", "commander.national", "chief.cs1"]) keys[u] = await keyFor(u);
   const rows = await pool.query(`SELECT id, code, "regionId" FROM "Station" WHERE code IN ('CS-01','NS-01')`);
   for (const r of rows.rows) st[r.code] = r.id;
   const region = rows.rows.find((r) => r.code === "CS-01").regionId;
@@ -60,7 +60,7 @@ before(async () => {
     const ins = await pool.query(`INSERT INTO "Station"(id,"regionId",code,name,type,status,"isActive","isDemo","updatedAt") VALUES ($1,$2,$3,$4,'STATION','ACTIVE',true,true,now()) RETURNING id`, [`st_rot_${code}_${RUN}`, region, `ROT${code}${RUN}`.toUpperCase(), `Structure de test rotation ${code}`]);
     st[code] = ins.rows[0].id;
   }
-  original = (await call("admin", "/api/v1/hr/rotation/settings")).json.data;
+  original = (await call("police.admin", "/api/v1/hr/rotation/settings")).json.data;
   assert.ok(original && "enabled" in original, "settings readable");
   await save({ enabled: false });
   for (const k of ["A", "B", "D"] as const) off[k] = await newOfficer(k);
@@ -69,7 +69,7 @@ before(async () => {
 });
 
 after(async () => {
-  await call("admin", "/api/v1/hr/rotation/settings", "PUT", original);
+  await call("police.admin", "/api/v1/hr/rotation/settings", "PUT", original);
   // Direct SQL (not the API): the cleanup must not depend on the rate limiter, which the test itself exercises heavily.
   const ids = Object.values(off);
   await pool.query(`UPDATE "TransferRequest" SET status='CANCELLED', "closeReason"='Test clean-up' WHERE "officerId" = ANY($1) AND status IN ('PROPOSED','HR_APPROVED','APPROVED')`, [ids]);
@@ -83,7 +83,7 @@ after(async () => {
 test("only a configuration administrator can change AFFECTATION_AUTOMATIQUE", async () => {
   assert.equal((await call("hr.director", "/api/v1/hr/rotation/settings", "PUT", cfg())).res.status, 403);
   assert.equal((await call("desk.post1", "/api/v1/hr/rotation/settings")).res.status, 403);
-  const bad = await call("admin", "/api/v1/hr/rotation/settings", "PUT", cfg({ durationMonths: 0 }));
+  const bad = await call("police.admin", "/api/v1/hr/rotation/settings", "PUT", cfg({ durationMonths: 0 }));
   assert.ok(bad.res.status >= 400 && bad.res.status < 500, "invalid parameter refused");
   const toggled = await pool.query(`SELECT count(*)::int n FROM "AuditLog" WHERE action IN ('HR_ROTATION_ENABLED','HR_ROTATION_DISABLED','HR_ROTATION_SETTINGS_UPDATED') AND at >= $1`, [startedAt.toISOString()]);
   assert.ok(toggled.rows[0].n >= 1, "settings changes are audited");
@@ -98,9 +98,9 @@ test("DISABLED: nothing is processed, manual transfers still work, data is kept"
   assert.equal(r.json.data.proposals, 0);
   assert.equal((await autoTransfers(off.A)).length, 0);
   assert.equal((await pool.query(`SELECT count(*)::int n FROM "RotationAlert" WHERE "officerId"=$1`, [off.A])).rows[0].n, 0);
-  const manual = await call("admin", "/api/v1/hr/transfers", "POST", { officerId: off.A, toStationId: st["NS-01"], effectiveDate: today(), reason: "Mutation manuelle pendant la désactivation" });
+  const manual = await call("police.admin", "/api/v1/hr/transfers", "POST", { officerId: off.A, toStationId: st["NS-01"], effectiveDate: today(), reason: "Mutation manuelle pendant la désactivation" });
   assert.equal(manual.res.status, 201, JSON.stringify(manual.json));
-  await call("admin", `/api/v1/hr/transfers/${manual.json.data.id}/cancel`, "POST", { reason: "Nettoyage du test" });
+  await call("police.admin", `/api/v1/hr/transfers/${manual.json.data.id}/cancel`, "POST", { reason: "Nettoyage du test" });
 });
 
 test("ENABLED: soon-eligible officers are alerted once", async () => {
@@ -171,7 +171,7 @@ test("validation authorities are restricted by the settings; validation executes
 });
 
 test("the scheduler step executes validated transfers whose date has come (only when enabled)", async () => {
-  const p = await call("admin", "/api/v1/hr/transfers", "POST", { officerId: off.D, toStationId: st["NS-01"], effectiveDate: new Date(Date.now() + 5 * 86_400_000).toISOString().slice(0, 10), reason: "Mutation datée dans le futur" });
+  const p = await call("police.admin", "/api/v1/hr/transfers", "POST", { officerId: off.D, toStationId: st["NS-01"], effectiveDate: new Date(Date.now() + 5 * 86_400_000).toISOString().slice(0, 10), reason: "Mutation datée dans le futur" });
   assert.equal(p.res.status, 201, JSON.stringify(p.json));
   const id = p.json.data.id;
   await call("hr.director", `/api/v1/hr/transfers/${id}/review`, "POST", { decision: "APPROVE" });

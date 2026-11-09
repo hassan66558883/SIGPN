@@ -30,7 +30,7 @@ async function api(key: string, method: string, path: string, body?: unknown) {
 const iso = (minutesAgo: number) => new Date(Date.now() - minutesAgo * 60_000).toISOString();
 
 before(async () => {
-  for (const u of ["patrol.cs1", "chief.cs1", "desk.cs1", "chief.arr5", "desk.post1", "admin"]) keys[u] = await keyFor(u);
+  for (const u of ["patrol.cs1", "chief.cs1", "desk.cs1", "chief.arr5", "desk.post1", "commander.national"]) keys[u] = await keyFor(u);
   const cs1 = await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`);
   ids.cs1 = cs1.rows[0].id;
   const arr5 = await pool.query(`SELECT id FROM "Station" WHERE code='CA-NDJ-05'`);
@@ -61,7 +61,7 @@ test("incident scope: other commissariat 404, attached post 404, own station 200
   assert.equal((await api(keys["chief.arr5"], "GET", `/api/v1/incidents/${ids.incident}`)).res.status, 404);
   assert.equal((await api(keys["desk.post1"], "GET", `/api/v1/incidents/${ids.incident}`)).res.status, 404, "a post does not see its parent's incidents");
   assert.equal((await api(keys["desk.cs1"], "GET", `/api/v1/incidents/${ids.incident}`)).res.status, 200);
-  assert.equal((await api(keys["admin"], "GET", `/api/v1/incidents/${ids.incident}`)).res.status, 200);
+  assert.equal((await api(keys["commander.national"], "GET", `/api/v1/incidents/${ids.incident}`)).res.status, 200);
   const list = await api(keys["chief.arr5"], "GET", `/api/v1/incidents?q=${encodeURIComponent(`Accident test ${RUN}`)}`);
   assert.equal(list.json.meta?.total, 0, "list is scoped");
 });

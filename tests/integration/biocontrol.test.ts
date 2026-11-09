@@ -30,7 +30,7 @@ async function api(key: string, method: string, path: string, body?: unknown) {
 const run = (key: string, scenario: string, modality = "FINGERPRINT") => api(key, "POST", "/api/v1/biometric/control", { scenario, modality, reason: `Contrôle de test ${RUN}` });
 
 before(async () => {
-  for (const u of ["biometric.cs1", "admin", "desk.cs1", "chief.cs1", "chief.mdu", "inv.diallo"]) keys[u] = await keyFor(u);
+  for (const u of ["biometric.cs1", "commander.national", "desk.cs1", "chief.cs1", "chief.mdu", "inv.diallo"]) keys[u] = await keyFor(u);
 });
 after(async () => {
   await pool.query(`DELETE FROM "ApiKey" WHERE name='bc-test' AND "keyPrefix"=$1`, [`bc${RUN}`]);
@@ -78,7 +78,7 @@ test("a possible match is compared to a live network alert: identity shown only 
     assert.equal(c.res.status, 201, JSON.stringify(c.json));
     const wid = c.json.data.id;
     assert.equal((await api(keys["chief.cs1"], "PATCH", `/api/v1/wanted/${wid}`, { op: "verify" })).res.status, 200);
-    assert.equal((await api(keys["admin"], "PATCH", `/api/v1/wanted/${wid}`, { op: "status", status: "ACTIVE" })).res.status, 200);
+    assert.equal((await api(keys["commander.national"], "PATCH", `/api/v1/wanted/${wid}`, { op: "status", status: "ACTIVE" })).res.status, 200);
     return wid as string;
   };
   const wid = await mk();
@@ -115,11 +115,11 @@ test("human review: needs biometric:verify and another officer than the one who 
   const id = ids.possible;
   assert.equal((await api(keys["biometric.cs1"], "PATCH", `/api/v1/biometric/control/${id}`, { op: "review", outcome: "CONFIRMED", notes: "Vérification de test suffisamment détaillée" })).res.status, 409, "same officer cannot review (four-eyes)");
   assert.equal((await api(keys["chief.cs1"], "PATCH", `/api/v1/biometric/control/${id}`, { op: "review", outcome: "CONFIRMED", notes: "Vérification de test suffisamment détaillée" })).res.status, 403, "chief lacks biometric:verify");
-  assert.equal((await api(keys["admin"], "PATCH", `/api/v1/biometric/control/${id}`, { op: "review", outcome: "CONFIRMED", notes: "court" })).res.status, 422, "justification required");
-  const ok = await api(keys["admin"], "PATCH", `/api/v1/biometric/control/${id}`, { op: "review", outcome: "CONFIRMED", notes: "Identité vérifiée sur pièce et mandat contrôlé (test)" });
+  assert.equal((await api(keys["inv.diallo"], "PATCH", `/api/v1/biometric/control/${id}`, { op: "review", outcome: "CONFIRMED", notes: "court" })).res.status, 422, "justification required");
+  const ok = await api(keys["inv.diallo"], "PATCH", `/api/v1/biometric/control/${id}`, { op: "review", outcome: "CONFIRMED", notes: "Identité vérifiée sur pièce et mandat contrôlé (test)" });
   assert.equal(ok.res.status, 200, JSON.stringify(ok.json));
   assert.equal(ok.json.data.status, "CONFIRMED_BY_HUMAN");
-  assert.equal((await api(keys["admin"], "PATCH", `/api/v1/biometric/control/${id}`, { op: "review", outcome: "REJECTED", notes: "Changement d'avis non permis (test)" })).res.status, 409, "a human decision is final");
+  assert.equal((await api(keys["inv.diallo"], "PATCH", `/api/v1/biometric/control/${id}`, { op: "review", outcome: "REJECTED", notes: "Changement d'avis non permis (test)" })).res.status, 409, "a human decision is final");
   await assert.rejects(pool.query(`UPDATE "BiometricControl" SET "reviewedById"="officerId" WHERE id=$1`, [id]), /reviewer_not_officer|check constraint/i);
 });
 

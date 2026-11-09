@@ -10,6 +10,7 @@ import { inScope, scopeWhere, type Actor } from "@/server/auth/dal";
 import { optionalText } from "@/server/action-utils";
 import type { RequestContext } from "@/server/request-context";
 import { notify } from "@/server/notifications";
+import { LOCKED_ROLE_CODES } from "@/server/rbac/roles";
 
 export const userCreateSchema = z.object({
   username: z
@@ -67,7 +68,10 @@ const publicUser = {
 async function assertCanGrantRole(actor: Actor, roleId: string) {
   const role = await prisma.role.findUnique({ where: { id: roleId }, select: { id: true, code: true, isActive: true, scopeLevel: true, permissions: { select: { permission: { select: { code: true } } } } } });
   if (!role || !role.isActive) throw new BusinessError("Selected role is invalid or inactive.");
-  const excess = role.permissions.map((p) => p.permission.code).filter((c) => !actor.permissions.has(c));
+  // Separation of duties (security audit, lot 1): the security administrator provisions accounts without holding police permissions
+  // (granting is not holding). The two administrator roles stay under the "cannot grant what you do not hold" rule. Lot 4 adds approval.
+  const grantsWithoutHolding = actor.permissions.has("security:manage") && !LOCKED_ROLE_CODES.includes(role.code);
+  const excess = grantsWithoutHolding ? [] : role.permissions.map((p) => p.permission.code).filter((c) => !actor.permissions.has(c));
   if (excess.length > 0) throw new BusinessError(`You cannot grant the role "${role.code}": it holds permissions you do not have (${excess.slice(0, 3).join(", ")}${excess.length > 3 ? "…" : ""}).`, "STATE");
   if (actor.scopeLevel !== "NATIONAL" && role.scopeLevel === "NATIONAL") throw new BusinessError("Only national-scope administrators can grant national roles.", "STATE");
   return role;
@@ -173,8 +177,8 @@ export async function updateUser(actor: Actor, id: string, input: UserUpdateInpu
   if (roleChanged) {
     if (id === actor.id) throw new BusinessError("You cannot change your own role.", "STATE");
     await assertCanGrantRole(actor, input.roleId);
-    if (before.role.code === "SUPER_ADMIN") {
-      const admins = await prisma.user.count({ where: { role: { code: "SUPER_ADMIN" }, status: "ACTIVE", deletedAt: null } });
+    if (LOCKED_ROLE_CODES.includes(before.role.code)) {
+      const admins = await prisma.user.count({ where: { role: { code: before.role.code }, status: "ACTIVE", deletedAt: null } });
       if (admins <= 1) throw new BusinessError("Cannot demote the last active system administrator.", "STATE");
     }
   }
@@ -217,8 +221,8 @@ export async function setUserStatus(actor: Actor, id: string, status: UserStatus
   if (id === actor.id) throw new BusinessError("You cannot change your own account status.", "STATE");
   const u = await getUser(actor, id);
   if (!STATUS_TRANSITIONS[u.status].includes(status)) throw new BusinessError(`Cannot move an account from ${u.status} to ${status}.`, "STATE");
-  if (u.role.code === "SUPER_ADMIN" && status !== "ACTIVE") {
-    const admins = await prisma.user.count({ where: { role: { code: "SUPER_ADMIN" }, status: "ACTIVE", deletedAt: null, id: { not: id } } });
+  if (LOCKED_ROLE_CODES.includes(u.role.code) && status !== "ACTIVE") {
+    const admins = await prisma.user.count({ where: { role: { code: u.role.code }, status: "ACTIVE", deletedAt: null, id: { not: id } } });
     if (admins < 1) throw new BusinessError("Cannot deactivate the last active system administrator.", "STATE");
   }
   await prisma.$transaction(async (tx) => {
