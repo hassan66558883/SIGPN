@@ -42,7 +42,7 @@ export const NAVIGATION: NavSection[] = [
   {
     titleKey: "nav.section.enforcement",
     items: [
-      { href: "/warrants", planned: true, labelKey: "nav.warrants", permission: "warrants:view", icon: "⚖" },
+      { href: "/warrants", labelKey: "nav.warrants", permission: "warrants:view", icon: "⚖" },
       { href: "/arrests", planned: true, labelKey: "nav.arrests", permission: "arrests:view", icon: "⛓" },
       { href: "/detention", planned: true, labelKey: "nav.detention", permission: "detention:view", icon: "▣" },
     ],

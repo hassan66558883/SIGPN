@@ -714,3 +714,22 @@ export function humanize(code: string): string {
 export function optionsOf(map: LabelMap, locale: Locale): { value: string; label: string }[] {
   return Object.entries(map).map(([value, d]) => ({ value, label: d[locale] ?? d.fr }));
 }
+
+export const WARRANT_TYPE: LabelMap = {
+  ARREST: def("Arrestation", "توقيف", "danger"),
+  SEARCH: def("Perquisition", "تفتيش", "warning"),
+  DETENTION: def("Détention", "احتجاز", "violet"),
+  SUMMONS: def("Convocation", "استدعاء", "info"),
+  SEIZURE: def("Saisie", "حجز", "warning"),
+  OTHER: def("Autre", "أخرى", "neutral"),
+};
+
+export const WARRANT_STATUS: LabelMap = {
+  DRAFT: def("Brouillon", "مسودة", "neutral"),
+  PENDING_APPROVAL: def("En attente d'approbation", "بانتظار الموافقة", "warning"),
+  ACTIVE: def("Actif", "ساري", "success"),
+  EXECUTED: def("Exécuté", "نُفِّذ", "info"),
+  EXPIRED: def("Expiré", "منتهي", "neutral"),
+  CANCELLED: def("Annulé", "ملغى", "neutral"),
+  REJECTED: def("Rejeté", "مرفوض", "danger"),
+};
