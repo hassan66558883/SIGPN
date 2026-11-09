@@ -30,7 +30,7 @@ async function api(key: string, method: string, path: string, body?: unknown) {
 const me = async (k: string) => (await api(k, "GET", "/api/v1/auth/me")).json.data.permissions as string[];
 
 before(async () => {
-  for (const u of ["security.admin", "chief.cs1", "analyst"]) keys[u] = await keyFor(u);
+  for (const u of ["security.admin", "chief.cs1", "analyst", "commander.dept"]) keys[u] = await keyFor(u);
 });
 after(async () => {
   await pool.query(`DELETE FROM "ApiKey" WHERE name='integration' AND "keyPrefix"=$1`, [`it${RUN.slice(-4)}`]);
@@ -54,16 +54,29 @@ test("a new commander starts without clearance: the sensitive permissions are he
   const roles = (await api(keys["security.admin"], "GET", "/api/v1/roles")).json.data as { id: string; code: string }[];
   const station = (await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`)).rows[0].id;
   const created = await api(keys["security.admin"], "POST", "/api/v1/users", { username, email: `${username}@pms.example`, firstName: "Test", lastName: "Habilitation", roleId: roles.find((r) => r.code === "STATION_COMMANDER")!.id, stationId: station, temporaryPassword: "Temp-Password-2026!x" });
-  assert.equal(created.res.status, 201, JSON.stringify(created.json));
-  newUserId = created.json.data.id;
-  assert.equal(created.json.data.clearance, "STANDARD");
+  assert.equal(created.res.status, 202, JSON.stringify(created.json));
+  assert.equal(created.json.data.requiredApprovals, 2, "a commander account is sensitive");
+  // two approvers from two levels of the chain: the commissaire, then the departmental commander (lot 4)
+  await api(keys["chief.cs1"], "POST", `/api/v1/approvals/${created.json.data.id}`, { action: "approve" });
+  const executed = await api(keys["commander.dept"], "POST", `/api/v1/approvals/${created.json.data.id}`, { action: "approve" });
+  assert.equal(executed.json.data.status, "EXECUTED", JSON.stringify(executed.json));
+  newUserId = executed.json.data.resultEntityId;
+  assert.equal((await pool.query(`SELECT clearance FROM "User" WHERE id=$1`, [newUserId])).rows[0].clearance, "STANDARD");
   keys.fresh = await keyFor(username);
 
   const standard = await me(keys.fresh);
   assert.ok(standard.includes("complaints:review") && standard.includes("cases:view"), "ordinary command permissions work");
   for (const p of ["warrants:approve", "detention:extend", "cases:view_sensitive", "documents:view_confidential"]) assert.ok(!standard.includes(p), `${p} is unusable without clearance`);
 
-  const patch = (clearance: string) => api(keys["security.admin"], "PATCH", `/api/v1/users/${newUserId}`, { email: `${username}@pms.example`, firstName: "Test", lastName: "Habilitation", roleId: roles.find((r) => r.code === "STATION_COMMANDER")!.id, stationId: station, clearance });
+  const patch = async (clearance: string) => {
+    const r = await api(keys["security.admin"], "PATCH", `/api/v1/users/${newUserId}`, { email: `${username}@pms.example`, firstName: "Test", lastName: "Habilitation", roleId: roles.find((r) => r.code === "STATION_COMMANDER")!.id, stationId: station, clearance });
+    // raising a clearance is a request that needs two approvals (lot 4); lowering one is immediate
+    for (const req of r.json.data?.pendingApprovals ?? []) {
+      await api(keys["chief.cs1"], "POST", `/api/v1/approvals/${req.id}`, { action: "approve" });
+      await api(keys["commander.dept"], "POST", `/api/v1/approvals/${req.id}`, { action: "approve" });
+    }
+    return r;
+  };
   assert.equal((await patch("SENSITIVE")).res.status, 200);
   const sensitive = await me(keys.fresh);
   assert.ok(sensitive.includes("warrants:approve") && sensitive.includes("cases:view_sensitive"));

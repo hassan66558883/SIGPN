@@ -120,6 +120,9 @@ const COMMAND: Permission[] = [
   "users:manage_status",
   "users:reset_password",
   "users:manage_sessions",
+  // Approval of sensitive account, role and clearance changes inside the commander's own scope (audit decisions 6 and 8).
+  "approvals:view",
+  "approvals:decide",
 ];
 
 /** Human resources: HR service (dossiers) and HR director (dossiers + career decisions). */
@@ -144,6 +147,7 @@ export const TECH_ADMIN_PERMISSIONS: readonly Permission[] = [
   "system:settings",
   "system:backup",
   "system:demo",
+  "approvals:view",
   "apikeys:manage_own",
 ];
 
@@ -163,6 +167,7 @@ export const SECURITY_ADMIN_PERMISSIONS: readonly Permission[] = [
   "security:manage",
   "audit:view",
   "audit:export",
+  "approvals:view",
   "apikeys:manage_own",
 ];
 
@@ -409,6 +414,9 @@ export const TRAFFIC_DEFAULT_GRANTS: Record<string, readonly Permission[]> = Obj
 
 /** `cash:*` permissions granted by default to each system role (applied once to already-seeded databases). */
 export const CASH_DEFAULT_GRANTS: Record<string, readonly Permission[]> = Object.fromEntries(SYSTEM_ROLES.map((r) => [r.code, r.permissions.filter((p) => p.startsWith("cash:"))]));
+
+/** `approvals:*` permissions granted by default to each system role (applied once to already-seeded databases). */
+export const APPROVAL_DEFAULT_GRANTS: Record<string, readonly Permission[]> = Object.fromEntries(SYSTEM_ROLES.map((r) => [r.code, r.permissions.filter((p) => p.startsWith("approvals:"))]));
 
 /** `hr:*` permissions granted by default to each system role (applied once to already-seeded databases). */
 export const HR_DEFAULT_GRANTS: Record<string, readonly Permission[]> = Object.fromEntries(SYSTEM_ROLES.map((r) => [r.code, r.permissions.filter((p) => p.startsWith("hr:"))]));

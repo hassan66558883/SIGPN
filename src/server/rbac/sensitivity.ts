@@ -19,8 +19,9 @@ export const SENSITIVE_PERMISSIONS: readonly Permission[] = [
   "wanted:approve",
   "wanted:publish",
   "detention:extend",
-  // roles and permissions
+  // roles and permissions, and the approval of such changes
   "roles:manage",
+  "approvals:decide",
   // sensitive and confidential records
   "cases:view_sensitive",
   "documents:view_confidential",

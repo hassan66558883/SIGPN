@@ -159,3 +159,33 @@ Please state which lots you approve, and in which order. Lots 1 and 6 can start 
 3. The role and user lists still show the role's own MFA flag; the rule is enforced and counted correctly, but those two badges do not yet show the sensitive-permission cause.
 4. API keys are not subject to MFA (unchanged).
 5. Not browsed in the interface; the French and Arabic texts of the new field were not looked at on screen.
+
+## 11. Lot 4 — status (implemented 2026-11-09)
+
+**Done.** Account, role and clearance changes now go through an approval workflow.
+
+| Item | Result |
+|---|---|
+| What needs approval | **Creating an account** (every account), **changing a user's role**, **raising a clearance**, and **adding a sensitive permission to a role**. Lowering a clearance and removing permissions stay immediate (they only reduce access). |
+| How many approvers | **One** for an ordinary account. **Two** when the role is sensitive (holds a sensitive permission, or is an administrator role), when a clearance is involved, or when a sensitive permission is added to a role. |
+| Who approves | A commander holding the new `approvals:decide` permission whose scope **covers the account's placement**: the commissaire for a station account, the délégué provincial for a provincial one, or a commander above. Never the requester, never the person concerned, never twice. |
+| Two approvers | They must come from **two different levels of the chain** (for example a commissaire, then a departmental or provincial commander): two commissaires do not count. For an account with no placement (national) and for role permissions, two distinct approvers with national authority. |
+| Execution | After the last approval the change is replayed **as its requester**, through the same service function a direct change used (all its checks run again). If it cannot be executed (for example the username was taken meanwhile) the request ends as `FAILED` with the reason; nothing is half-applied. |
+| Secrets | The temporary password is checked at request time and stored **hashed**; no plaintext sits in a request and no listing or API response carries the payload. |
+| Database guards | A vote cannot be altered or deleted (append-only) and the requester cannot vote on their own request, even by raw SQL. |
+| Trace | Every step is audited and hash-chained: requested, approved, rejected, cancelled, expired, executed, failed. |
+| Interface | New **Approbations** page (to decide, my requests, and everything for the security administrator), `GET /api/v1/approvals` and `POST /api/v1/approvals/{id}` (approve, reject with a mandatory comment, cancel). Creating a user now sends a request. French and Arabic texts. |
+| Tests | `tsc` clean, 151 unit (including a guard that fails if any code writes an account or role change around the workflow), 223 integration (9 new), 35 security. |
+
+**Choices made, to confirm with the Direction.**
+1. Every account creation needs one approval, including one made by a commissaire (who then needs a commander above, or another commander of the station).
+2. The two administrator roles need two approvers with **national** authority, who are police commanders. Whether police command should approve technical and security administrators is a question for the Direction.
+3. A request expires after **7 days**.
+4. "Different levels" is read as different scope levels (station, department, province, national).
+5. Approvers are notified in general terms (no personal data), all holders of the permission at once.
+
+**Limits.**
+1. After the last approval the change is executed just after the vote is recorded, not in the same transaction: if the server stopped exactly between the two, the request would stay `APPROVED` and need a manual retry (no automatic retry exists yet).
+2. The account creation screen now ends on the Approbations page, and the new account appears only after approval; the roles screen can only reach this workflow for custom roles (the two administrator roles stay locked).
+3. Not browsed in the interface (the approvers need MFA enrolment); French and Arabic texts not looked at on screen.
+4. The bootstrap accounts and the demonstration seed are written directly, by design (nobody exists yet to approve).

@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/server/db";
 import { PERMISSION_CATALOG } from "@/server/rbac/permissions";
 import { logAudit } from "@/server/audit";
-import { CASH_DEFAULT_GRANTS, HR_DEFAULT_GRANTS, SYSTEM_ROLES, TECH_ADMIN_PERMISSIONS, TRAFFIC_DEFAULT_GRANTS } from "@/server/rbac/roles";
+import { APPROVAL_DEFAULT_GRANTS, CASH_DEFAULT_GRANTS, HR_DEFAULT_GRANTS, SYSTEM_ROLES, TECH_ADMIN_PERMISSIONS, TRAFFIC_DEFAULT_GRANTS } from "@/server/rbac/roles";
 
 export async function syncPermissionCatalog() {
   for (const [code, description] of PERMISSION_CATALOG) {
@@ -29,6 +29,7 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
     }
   }
   await separateAdministrationOnce(byCode);
+  await grantApprovalsOnce(byCode);
   await grantTrafficDefaultsOnce(byCode);
   await grantCashDefaultsOnce(byCode);
   await grantHrDefaultsOnce(byCode);
@@ -60,6 +61,19 @@ async function separateAdministrationOnce(byCode: Map<string, string>) {
     await logAudit({ actor: null, action: "ADMIN_SEPARATION_APPLIED", module: "roles", entityType: "Role", entityId: role.id, entityLabel: "SUPER_ADMIN", summary: `Separation of duties: ${removed} operational permission(s) removed from the technical administrator role`, after: { removed, kept: keep.length } });
   }
   await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions opérationnelles ont été retirées du rôle d'administrateur technique (audit de sécurité, lot 1)." } });
+}
+
+/** Lot 4: the approval permissions, granted once to already-seeded databases (commanders and the police administrator decide; the two administrators follow their own requests). */
+async function grantApprovalsOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.approvals_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const roles = await prisma.role.findMany({ where: { isSystem: true }, select: { id: true, code: true } });
+  for (const role of roles) {
+    const grants = APPROVAL_DEFAULT_GRANTS[role.code] ?? [];
+    if (!grants.length) continue;
+    await prisma.rolePermission.createMany({ data: grants.map((c) => ({ roleId: role.id, permissionId: byCode.get(c)! })), skipDuplicates: true });
+  }
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "Les permissions d'approbation ont été accordées aux rôles système (lot 4 de l'audit de sécurité)." } });
 }
 
 /**

@@ -7,6 +7,7 @@ import { checkbox, fail, formEntries, formList, revalidateAll } from "@/server/a
 import { requirePermissionForAction } from "@/server/auth/dal";
 import * as users from "@/server/admin/users";
 import * as roles from "@/server/admin/roles";
+import { submitRolePermissions, submitUserCreate, submitUserUpdate } from "@/server/approvals/service";
 import { issuePasswordReset } from "@/server/auth/login";
 import type { FormState } from "@/components/forms";
 
@@ -16,13 +17,14 @@ export async function createUserAction(_prev: FormState, formData: FormData): Pr
     const actor = await requirePermissionForAction("users:create");
     const ctx = await getRequestContext();
     const input = users.userCreateSchema.parse(formEntries(formData));
-    const u = await users.createUser(actor, input, ctx);
-    id = u.id;
+    // The account is created once the request is approved (one or two approvers, by sensitivity): see /approvals.
+    const request = await submitUserCreate(actor, input, ctx);
+    id = request.id;
     revalidateAll();
   } catch (e) {
     return fail(e, "Could not create the user.", "users");
   }
-  redirect(`/admin/users/${id}?created=1`);
+  redirect(`/approvals?requested=1&id=${id}`);
 }
 
 export async function updateUserAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -31,9 +33,9 @@ export async function updateUserAction(_prev: FormState, formData: FormData): Pr
     const ctx = await getRequestContext();
     const id = String(formData.get("id") ?? "");
     const input = users.userUpdateSchema.parse(formEntries(formData));
-    await users.updateUser(actor, id, input, ctx);
+    const { requests } = await submitUserUpdate(actor, id, input, ctx);
     revalidateAll();
-    return { ok: true, message: "User updated." };
+    return { ok: true, message: requests.length ? "User updated. The change of role or clearance awaits approval (see Approvals)." : "User updated." };
   } catch (e) {
     return fail(e, "Could not update the user.", "users");
   }
@@ -124,9 +126,9 @@ export async function setRolePermissionsAction(_prev: FormState, formData: FormD
   try {
     const actor = await requirePermissionForAction("roles:manage");
     const ctx = await getRequestContext();
-    await roles.setRolePermissions(actor, String(formData.get("id") ?? ""), formList(formData, "permissions"), ctx);
+    const r = await submitRolePermissions(actor, String(formData.get("id") ?? ""), formList(formData, "permissions"), ctx);
     revalidateAll();
-    return { ok: true, message: "Permissions saved. Users whose permissions were reduced must sign in again." };
+    return { ok: true, message: r.applied ? "Permissions saved. Users whose permissions were reduced must sign in again." : "Permissions saved, except the sensitive ones added: they await the approval of two national approvers (see Approvals)." };
   } catch (e) {
     return fail(e, "Could not save permissions.", "roles");
   }

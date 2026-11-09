@@ -28,7 +28,7 @@ async function api(key: string, method: string, path: string, body?: unknown) {
 }
 
 before(async () => {
-  for (const u of ["admin", "security.admin", "commander.national"]) keys[u] = await keyFor(u);
+  for (const u of ["admin", "security.admin", "commander.national", "chief.cs1"]) keys[u] = await keyFor(u);
 });
 after(async () => {
   for (const id of createdUsers) await pool.query(`DELETE FROM "User" WHERE id=$1 AND username LIKE 'it.%'`, [id]);
@@ -43,7 +43,7 @@ test("the database holds the separated role sets, and the separation was applied
   const tech = await perms("SUPER_ADMIN");
   const sec = await perms("SECURITY_ADMIN");
   for (const set of [tech, sec]) {
-    const operational = set.filter((c) => !/^(dashboard|org|roles|permissions|security|system|apikeys|users|audit):/.test(c));
+    const operational = set.filter((c) => !/^(dashboard|org|roles|permissions|security|system|apikeys|users|audit|approvals):/.test(c));
     assert.deepEqual(operational, [], "no police permission in an administrator role");
   }
   assert.ok(tech.includes("system:backup") && !tech.includes("audit:view") && !tech.includes("users:create"));
@@ -81,8 +81,12 @@ test("the security administrator provisions an operational account without holdi
   const station = await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`);
   const body = (username: string, roleId: string) => ({ username, email: `${username}@pms.example`, firstName: "Test", lastName: "Separation", roleId, stationId: station.rows[0].id, temporaryPassword: "Temp-Password-2026!x" });
   const ok = await api(keys["security.admin"], "POST", "/api/v1/users", body(`it.sep.${RUN}`, inv.id));
-  assert.equal(ok.res.status, 201, JSON.stringify(ok.json));
-  createdUsers.push(ok.json.data.id);
+  assert.equal(ok.res.status, 202, JSON.stringify(ok.json));
+  // the request is approved by the commander of the station (lot 4); the security administrator never approves their own request
+  assert.ok((await api(keys["security.admin"], "POST", `/api/v1/approvals/${ok.json.data.id}`, { action: "approve" })).res.status >= 400);
+  const approved = await api(keys["chief.cs1"], "POST", `/api/v1/approvals/${ok.json.data.id}`, { action: "approve" });
+  assert.equal(approved.json.data.status, "EXECUTED", JSON.stringify(approved.json));
+  createdUsers.push(approved.json.data.resultEntityId);
   const tech = roles.find((r) => r.code === "SUPER_ADMIN")!;
   const refused = await api(keys["security.admin"], "POST", "/api/v1/users", body(`it.sep2.${RUN}`, tech.id));
   assert.ok(refused.res.status >= 400 && refused.res.status < 500, "the technical administrator role cannot be granted by the security administrator");

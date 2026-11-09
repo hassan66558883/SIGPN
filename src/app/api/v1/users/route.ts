@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { apiOk, pageArgs, paginationSchema, parseJson, parseQuery, withApi } from "@/server/api";
-import { createUser, listUsers, userCreateSchema } from "@/server/admin/users";
+import { listUsers, userCreateSchema } from "@/server/admin/users";
+import { submitUserCreate, presentApproval } from "@/server/approvals/service";
 
 const querySchema = paginationSchema.extend({
   q: z.string().trim().max(100).optional(),
@@ -18,6 +19,7 @@ export const GET = withApi({ permission: "users:view" }, async ({ actor, req }) 
 
 export const POST = withApi({ permission: "users:create" }, async ({ actor, ctx, req }) => {
   const body = await parseJson(req, userCreateSchema);
-  const u = await createUser(actor, body, ctx);
-  return apiOk(u, { status: 201 });
+  // An account is never created directly any more: the request is approved first (one or two approvers), then executed.
+  const request = await submitUserCreate(actor, body, ctx);
+  return apiOk(presentApproval(actor, request), { status: 202 });
 });

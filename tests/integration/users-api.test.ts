@@ -90,14 +90,26 @@ test("POST /users: validation (422), duplicate (409), weak password (422)", asyn
   assert.match(weak.json.error?.message ?? "", /policy/);
 });
 
-test("POST /users creates a station investigator; audit row written; user must change password", async () => {
+/** Account creation and role changes go through the approval workflow (lot 4): the station commander approves. */
+async function approve(key: string, id: string) {
+  const r = await api(key, "POST", `/api/v1/approvals/${id}`, { action: "approve" });
+  assert.equal(r.res.status, 200, JSON.stringify(r.json));
+  return r.json.data as unknown as { status: string; resultEntityId: string | null };
+}
+
+test("POST /users requests a station investigator; the commander approves it; audit rows written; user must change password", async () => {
   const roles = await api(keys.admin, "GET", "/api/v1/roles");
   const invRole = (roles.json.data as unknown as { code: string; id: string }[]).find((r) => r.code === "INVESTIGATOR")!;
   const station = await pool.query(`SELECT id FROM "Station" WHERE code='CS-01'`);
   const username = `it.new.${RUN}`;
   const r = await api(keys.admin, "POST", "/api/v1/users", { username, email: `${username}@pms.example`, firstName: "Test", lastName: "Investigator", roleId: invRole.id, stationId: station.rows[0].id, temporaryPassword: "Temp-Password-2026!x" });
-  assert.equal(r.res.status, 201, JSON.stringify(r.json));
-  const u = r.json.data!;
+  assert.equal(r.res.status, 202, JSON.stringify(r.json));
+  assert.equal(r.json.data!.status, "PENDING");
+  assert.equal((await pool.query(`SELECT 1 FROM "User" WHERE username=$1`, [username])).rowCount, 0, "not created before the approval");
+  const done = await approve(keys.chief, r.json.data!.id as string);
+  assert.equal(done.status, "EXECUTED");
+  const get0 = await api(keys.admin, "GET", `/api/v1/users/${done.resultEntityId}`);
+  const u = get0.json.data!;
   created.push(u.id!);
   assert.equal(u.mustChangePassword, true);
   assert.equal((u.role as { code: string }).code, "INVESTIGATOR");
@@ -157,7 +169,12 @@ test("PATCH /users/{id} role change revokes the target's sessions and is audited
   await pool.query(`INSERT INTO "Session"(id,"userId","tokenHash","expiresAt") VALUES ($1,$2,$3,$4)`, [`sess_${RUN}`, target, createHash("sha256").update(`tok${RUN}`).digest("hex"), new Date(Date.now() + 3_600_000).toISOString()]);
   const r = await api(keys.admin, "PATCH", `/api/v1/users/${target}`, { email: `it.new.${RUN}@pms.example`, firstName: "Test", lastName: "Investigator", roleId: desk.id, stationId: cs1.rows[0].id });
   assert.equal(r.res.status, 200, JSON.stringify(r.json));
-  assert.equal((r.json.data?.role as { code: string }).code, "DESK_OFFICER");
+  assert.equal((r.json.data?.role as { code: string }).code, "INVESTIGATOR", "a change of role is requested, not applied");
+  const pending = (r.json.data as unknown as { pendingApprovals: { id: string }[] }).pendingApprovals;
+  assert.equal(pending.length, 1);
+  assert.equal((await approve(keys.chief, pending[0].id)).status, "EXECUTED");
+  const after = await api(keys.admin, "GET", `/api/v1/users/${target}`);
+  assert.equal((after.json.data?.role as { code: string }).code, "DESK_OFFICER", "applied after the approval");
   const sess = await pool.query(`SELECT "revokedAt","revokedReason" FROM "Session" WHERE id=$1`, [`sess_${RUN}`]);
   assert.ok(sess.rows[0].revokedAt);
   assert.equal(sess.rows[0].revokedReason, "role_changed");

@@ -69,7 +69,7 @@ const publicUser = {
 } as const;
 
 /** Privilege-escalation guard: an actor may only grant a role whose permissions are a subset of their own. */
-async function assertCanGrantRole(actor: Actor, roleId: string) {
+export async function assertCanGrantRole(actor: Actor, roleId: string) {
   const role = await prisma.role.findUnique({ where: { id: roleId }, select: { id: true, code: true, isActive: true, scopeLevel: true, permissions: { select: { permission: { select: { code: true } } } } } });
   if (!role || !role.isActive) throw new BusinessError("Selected role is invalid or inactive.");
   // Separation of duties (security audit, lot 1): the security administrator provisions accounts without holding police permissions
@@ -82,18 +82,18 @@ async function assertCanGrantRole(actor: Actor, roleId: string) {
 }
 
 /** A security clearance is a security decision: only the security administrator grants or changes it, never one's own. */
-function assertCanSetClearance(actor: Actor) {
+export function assertCanSetClearance(actor: Actor) {
   if (!actor.permissions.has("security:manage")) throw new BusinessError("Only the security administrator can grant or change a security clearance.", "STATE");
 }
 
 /** Scope guard for the target user's placement: a regional admin can only place users inside their region, etc. */
-function assertPlacementInScope(actor: Actor, placement: { regionId: string | null; stationId: string | null }) {
+export function assertPlacementInScope(actor: Actor, placement: { regionId: string | null; stationId: string | null }) {
   if (actor.scopeLevel === "NATIONAL") return;
   if (!inScope(actor, placement)) throw new BusinessError("You can only manage users inside your own region/station.", "STATE");
 }
 
 /** Resolves and validates the territorial placement: station ⇒ department/province derived; department ⇒ province derived. */
-async function resolvePlacement(input: { regionId?: string; adminDepartmentId?: string; stationId?: string }) {
+export async function resolvePlacement(input: { regionId?: string; adminDepartmentId?: string; stationId?: string }) {
   const stationId = input.stationId || null;
   let adminDepartmentId = input.adminDepartmentId || null;
   let regionId = input.regionId || null;
@@ -138,7 +138,12 @@ export async function getUser(actor: Actor, id: string) {
   return u;
 }
 
-export async function createUser(actor: Actor, input: UserCreateInput, ctx: RequestContext) {
+/**
+ * Every check of an account creation, without writing anything. Used when the creation is requested (so a doomed request is
+ * refused at once) and again when it is executed after approval. `passwordHash` = the temporary password was already
+ * checked against the policy and hashed when the request was made.
+ */
+export async function checkUserCreation(actor: Actor, input: UserCreateInput, opts: { passwordHash?: string } = {}) {
   const role = await assertCanGrantRole(actor, input.roleId);
   const clearance = input.clearance ?? "STANDARD";
   if (clearance !== "STANDARD") assertCanSetClearance(actor);
@@ -147,8 +152,10 @@ export async function createUser(actor: Actor, input: UserCreateInput, ctx: Requ
   if (role.scopeLevel === "REGIONAL" && !placement.regionId) throw new BusinessError("A regional role requires a region.");
   if (role.scopeLevel === "DEPARTMENTAL" && !placement.adminDepartmentId) throw new BusinessError("A departmental role requires an administrative department.");
   if ((role.scopeLevel === "STATION" || role.scopeLevel === "OWN") && !placement.stationId) throw new BusinessError("A station-scoped role requires a station.");
-  const pwErrors = passwordPolicyErrors(input.temporaryPassword, { username: input.username, email: input.email });
-  if (pwErrors.length) throw new BusinessError(`Temporary password does not meet the policy: ${pwErrors.join("; ")}.`);
+  if (!opts.passwordHash) {
+    const pwErrors = passwordPolicyErrors(input.temporaryPassword, { username: input.username, email: input.email });
+    if (pwErrors.length) throw new BusinessError(`Temporary password does not meet the policy: ${pwErrors.join("; ")}.`);
+  }
   const dup = await prisma.user.findFirst({ where: { OR: [{ username: input.username }, { email: input.email }] }, select: { id: true, username: true } });
   if (dup) throw new BusinessError(dup.username === input.username ? "This username is already taken." : "This e-mail is already registered.", "CONFLICT");
   if (input.officerId) {
@@ -156,6 +163,12 @@ export async function createUser(actor: Actor, input: UserCreateInput, ctx: Requ
     if (!off) throw new BusinessError("Selected officer does not exist.");
     if (off.userId) throw new BusinessError("This officer already has a user account.", "CONFLICT");
   }
+  return { role, placement, clearance };
+}
+
+/** Creates the account. Direct write: callers go through the approval workflow (`submitUserCreate`), which replays this after approval. */
+export async function createUser(actor: Actor, input: UserCreateInput, ctx: RequestContext, opts: { passwordHash?: string } = {}) {
+  const { role, placement, clearance } = await checkUserCreation(actor, input, opts);
   const created = await prisma.$transaction(async (tx) => {
     const u = await tx.user.create({
       data: {
@@ -164,7 +177,7 @@ export async function createUser(actor: Actor, input: UserCreateInput, ctx: Requ
         firstName: input.firstName,
         lastName: input.lastName,
         phone: input.phone || null,
-        passwordHash: await hashPassword(input.temporaryPassword),
+        passwordHash: opts.passwordHash ?? (await hashPassword(input.temporaryPassword)),
         mustChangePassword: true,
         clearance,
         roleId: role.id,

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { apiOk, parseJson, withApi } from "@/server/api";
-import { getUser, setUserStatus, updateUser, userUpdateSchema } from "@/server/admin/users";
+import { getUser, setUserStatus, userUpdateSchema } from "@/server/admin/users";
+import { submitUserUpdate, presentApproval } from "@/server/approvals/service";
 
 type P = { id: string };
 
@@ -19,5 +20,6 @@ export const PATCH = withApi<P>({ permission: "users:update" }, async ({ actor, 
   }
   const { op: _op, ...input } = body as z.infer<typeof userUpdateSchema> & { op?: "update" };
   void _op;
-  return apiOk(await updateUser(actor, params.id, input, ctx));
+  const { user, requests } = await submitUserUpdate(actor, params.id, input, ctx);
+  return apiOk({ ...user, pendingApprovals: requests.map((r) => presentApproval(actor, r)) });
 });

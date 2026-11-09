@@ -176,6 +176,9 @@ export const PERMISSION_CATALOG = [
   ["hr:pay_validate", "Validate pay scale changes, pay elements and pay statements (never one's own request)"],
   ["hr:pay_export", "Export a validated pay statement to the financial services"],
   // self-service
+  // approvals (lot 4): sensitive account, role and clearance changes need an authorised approval
+  ["approvals:view", "View approval requests (own requests and those the actor may decide)"],
+  ["approvals:decide", "Approve or reject approval requests within one's scope"],
   ["apikeys:manage_own", "Create/revoke own API keys"],
 ] as const;
 

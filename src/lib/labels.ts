@@ -82,6 +82,23 @@ export const CLEARANCE_LEVEL: LabelMap = {
   CONFIDENTIAL: def("Confidentiel", "سري", "danger"),
 };
 
+export const APPROVAL_KIND: LabelMap = {
+  USER_CREATE: def("Création de compte", "إنشاء حساب", "info"),
+  USER_ROLE_CHANGE: def("Changement de rôle", "تغيير الدور", "warning"),
+  USER_CLEARANCE_RAISE: def("Relèvement d'habilitation", "رفع التصريح الأمني", "danger"),
+  ROLE_PERMISSIONS_ADD: def("Permissions sensibles ajoutées à un rôle", "إضافة صلاحيات حساسة إلى دور", "danger"),
+};
+
+export const APPROVAL_STATUS: LabelMap = {
+  PENDING: def("En attente", "قيد الانتظار", "warning"),
+  APPROVED: def("Approuvée (exécution)", "موافَق عليها (قيد التنفيذ)", "info"),
+  EXECUTED: def("Exécutée", "نُفِّذت", "success"),
+  REJECTED: def("Refusée", "مرفوضة", "danger"),
+  CANCELLED: def("Annulée", "ملغاة", "neutral"),
+  EXPIRED: def("Expirée", "منتهية", "neutral"),
+  FAILED: def("Échec à l'exécution", "فشل التنفيذ", "danger"),
+};
+
 export const STATION_TYPE: LabelMap = {
   HEADQUARTERS: def("Direction générale", "الإدارة العامة", "violet"),
   DELEGATION: def("Délégation provinciale de Police", "مندوبية الشرطة الولائية", "violet"),

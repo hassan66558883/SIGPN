@@ -140,6 +140,8 @@ model User {
   notifications       Notification[]
   auditLogs           AuditLog[]
   passwordHistory     PasswordHistory[]
+  approvalsRequested  ApprovalRequest[]  @relation("ApprovalRequester")
+  approvalsDecided    ApprovalDecision[] @relation("ApprovalApprover")
 
   // domain back-relations
   personsCreated             Person[]                   @relation("PersonCreatedBy")
@@ -2927,6 +2929,74 @@ model AuditLog {
   @@index([actorId, at])
   @@index([entityType, entityId])
   @@index([module, action])
+}
+
+/// Approval workflow (lot 4): a sensitive change is requested, then approved by one or two authorised people before it is executed.
+enum ApprovalKind {
+  USER_CREATE
+  USER_ROLE_CHANGE
+  USER_CLEARANCE_RAISE
+  ROLE_PERMISSIONS_ADD
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  EXECUTED
+  REJECTED
+  CANCELLED
+  EXPIRED
+  FAILED
+}
+
+enum ApprovalVote {
+  APPROVE
+  REJECT
+}
+
+model ApprovalRequest {
+  id                String             @id @default(cuid())
+  kind              ApprovalKind
+  status            ApprovalStatus     @default(PENDING)
+  /// 1 for an ordinary account, 2 for a sensitive role or clearance and for role permission changes.
+  requiredApprovals Int
+  summary           String
+  reason            String?
+  /// The change itself, replayed on approval (no plaintext secret: the temporary password is stored hashed).
+  payload           Json
+  targetUserId      String?
+  targetRoleId      String?
+  /// Placement of the target, used to find who may approve (a commander covering it). All null = a national target.
+  regionId          String?
+  adminDepartmentId String?
+  stationId         String?
+  requestedById     String
+  requestedBy       User               @relation("ApprovalRequester", fields: [requestedById], references: [id])
+  expiresAt         DateTime
+  decidedAt         DateTime?
+  executedAt        DateTime?
+  failureReason     String?
+  resultEntityId    String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  decisions         ApprovalDecision[]
+
+  @@index([status, createdAt])
+  @@index([requestedById])
+}
+
+model ApprovalDecision {
+  id            String          @id @default(cuid())
+  requestId     String
+  request       ApprovalRequest @relation(fields: [requestId], references: [id])
+  approverId    String
+  approver      User            @relation("ApprovalApprover", fields: [approverId], references: [id])
+  vote          ApprovalVote
+  comment       String?
+  approverScope ScopeLevel
+  createdAt     DateTime        @default(now())
+
+  @@unique([requestId, approverId])
 }
 
 model DocumentSequence {
