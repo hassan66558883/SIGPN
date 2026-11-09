@@ -17,6 +17,7 @@ type Fine = {
   payable: boolean;
   paymentInProgress: boolean;
   methods: Method[];
+  operators: { code: string; label: string; methods: Method[] }[];
   partialAllowed: boolean;
 };
 type Started = { number: string; accessCode: string; instructions: string };
@@ -38,6 +39,7 @@ export function PayFineForm({ sandbox }: { sandbox: boolean }) {
   const [fine, setFine] = useState<Fine | null>(null);
   const [started, setStarted] = useState<Started | null>(null);
   const [status, setStatus] = useState<Status | null>(null);
+  const [op, setOp] = useState<string>("");
 
   const reset = () => {
     setFine(null);
@@ -75,10 +77,11 @@ export function PayFineForm({ sandbox }: { sandbox: boolean }) {
     setBusy(true);
     setError(null);
     const f = new FormData(e.currentTarget);
+    const provider = String(f.get("provider") || fine.operators[0]?.code || "");
     const method = String(f.get("method")) as Method;
     const amount = f.get("amount") ? Number(f.get("amount")) : undefined;
     try {
-      const r = await call<Started>("/api/v1/public/fines/pay", { ...ids, method, phone: String(f.get("phone") || "") || undefined, ...(amount && fine.partialAllowed ? { amountFcfa: amount } : {}) });
+      const r = await call<Started>("/api/v1/public/fines/pay", { ...ids, method, provider, phone: String(f.get("phone") || "") || undefined, ...(amount && fine.partialAllowed ? { amountFcfa: amount } : {}) });
       if (r.status === 201 && r.data) {
         setStarted(r.data);
         setStatus({ status: "PENDING", message: null, receipt: null });
@@ -146,10 +149,18 @@ export function PayFineForm({ sandbox }: { sandbox: boolean }) {
             <p className="mt-4 text-sm font-semibold text-ink">{t("pub.pay.inProgress")}</p>
           ) : (
             <form onSubmit={pay} className="mt-5 grid gap-4 border-t border-line pt-4 sm:grid-cols-2">
+              {fine.operators.length > 1 ? (
+                <div>
+                  <label htmlFor="pf-op" className="label">{t("pub.pay.operator")}</label>
+                  <select id="pf-op" name="provider" className="input" value={op || fine.operators[0].code} onChange={(e) => setOp(e.target.value)}>
+                    {fine.operators.map((o) => <option key={o.code} value={o.code}>{o.label}</option>)}
+                  </select>
+                </div>
+              ) : null}
               <div>
                 <label htmlFor="pf-method" className="label">{t("pub.pay.method")}</label>
-                <select id="pf-method" name="method" className="input" defaultValue="MOBILE_MONEY">
-                  {fine.methods.map((m) => <option key={m} value={m}>{t(`pub.pay.m.${m}` as MessageKey)}</option>)}
+                <select id="pf-method" name="method" className="input" key={op || fine.operators[0]?.code} defaultValue="MOBILE_MONEY">
+                  {(fine.operators.find((o) => o.code === (op || fine.operators[0]?.code))?.methods ?? fine.methods).map((m) => <option key={m} value={m}>{t(`pub.pay.m.${m}` as MessageKey)}</option>)}
                 </select>
               </div>
               <div>

@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import type { TrafficPaymentMethod } from "@/generated/prisma/client";
 import { BusinessError } from "@/server/errors";
 import { randomToken } from "@/server/crypto";
+import { airtelConfigFromEnv, airtelGateway } from "@/server/traffic/airtel-gateway";
 
 /**
  * Online payment gateway: the contract between the application and an operator (mobile money, card processor, bank).
@@ -14,16 +15,21 @@ import { randomToken } from "@/server/crypto";
  * chain can be run and tested, but it moves no money.
  */
 export type GatewayOutcome = "SUCCESS" | "FAILED";
-export type GatewayNotification = { eventId: string; reference: string; outcome: GatewayOutcome; amountFcfa: number; reason?: string };
+/** `amountFcfa` is absent when the operator does not report it (Airtel): the amount is then the one we asked for. */
+export type GatewayNotification = { eventId: string; reference: string; outcome: GatewayOutcome; amountFcfa?: number; reason?: string };
 export type GatewayInitiated = { providerReference: string; instructions: string };
 
 export interface OnlineGateway {
   readonly name: string;
+  /** What the payer sees when choosing an operator. */
+  readonly label: string;
+  /** true: a notification is only a trigger; the outcome is read from `queryStatus`, never from the notification body. */
+  readonly confirmByQuery?: boolean;
   /** Methods this operator can collect. */
   readonly methods: readonly TrafficPaymentMethod[];
   initiate(input: { orderNumber: string; amountFcfa: number; method: TrafficPaymentMethod; payerPhone: string | null }): Promise<GatewayInitiated>;
   /** Checks the authenticity of a notification (signature, freshness) and returns its content. Throws when it cannot be trusted. */
-  verifyNotification(rawBody: string, headers: Headers): GatewayNotification;
+  verifyNotification(rawBody: string, headers: Headers, query: URLSearchParams): GatewayNotification;
   /** Asks the operator where a payment stands. `null`: the operator does not know (yet). */
   queryStatus(providerReference: string): Promise<GatewayNotification | null>;
 }
@@ -51,6 +57,7 @@ function sameHex(a: string, b: string): boolean {
 
 const sandboxGateway: OnlineGateway = {
   name: "sandbox",
+  label: "Simulation (sans argent réel)",
   methods: ["MOBILE_MONEY", "ELECTRONIC", "BANK_TRANSFER"],
   async initiate(input) {
     return {
@@ -82,20 +89,30 @@ const sandboxGateway: OnlineGateway = {
   },
 };
 
-/** The gateway in force, or null when online payment is switched off (TRAFFIC_ONLINE_PROVIDER=off, the default). */
-export function getOnlineGateway(): OnlineGateway | null {
-  const wanted = (process.env.TRAFFIC_ONLINE_PROVIDER || "off").toLowerCase();
-  if (wanted === "off") return null;
-  if (wanted === "sandbox") {
-    if (process.env.NODE_ENV === "production" && process.env.ALLOW_SANDBOX_PAYMENTS !== "yes") throw new BusinessError("The sandbox payment provider is not allowed in production.", "STATE");
-    return sandboxGateway;
+/** Operators enabled in this deployment: TRAFFIC_ONLINE_PROVIDER is `off` (default) or a comma list such as `airtel` or `airtel,sandbox`. */
+export function listOnlineGateways(): OnlineGateway[] {
+  const wanted = (process.env.TRAFFIC_ONLINE_PROVIDER || "off").split(",").map((x) => x.trim().toLowerCase()).filter(Boolean);
+  const out: OnlineGateway[] = [];
+  for (const w of wanted) {
+    if (w === "off") continue;
+    if (w === "sandbox") {
+      if (process.env.NODE_ENV === "production" && process.env.ALLOW_SANDBOX_PAYMENTS !== "yes") throw new BusinessError("The sandbox payment provider is not allowed in production.", "STATE");
+      out.push(sandboxGateway);
+    } else if (w === "airtel") out.push(airtelGateway(airtelConfigFromEnv()));
+    else throw new BusinessError(`Online payment provider "${w}" is not configured in this deployment.`, "STATE");
   }
-  throw new BusinessError(`Online payment provider "${wanted}" is not configured in this deployment.`, "STATE");
+  return out;
 }
 
-/** Used by the public layer: same as getOnlineGateway but a refusal is a clean "not available". */
-export function requireOnlineGateway(): OnlineGateway {
-  const g = getOnlineGateway();
+/** One operator by name (the one a payment was started with), or null when it is no longer enabled. */
+export function getOnlineGateway(name?: string): OnlineGateway | null {
+  const all = listOnlineGateways();
+  return name ? (all.find((g) => g.name === name) ?? null) : (all[0] ?? null);
+}
+
+/** Used by the public layer: a refusal is a clean "not available". */
+export function requireOnlineGateway(name?: string): OnlineGateway {
+  const g = getOnlineGateway(name);
   if (!g) throw new BusinessError("Online payment is not available at the moment. Please pay at a police payment point.", "STATE");
   return g;
 }

@@ -170,6 +170,7 @@ export const publicFr = {
   "pub.pay.notPayable": "Cette amende ne peut pas être payée en ligne (déjà payée, contestée ou annulée).",
   "pub.pay.inProgress": "Un paiement est déjà en cours pour cette amende. Validez-le sur votre téléphone ou attendez quelques minutes.",
   "pub.pay.method": "Moyen de paiement",
+  "pub.pay.operator": "Opérateur",
   "pub.pay.m.MOBILE_MONEY": "Mobile Money",
   "pub.pay.m.ELECTRONIC": "Carte / paiement électronique",
   "pub.pay.m.BANK_TRANSFER": "Virement bancaire",

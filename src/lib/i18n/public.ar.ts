@@ -171,6 +171,7 @@ export const publicAr: Record<keyof typeof publicFr, string> = {
   "pub.pay.notPayable": "لا يمكن دفع هذه الغرامة عبر الإنترنت (مسدَّدة أو معترَض عليها أو ملغاة).",
   "pub.pay.inProgress": "توجد عملية دفع جارية لهذه الغرامة. أكّدها على هاتفك أو انتظر بضع دقائق.",
   "pub.pay.method": "وسيلة الدفع",
+  "pub.pay.operator": "المشغّل",
   "pub.pay.m.MOBILE_MONEY": "المال عبر الهاتف",
   "pub.pay.m.ELECTRONIC": "بطاقة / دفع إلكتروني",
   "pub.pay.m.BANK_TRANSFER": "تحويل مصرفي",

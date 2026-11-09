@@ -11,7 +11,7 @@ import { randomToken, sha256 } from "@/server/crypto";
 import { nextNumber } from "@/server/sequences";
 import type { RequestContext } from "@/server/request-context";
 import { getTrafficSettings } from "@/server/traffic/settings";
-import { requireOnlineGateway, getOnlineGateway, signNotification, type GatewayNotification } from "@/server/traffic/online-gateway";
+import { listOnlineGateways, requireOnlineGateway, getOnlineGateway, signNotification, type GatewayNotification } from "@/server/traffic/online-gateway";
 
 /** How long the payer has to confirm on their phone before the attempt is closed. */
 const PENDING_MINUTES = 30;
@@ -83,20 +83,21 @@ function publicView(f: FineForPayer, pending: boolean) {
 }
 
 export async function lookupFineForPayer(pvNumber: string, plate: string, ip: string | null) {
-  const gateway = requireOnlineGateway();
+  requireOnlineGateway();
+  const operators = listOnlineGateways().map((g) => ({ code: g.name, label: g.label, methods: g.methods }));
   enforceRateLimit("publicFine", ip);
   enforceRateLimit("publicFinePv", pvNumber.trim().toUpperCase());
   const f = await findFine(pvNumber, plate);
   const pending = await prisma.trafficOnlinePayment.count({ where: { fineId: f.fine.id, status: "PENDING", expiresAt: { gt: new Date() } } });
-  return { ...publicView(f, pending > 0), methods: gateway.methods, partialAllowed: (await getTrafficSettings()).allowPartialPayment };
+  return { ...publicView(f, pending > 0), operators, methods: [...new Set(operators.flatMap((o) => o.methods))], partialAllowed: (await getTrafficSettings()).allowPartialPayment };
 }
 
 // ------------------------------------------------------------------ public: start a payment
 
-export type StartInput = { pvNumber: string; plate: string; method: TrafficPaymentMethod; phone?: string; amountFcfa?: number };
+export type StartInput = { pvNumber: string; plate: string; method: TrafficPaymentMethod; provider?: string; phone?: string; amountFcfa?: number };
 
 export async function startOnlinePayment(input: StartInput, ip: string | null) {
-  const gateway = requireOnlineGateway();
+  const gateway = input.provider ? requireOnlineGateway(input.provider) : (listOnlineGateways().find((g) => g.methods.includes(input.method)) ?? requireOnlineGateway());
   enforceRateLimit("publicPay", ip);
   enforceRateLimit("publicFinePv", input.pvNumber.trim().toUpperCase());
   if (!gateway.methods.includes(input.method)) throw new BusinessError("This payment method is not available online.", "VALIDATION", { method: "unsupported" });
@@ -152,10 +153,10 @@ async function applyOutcome(intent: Intent, n: GatewayNotification, ctx: Request
     if (claimed.count !== 1) return "IGNORED" as const; // already settled: a second notification changes nothing
     const refund = async (why: string) => {
       await tx.trafficOnlinePayment.update({ where: { id: intent.id }, data: { status: "FAILED", confirmedAt: null, failureReason: `REFUND_REQUIRED: ${why}` } });
-      await logAudit({ actor, action: "TRAFFIC_ONLINE_PAYMENT_REFUND_REQUIRED", module: "traffic", outcome: "FAILURE", entityType: "TrafficOnlinePayment", entityId: intent.id, entityLabel: intent.number, summary: `Online payment ${intent.number}: the operator took ${n.amountFcfa} FCFA (ref ${n.reference}) but it could not be credited — ${why}. To be refunded.`, context: ctx }, tx);
+      await logAudit({ actor, action: "TRAFFIC_ONLINE_PAYMENT_REFUND_REQUIRED", module: "traffic", outcome: "FAILURE", entityType: "TrafficOnlinePayment", entityId: intent.id, entityLabel: intent.number, summary: `Online payment ${intent.number}: the operator took ${n.amountFcfa ?? intent.amountFcfa} FCFA (ref ${n.reference}) but it could not be credited — ${why}. To be refunded.`, context: ctx }, tx);
       return "FAILED" as const;
     };
-    if (n.amountFcfa !== intent.amountFcfa) return refund(`the operator reports ${n.amountFcfa} FCFA, ${intent.amountFcfa} FCFA were expected`);
+    if (n.amountFcfa !== undefined && n.amountFcfa !== intent.amountFcfa) return refund(`the operator reports ${n.amountFcfa} FCFA, ${intent.amountFcfa} FCFA were expected`);
     const fine = await tx.trafficFine.findUnique({ where: { id: intent.fineId }, select: { id: true, number: true, status: true, amountFcfa: true, amountPaidFcfa: true, ticket: { select: { number: true, status: true } } } });
     if (!fine || fine.ticket.status !== "ISSUED" || !(PAYABLE as readonly string[]).includes(fine.status) || intent.amountFcfa > fine.amountFcfa - fine.amountPaidFcfa) return refund("the fine was settled, cancelled or put on hold in the meantime");
     const paidAt = new Date();
@@ -175,9 +176,15 @@ async function applyOutcome(intent: Intent, n: GatewayNotification, ctx: Request
 }
 
 /** Entry point of the operator's signed notification. Idempotent: the same event, replayed, changes nothing. */
-export async function handleGatewayNotification(rawBody: string, headers: Headers, ctx: RequestContext) {
-  const gateway = requireOnlineGateway();
-  const n = gateway.verifyNotification(rawBody, headers); // throws when it cannot be trusted
+export async function handleGatewayNotification(provider: string, rawBody: string, headers: Headers, query: URLSearchParams, ctx: RequestContext) {
+  const gateway = requireOnlineGateway(provider);
+  let n = gateway.verifyNotification(rawBody, headers, query); // throws when it cannot be trusted
+  if (gateway.confirmByQuery) {
+    // The notification only points at a transaction: the outcome is what the operator answers when asked, server to server.
+    const confirmed = await gateway.queryStatus(n.reference).catch(() => null);
+    if (!confirmed) return { result: "pending" as const }; // not settled (yet): no event is consumed, the operator may call again
+    n = { ...confirmed, eventId: n.eventId };
+  }
   const payloadHash = sha256(rawBody);
   const intent = await prisma.trafficOnlinePayment.findUnique({ where: { provider_providerReference: { provider: gateway.name, providerReference: n.reference } }, select: { id: true, number: true, fineId: true, amountFcfa: true, method: true, provider: true, providerReference: true, status: true } });
   try {
@@ -194,7 +201,7 @@ export async function handleGatewayNotification(rawBody: string, headers: Header
 // ------------------------------------------------------------------ public: follow a payment
 
 async function refreshFromOperator(row: TrafficOnlinePayment) {
-  const gateway = getOnlineGateway();
+  const gateway = getOnlineGateway(row.provider);
   if (!gateway || row.status !== "PENDING" || !row.providerReference) return;
   const n = await gateway.queryStatus(row.providerReference).catch(() => null);
   if (n) await applyOutcome(row, n, null);
@@ -229,13 +236,12 @@ export async function onlinePaymentStatus(number: string, code: string, ip: stri
 
 /** Sends the application its own signed notification, as the sandbox operator would after the payer confirms (or refuses) on the phone. */
 export async function simulateOperator(number: string, code: string, outcome: "SUCCESS" | "FAILED", ctx: RequestContext) {
-  const gateway = requireOnlineGateway();
-  if (gateway.name !== "sandbox") throw new BusinessError("Only available with the sandbox payment provider.", "STATE");
+  requireOnlineGateway("sandbox");
   const row = await prisma.trafficOnlinePayment.findUnique({ where: { number: number.trim().toUpperCase() } });
-  if (!row || !row.providerReference || !sameHash(row.accessHash, accessHash(code))) throw new NotFoundError("Payment");
+  if (!row || row.provider !== "sandbox" || !row.providerReference || !sameHash(row.accessHash, accessHash(code))) throw new NotFoundError("Payment");
   const body = JSON.stringify({ eventId: `evt_${randomToken(9)}`, reference: row.providerReference, status: outcome, amountFcfa: row.amountFcfa, ...(outcome === "FAILED" ? { reason: "Payment refused on the phone." } : {}) });
   const { signature, timestamp } = signNotification(body);
-  return handleGatewayNotification(body, new Headers({ "x-signature": signature, "x-timestamp": timestamp }), ctx);
+  return handleGatewayNotification("sandbox", body, new Headers({ "x-signature": signature, "x-timestamp": timestamp }), new URLSearchParams(), ctx);
 }
 
 // ------------------------------------------------------------------ staff: follow and reconcile

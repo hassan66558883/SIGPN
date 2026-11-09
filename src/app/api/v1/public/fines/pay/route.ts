@@ -6,6 +6,7 @@ const schema = z.object({
   pvNumber: z.string().trim().min(5).max(40),
   plate: z.string().trim().min(3).max(20),
   method: z.enum(["MOBILE_MONEY", "ELECTRONIC", "BANK_TRANSFER"]),
+  provider: z.enum(["airtel", "sandbox"]).optional(),
   phone: z.string().trim().max(24).optional(),
   amountFcfa: z.number().int().positive().max(100_000_000).optional(),
 });
