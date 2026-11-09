@@ -44,7 +44,7 @@ export const NAVIGATION: NavSection[] = [
     items: [
       { href: "/warrants", labelKey: "nav.warrants", permission: "warrants:view", icon: "⚖" },
       { href: "/arrests", labelKey: "nav.arrests", permission: "arrests:view", icon: "⛓" },
-      { href: "/detention", planned: true, labelKey: "nav.detention", permission: "detention:view", icon: "▣" },
+      { href: "/detention", labelKey: "nav.detention", permission: "detention:view", icon: "▣" },
     ],
   },
   {

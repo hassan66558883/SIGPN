@@ -749,3 +749,30 @@ export const ARREST_STATUS: LabelMap = {
   TRANSFERRED: def("Transféré", "نُقل", "violet"),
   CHARGED: def("Inculpé", "وُجهت إليه تهمة", "danger"),
 };
+
+export const DETENTION_STATUS: LabelMap = {
+  ACTIVE: def("En cours", "جارٍ", "warning"),
+  EXTENDED: def("Prolongée", "ممدَّد", "danger"),
+  ENDED: def("Terminée", "منتهٍ", "neutral"),
+};
+
+export const DETENTION_END_REASON: LabelMap = {
+  RELEASED_NO_CHARGE: def("Libéré sans poursuite", "أُفرج عنه دون ملاحقة", "success"),
+  RELEASED_ON_BAIL: def("Libéré sous caution", "أُفرج عنه بكفالة", "success"),
+  TRANSFERRED_PROSECUTION: def("Déféré au parquet", "أُحيل إلى النيابة", "violet"),
+  TRANSFERRED_STATION: def("Transféré vers un autre commissariat", "نُقل إلى مركز آخر", "info"),
+  COURT_APPEARANCE: def("Comparution devant le tribunal", "مثول أمام المحكمة", "violet"),
+  MEDICAL: def("Évacuation médicale", "إجلاء طبي", "warning"),
+  OTHER: def("Autre", "أخرى", "neutral"),
+};
+
+export const DETENTION_LOG_TYPE: LabelMap = {
+  WELFARE_CHECK: def("Contrôle de bien-être", "فحص الحالة", "info"),
+  MEAL: def("Repas", "وجبة", "neutral"),
+  MEDICAL: def("Soins médicaux", "رعاية طبية", "warning"),
+  VISIT: def("Visite", "زيارة", "neutral"),
+  LEGAL_COUNSEL: def("Avocat", "محامٍ", "violet"),
+  TRANSFER: def("Transfert", "نقل", "info"),
+  INCIDENT: def("Incident", "حادثة", "danger"),
+  NOTE: def("Note", "ملاحظة", "neutral"),
+};

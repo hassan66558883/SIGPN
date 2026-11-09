@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { requirePermission } from "@/server/auth/dal";
 import { getArrest } from "@/server/arrests/service";
 import { NotFoundError } from "@/server/errors";
-import { Alert, Badge, Card, DL, EmptyState, PageHeader } from "@/components/ui";
+import { Alert, Badge, ButtonLink, Card, DL, EmptyState, PageHeader } from "@/components/ui";
 import { ARREST_AUTHORITY, ARREST_STATUS, labelOf } from "@/lib/labels";
 import { fmtDateTime } from "@/lib/format";
 import { getLocale, getT } from "@/server/i18n";
@@ -32,6 +32,7 @@ export default async function ArrestDetailPage({ params, searchParams }: PagePro
   }
   const st = labelOf(ARREST_STATUS, a.status, locale);
   const au = labelOf(ARREST_AUTHORITY, a.authority, locale);
+  const canStartCustody = actor.permissions.has("detention:manage") && (a.status === "RECORDED" || a.status === "IN_CUSTODY") && a.detentions.every((d) => d.status === "ENDED");
   const allowed = actor.permissions.has("arrests:update") ? (NEXT[a.status] ?? []) : [];
   return (
     <div>
@@ -61,7 +62,7 @@ export default async function ArrestDetailPage({ params, searchParams }: PagePro
               ]}
             />
           </Card>
-          <Card title={t("arrests.detentions")}>
+          <Card title={t("arrests.detentions")} actions={canStartCustody ? <ButtonLink href={`/detention/new?arrestId=${a.id}`} size="sm">{t("detention.new")}</ButtonLink> : undefined}>
             {a.detentions.length === 0 ? (
               <EmptyState>{t("arrests.noDetentions")}</EmptyState>
             ) : (
