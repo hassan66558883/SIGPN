@@ -1,6 +1,6 @@
 # SIGPN-T v2.0 — Guide de démonstration pour la Direction générale
 
-Police Nationale du Tchad · cinq scénarios, environ 30 minutes · **données entièrement fictives**
+Police Nationale du Tchad · six scénarios, environ 30 minutes · **données entièrement fictives**
 
 [[SOMMAIRE]]
 
@@ -225,7 +225,45 @@ La page de connexion est réservée au personnel autorisé de la Police National
 
 **À ne pas promettre :** pas d'e-mail ni de SMS de confirmation (le citoyen suit par référence et code) ; pas de CAPTCHA (des plafonds, un champ piège et la validation côté serveur protègent les dépôts) ; pas de photographie sur le site public. L'annuaire et les actualités de la démonstration sont fictifs et ne contiennent aucun numéro officiel.
 
-## 8. Questions probables de la Direction
+## 8. Scénario 6 — Mandat, arrestation, garde à vue : la chaîne complète
+
+**Message :** *« Chaque étape a un responsable distinct et une trace. Personne ne valide sa propre demande, et le délai légal de la garde à vue est surveillé. »*
+
+**Comptes :** `inv.diallo` (enquêteur), `chief.cs1` (commissaire, second facteur), `custody.cs1` (agent de garde). Rejouable automatiquement : `. scripts/demo/env.sh && npx tsx scripts/demo/enforcement.ts` (base de démonstration uniquement).
+
+1. L'enquêteur **demande un mandat** : type, personne, autorité émettrice, motifs, date d'expiration. Il est créé en **brouillon**.
+
+   ![Demande de mandat](demo/screens/enf-1-warrant-form.png)
+
+2. L'enquêteur voit que **quelqu'un d'autre doit l'approuver** : aucun bouton de validation ne lui est proposé (la règle est aussi tenue par le serveur).
+
+   ![Mandat en brouillon](demo/screens/enf-2-warrant-draft.png)
+
+3. Le commissaire **approuve** (avec son second facteur) : le mandat devient *Actif*, l'approbateur et l'heure sont consignés.
+
+   ![Mandat actif](demo/screens/enf-3-warrant-active.png)
+
+4. L'enquêteur **enregistre l'arrestation sur ce mandat**. Le système vérifie que le mandat est actif, non expiré et vise bien cette personne ; l'heure ne peut pas être dans le futur.
+
+   ![Formulaire d'arrestation](demo/screens/enf-4-arrest-form.png)
+
+   ![Arrestation enregistrée](demo/screens/enf-5-arrest-detail.png)
+
+5. L'agent de garde **place la personne en garde à vue** et tient le journal de surveillance. L'échéance légale (48 h) court **depuis l'arrestation**, pas depuis la saisie.
+
+   ![Garde à vue](demo/screens/enf-6-custody-detail.png)
+
+6. Seul le commissaire peut **prolonger** (autorité qui autorise et motif obligatoires, au plus 48 h au-delà de la limite). L'agent de garde ne voit pas ce formulaire.
+
+   ![Prolongation](demo/screens/enf-7-custody-extended.png)
+
+7. À la **fin de la garde à vue**, l'arrestation suit l'issue choisie (libération, déféré au parquet, transfert). Le mandat est ensuite marqué **exécuté**.
+
+   ![Mandat exécuté](demo/screens/enf-8-warrant-executed.png)
+
+**À dire :** la liste des gardes à vue signale celles dont le délai est dépassé ; toutes les étapes figurent au journal d'audit.
+
+## 9. Questions probables de la Direction
 
 | Question | Réponse honnête |
 |---|---|
@@ -238,7 +276,7 @@ La page de connexion est réservée au personnel autorisé de la Police National
 | Quand peut-on le mettre en service ? | Voir le plan de déploiement du dossier de livraison : sauvegarde testée, reverse proxy, secrets, formation, période de double commande. |
 | Les données de la démonstration sont-elles réelles ? | Non. Personnes, mandats, plaintes, adresses et textes sont fictifs. |
 
-## 9. Si quelque chose se passe mal pendant la démonstration
+## 10. Si quelque chose se passe mal pendant la démonstration
 
 - **Code à six chiffres refusé :** attendre le code suivant (un code ne sert qu'une fois).
 - **L'alerte n'apparaît pas à Abéché :** attendre 20 secondes (synchronisation) ou recharger la page ; vérifier dans la supervision que l'unité est « Connectée ».

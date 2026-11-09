@@ -75,14 +75,16 @@ Toutes sont **additives** (aucun `DROP TABLE`, `DROP COLUMN`, `TRUNCATE` ni `DEL
 |---|---|---|
 | Typage | `tsc --noEmit` | sans erreur |
 | Unitaires | `npm test` | 130 sur 130 |
-| Intégration et sécurité (serveur et base réels) | `npm run test:integration` et `npm run test:security` | 215 sur 215 (dont 24 ajoutés en phase 8) |
+| Intégration et sécurité (serveur et base réels) | `npm run test:integration` et `npm run test:security` | **229 sur 229** (194 + 35 ; 24 ajoutés en phase 8, 14 avec les modules mandats, arrestations et garde à vue) |
 | Droits | matrice générée depuis le code de **toutes** les routes REST : 401 sans identifiant, 403 sans permission, jamais 5xx | réussi |
 | Sécurité du site public | injections, affectation de masse, corps mal formés, identifiants hostiles, en-têtes | réussi ; un défaut corrigé (octet NUL → 500, désormais 422) |
 | Reprise du réseau d'alertes | longue panne, 25 synchronisations et 10 accusés simultanés, clé révoquée | réussi ; un défaut corrigé (passes de maintenance simultanées : 42 escalades pour 14 livraisons, désormais exclusives) |
 | Performance (300 unités simulées, 20 avis, 6 000 livraisons, build de production) | `npm run bench:p8` | publication 138 ms (95e centile), supervision 27 ms, battement 31 ms, pages publiques 270 ms au plus ; tous les budgets respectés |
-| Démonstration | `npm run demo:run` : cinq scénarios par l'interface réelle, 30 captures | réussi sur une base neuve |
+| Démonstration | `npm run demo:run` : cinq scénarios par l'interface réelle, puis `scripts/demo/enforcement.ts` (scénario 6, 11 contrôles, second facteur compris) | réussi sur la base de démonstration |
 
 Relance complète en phase 9 (après ajout des comptes d'Abéché, des scripts de démonstration et de la correction de la graine) : `tsc` sans erreur, **130 sur 130** et **215 sur 215**. Deux fragilités **des tests** (non du produit) ont été corrigées au passage : (1) trois suites échouaient en 429 quand elles suivaient `hr-security`, qui épuise exprès le quota d'écriture de 60 par minute du compte administrateur : leurs aides d'appel attendent désormais la fin de la fenêtre ; (2) le test des passes de maintenance simultanées comparait le total d'escalades de tout le réseau aux livraisons d'un seul avis, ce qui échouait dès que des avis d'exécutions précédentes subsistaient : la borne est maintenant le nombre de livraisons éligibles avant les passes.
+
+Relance finale après l'ajout des modules d'application de la loi : `tsc` sans erreur, **130 sur 130** (unitaires) et **229 sur 229** (intégration et sécurité).
 
 Le rapport détaillé est `docs/TESTS_PHASE8.md` (et son PDF).
 
@@ -169,9 +171,28 @@ Formation par fonction (section 5), période de double saisie de deux semaines s
 
 Nouveaux comptes fictifs ajoutés à la graine pour la démonstration d'Abéché : `chief.abe` (commissaire de poste) et `desk.abe` (agent d'accueil), rattachés au Commissariat Central d'Abéché.
 
+## 9. Modules d'application de la loi ajoutés après la phase 9
+
+Trois entrées du menu pointaient vers des pages qui n'avaient jamais été construites (le modèle de données et les permissions existaient déjà). Elles sont maintenant réalisées, avec les mêmes principes que le reste du système (périmètre territorial, journal d'audit, français et arabe).
+
+| Module | Ce qu'il fait | Règles tenues côté serveur |
+|---|---|---|
+| **Mandats** (`/warrants`) | Demande, liste filtrée, fiche, approbation, rejet, exécution, annulation | Le demandeur ne peut pas approuver ni rejeter sa propre demande ; rejet et annulation exigent un motif ; un mandat exécuté est définitif ; un mandat expiré ne s'approuve pas ; l'avis de recherche pour perquisition continue d'exiger un mandat actif |
+| **Arrestations** (`/arrests`) | Enregistrement, liste, fiche, changement d'état | Sur mandat : mandat actif, non expiré et visant la même personne ; heure non future ; libération avec motif et refusée tant qu'une garde à vue est ouverte ; états finaux définitifs |
+| **Garde à vue** (`/detention`) | Ouverture, journal de surveillance, prolongation, clôture, alerte de délai dépassé | Échéance légale = arrestation + 48 h ; pas de début avant l'arrestation ; une seule garde à vue ouverte par arrestation ; prolongation réservée à une permission distincte, avec autorité et motif, au plus 48 h au-delà ; la clôture met l'arrestation à jour |
+
+API REST : `/api/v1/warrants`, `/api/v1/arrests`, `/api/v1/detention` (et leurs `[id]`), sous la même grille de permissions que les autres routes. Le menu ne montre plus que les pages qui existent ; les autres modules prévus (enquêtes, déclarations, auditions, véhicules, documents, rapports, statistiques, opérations, recherche globale, paramètres système) restent **à construire** et sont masqués.
+
+Autres améliorations de cette étape : les formulaires de création et de modification d'utilisateur ne proposent plus que les rôles que l'administrateur connecté a le droit d'attribuer (la règle existait déjà côté serveur, l'interface la rend visible).
+
+**Vérification.** 14 tests d'intégration ajoutés (`warrants`, `arrests`, `detention`) et un parcours complet par l'interface réelle (`scripts/demo/enforcement.ts`, 11 contrôles réussis, second facteur compris), décrit au scénario 6 du guide de démonstration.
+
+**Limites.** Délai légal fixé à 48 h (constante du code, à confirmer avec la Direction et le parquet) ; pas de pièce jointe sur ces trois modules ; pas de génération de document de mandat imprimable ; parcours en arabe et sur téléphone non rejoués pour ces écrans.
+
+
 ## Annexe A — Fichiers ajoutés ou modifiés
 
-Comparaison avec la branche principale : **177 fichiers** (134 ajoutés, 43 modifiés). `A` = ajouté, `M` = modifié.
+Comparaison avec la branche principale : **220 fichiers** (174 ajoutés, 46 modifiés). `A` = ajouté, `M` = modifié.
 
 ### Base de données (migrations et schéma) — 6
 
@@ -184,21 +205,28 @@ Comparaison avec la branche principale : **177 fichiers** (134 ajoutés, 43 modi
 | A | `prisma/migrations/20261108160000_public_portal/migration.sql` |
 | M | `prisma/schema.prisma` |
 
-### Services serveur (`src/server`) — 22
+### Services serveur (`src/server`) — 32
 
 | | Fichier |
 |---|---|
+| M | `src/server/admin/queries.ts` |
 | A | `src/server/alerts/actions.ts` |
 | A | `src/server/alerts/maintenance.ts` |
 | A | `src/server/alerts/publish.ts` |
 | A | `src/server/alerts/scheduler.ts` |
 | A | `src/server/alerts/service.ts` |
 | M | `src/server/api.ts` |
+| A | `src/server/arrests/actions.ts` |
+| A | `src/server/arrests/schemas.ts` |
+| A | `src/server/arrests/service.ts` |
 | M | `src/server/auth/rate-limit.ts` |
 | A | `src/server/biometric/control.ts` |
 | A | `src/server/dashboard/stats.ts` |
 | M | `src/server/demo/accounts.ts` |
 | M | `src/server/demo/seed-wanted.ts` |
+| A | `src/server/detention/actions.ts` |
+| A | `src/server/detention/schemas.ts` |
+| A | `src/server/detention/service.ts` |
 | A | `src/server/public/actions.ts` |
 | A | `src/server/public/admin.ts` |
 | A | `src/server/public/service.ts` |
@@ -210,8 +238,11 @@ Comparaison avec la branche principale : **177 fichiers** (134 ajoutés, 43 modi
 | M | `src/server/wanted/queries.ts` |
 | M | `src/server/wanted/schemas.ts` |
 | M | `src/server/wanted/service.ts` |
+| A | `src/server/warrants/actions.ts` |
+| A | `src/server/warrants/schemas.ts` |
+| A | `src/server/warrants/service.ts` |
 
-### Routes REST (`src/app/api`) — 25
+### Routes REST (`src/app/api`) — 31
 
 | | Fichier |
 |---|---|
@@ -225,8 +256,12 @@ Comparaison avec la branche principale : **177 fichiers** (134 ajoutés, 43 modi
 | A | `src/app/api/v1/alerts/supervision/[id]/route.ts` |
 | A | `src/app/api/v1/alerts/supervision/route.ts` |
 | A | `src/app/api/v1/alerts/units/[id]/presence/route.ts` |
+| A | `src/app/api/v1/arrests/[id]/route.ts` |
+| A | `src/app/api/v1/arrests/route.ts` |
 | A | `src/app/api/v1/biometric/control/[id]/route.ts` |
 | A | `src/app/api/v1/biometric/control/route.ts` |
+| A | `src/app/api/v1/detention/[id]/route.ts` |
+| A | `src/app/api/v1/detention/route.ts` |
 | A | `src/app/api/v1/intake/[id]/route.ts` |
 | A | `src/app/api/v1/intake/route.ts` |
 | A | `src/app/api/v1/public-content/news/[id]/route.ts` |
@@ -240,25 +275,41 @@ Comparaison avec la branche principale : **177 fichiers** (134 ajoutés, 43 modi
 | A | `src/app/api/v1/public/wanted/route.ts` |
 | M | `src/app/api/v1/wanted/[id]/route.ts` |
 | M | `src/app/api/v1/wanted/route.ts` |
+| A | `src/app/api/v1/warrants/[id]/route.ts` |
+| A | `src/app/api/v1/warrants/route.ts` |
 
-### Pages internes (`src/app/(app)`) — 14
+### Pages internes (`src/app/(app)`) — 28
 
 | | Fichier |
 |---|---|
+| M | `src/app/(app)/admin/users/[id]/page.tsx` |
+| M | `src/app/(app)/admin/users/new/page.tsx` |
 | A | `src/app/(app)/alerts/[id]/page.tsx` |
 | A | `src/app/(app)/alerts/alerts-forms.tsx` |
 | A | `src/app/(app)/alerts/page.tsx` |
 | A | `src/app/(app)/alerts/supervision/[id]/page.tsx` |
 | A | `src/app/(app)/alerts/supervision/page.tsx` |
+| A | `src/app/(app)/arrests/[id]/page.tsx` |
+| A | `src/app/(app)/arrests/arrest-forms.tsx` |
+| A | `src/app/(app)/arrests/new/page.tsx` |
+| A | `src/app/(app)/arrests/page.tsx` |
 | A | `src/app/(app)/biometric/control/control-console.tsx` |
 | A | `src/app/(app)/biometric/control/page.tsx` |
 | M | `src/app/(app)/dashboard/page.tsx` |
+| A | `src/app/(app)/detention/[id]/page.tsx` |
+| A | `src/app/(app)/detention/detention-forms.tsx` |
+| A | `src/app/(app)/detention/new/page.tsx` |
+| A | `src/app/(app)/detention/page.tsx` |
 | M | `src/app/(app)/layout.tsx` |
 | A | `src/app/(app)/public-admin/page.tsx` |
 | A | `src/app/(app)/public-admin/public-admin-forms.tsx` |
 | A | `src/app/(app)/public-admin/submissions/[id]/page.tsx` |
 | M | `src/app/(app)/wanted/[id]/page.tsx` |
 | M | `src/app/(app)/wanted/wanted-forms.tsx` |
+| A | `src/app/(app)/warrants/[id]/page.tsx` |
+| A | `src/app/(app)/warrants/new/page.tsx` |
+| A | `src/app/(app)/warrants/page.tsx` |
+| A | `src/app/(app)/warrants/warrant-forms.tsx` |
 
 ### Portail public (`src/app/(public)`) — 11
 
@@ -313,16 +364,19 @@ Comparaison avec la branche principale : **177 fichiers** (134 ajoutés, 43 modi
 | A | `src/lib/i18n/wanted.ar.ts` |
 | A | `src/lib/i18n/wanted.fr.ts` |
 
-### Tests — 12
+### Tests — 15
 
 | | Fichier |
 |---|---|
 | A | `tests/integration/alerts-resilience.test.ts` |
 | A | `tests/integration/alerts.test.ts` |
+| A | `tests/integration/arrests.test.ts` |
 | A | `tests/integration/biocontrol.test.ts` |
+| A | `tests/integration/detention.test.ts` |
 | A | `tests/integration/public.test.ts` |
 | M | `tests/integration/users-api.test.ts` |
 | M | `tests/integration/wanted.test.ts` |
+| A | `tests/integration/warrants.test.ts` |
 | A | `tests/security/public-attacks.test.ts` |
 | A | `tests/security/route-matrix.test.ts` |
 | A | `tests/unit/alert-escalation.test.ts` |
@@ -330,12 +384,14 @@ Comparaison avec la branche principale : **177 fichiers** (134 ajoutés, 43 modi
 | A | `tests/unit/dash-period.test.ts` |
 | A | `tests/unit/public-boundary.test.ts` |
 
-### Outils et scripts — 7
+### Outils et scripts — 9
 
 | | Fichier |
 |---|---|
 | A | `scripts/alerts-maintain.ts` |
 | A | `scripts/dash-check.ts` |
+| A | `scripts/demo/enforcement.ts` |
+| A | `scripts/demo/env.sh` |
 | A | `scripts/demo/lib.ts` |
 | A | `scripts/demo/mfa.ts` |
 | A | `scripts/demo/reset.ts` |
@@ -356,9 +412,9 @@ Comparaison avec la branche principale : **177 fichiers** (134 ajoutés, 43 modi
 | A | `docs/TESTS_PHASE8.md` |
 | A | `docs/TESTS_PHASE8.pdf` |
 
-### Captures de la démonstration — 33
+### Captures de la démonstration — 41
 
-33 images PNG dans `docs/demo/screens/` (scénarios 1 à 5).
+41 images PNG dans `docs/demo/screens/` (scénarios 1 à 5).
 
 ### Configuration et divers — 11
 
