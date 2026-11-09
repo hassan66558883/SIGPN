@@ -3,7 +3,7 @@ import Link from "next/link";
 import { requirePermission } from "@/server/auth/dal";
 import { organizationOverview } from "@/server/org/queries";
 import { listPositions } from "@/server/org/personnel";
-import { Badge, Card, EmptyState, PageHeader, StatCard, Table, DL } from "@/components/ui";
+import { Alert, Badge, Card, EmptyState, PageHeader, StatCard, Table, DL } from "@/components/ui";
 import { RANK_CATEGORY, labelOf } from "@/lib/labels";
 import { getLocale, getT } from "@/server/i18n";
 import { OrganizationForm, RankForm, RegionForm } from "./forms";
@@ -19,9 +19,15 @@ export default async function OrganizationPage() {
   const [o, t, locale, positions] = await Promise.all([organizationOverview(actor), getT(), getLocale(), listPositions()]);
   const canManage = actor.permissions.has("org:manage");
   const national = actor.scopeLevel === "NATIONAL";
+  const withoutDelegate = o.regions.filter((r) => r.isActive && r.delegates.length === 0);
   return (
     <div>
       <PageHeader eyebrow={t("admin.eyebrow")} title={t("org.title")} subtitle={t("org.subtitle")} />
+      {withoutDelegate.length > 0 ? (
+        <Alert tone="warning" className="mb-4">
+          {t("org.missingDelegates", { n: withoutDelegate.length, list: withoutDelegate.map((r) => r.name).join(", ") })}
+        </Alert>
+      ) : null}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <StatCard label={t("org.stat.regions")} value={o.regions.filter((r) => r.isActive).length} tone="violet" />
         <StatCard label={t("terr.departments")} value={o.totals.adminDepartments} tone="info" />
@@ -51,6 +57,7 @@ export default async function OrganizationPage() {
               <thead>
                 <tr>
                   <th>{t("org.col.region")}</th>
+                  <th>{t("org.col.delegate")}</th>
                   <th>{t("org.col.capital")}</th>
                   <th>{t("terr.departments")}</th>
                   <th>{t("org.col.stations")}</th>
@@ -73,6 +80,17 @@ export default async function OrganizationPage() {
                           </Badge>
                         ) : null}
                       </span>
+                    </td>
+                    <td data-label={t("org.col.delegate")}>
+                      {r.delegates.length ? (
+                        r.delegates.map((d) => (
+                          <span key={d.username} className="block text-xs">
+                            {d.fullName} <span className="text-slate">({d.username})</span>
+                          </span>
+                        ))
+                      ) : (
+                        <Badge tone="danger">{t("org.noDelegate")}</Badge>
+                      )}
                     </td>
                     <td data-label={t("org.col.capital")}>{r.capital ?? "—"}</td>
                     <td data-label={t("terr.departments")}>{r._count.adminDepartments}</td>

@@ -9,6 +9,7 @@ import { syncPermissionCatalog, syncSystemRoles } from "@/server/rbac/sync";
 import { SYSTEM_ROLES } from "@/server/rbac/roles";
 import { impliedClearance } from "@/server/rbac/sensitivity";
 import { DEMO_ACCOUNTS } from "@/server/demo/accounts";
+import { CHAD_PROVINCES } from "@/server/demo/seed-territory";
 import { seedTerritory } from "@/server/demo/seed-territory";
 import { seedOperations } from "@/server/demo/seed-operations";
 import { seedFieldOps } from "@/server/demo/seed-field-ops";
@@ -22,6 +23,23 @@ export async function seedOrganization() {
   return prisma.organization.upsert({ where: { code: "NPS" }, update: {}, create: { code: "NPS", name: "Police Nationale du Tchad", shortName: "PNT", description: "Organisation nationale (démonstration SIGPN-T)." } });
 }
 
+type DemoAccount = { username: string; roleCode: string; roleName: string; firstName: string; lastName: string; hint: string; station?: string; department?: string; province?: string };
+
+/**
+ * Every province has its administrator: the provincial authority (délégué provincial de Police, decree 0572/2023 art. 87), who runs the
+ * units and the accounts of the province. N'Djamena already has commander.central; each other province gets one fictional account
+ * `delegue.<code>`. Placeholder names on purpose: these are demonstration accounts, not people.
+ */
+export const PROVINCE_DELEGATES: DemoAccount[] = CHAD_PROVINCES.filter((p) => p.code !== "NDJ").map((p) => ({
+  username: `delegue.${p.code.toLowerCase()}`,
+  roleCode: "REGIONAL_COMMANDER",
+  roleName: "Délégué provincial de Police",
+  firstName: "Délégué",
+  lastName: p.name,
+  hint: `Province : ${p.name} · délégué provincial`,
+  province: p.code,
+}));
+
 /** Creates missing demo accounts and (re)places every demo account in the territorial hierarchy. */
 export async function seedDemoAccounts() {
   const org = await seedOrganization();
@@ -29,7 +47,7 @@ export async function seedDemoAccounts() {
   const roleByCode = new Map(roles.map((r) => [r.code, r]));
   const passwordHash = await hashPassword(env.demoPassword);
   let created = 0;
-  for (const a of DEMO_ACCOUNTS) {
+  for (const a of [...DEMO_ACCOUNTS, ...PROVINCE_DELEGATES] as DemoAccount[]) {
     const role = roleByCode.get(a.roleCode);
     if (!role) throw new Error(`role ${a.roleCode} missing`);
     const station = "station" in a && a.station ? await prisma.station.findUnique({ where: { code: a.station }, select: { id: true, regionId: true, adminDepartmentId: true } }) : null;

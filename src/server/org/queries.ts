@@ -26,9 +26,13 @@ export async function organizationOverview(actor: Actor) {
   const officersByRegion = await prisma.officer.findMany({ where: { isActive: true, deletedAt: null }, select: { station: { select: { regionId: true } } } });
   const officerCount = new Map<string, number>();
   for (const o of officersByRegion) officerCount.set(o.station.regionId, (officerCount.get(o.station.regionId) ?? 0) + 1);
+  // The administrator of a province is its provincial authority: an active account with the délégué provincial role placed in it.
+  const delegates = await prisma.user.findMany({ where: { deletedAt: null, status: "ACTIVE", regionId: { not: null }, role: { code: "REGIONAL_COMMANDER", isActive: true } }, select: { regionId: true, username: true, firstName: true, lastName: true } });
+  const delegateOf = new Map<string, { username: string; fullName: string }[]>();
+  for (const d of delegates) delegateOf.set(d.regionId!, [...(delegateOf.get(d.regionId!) ?? []), { username: d.username, fullName: `${d.firstName} ${d.lastName}` }]);
   return {
     org,
-    regions: regions.map((r) => ({ ...r, activeStations: stationsByRegion.find((s) => s.regionId === r.id)?._count ?? 0, officers: officerCount.get(r.id) ?? 0 })),
+    regions: regions.map((r) => ({ ...r, activeStations: stationsByRegion.find((s) => s.regionId === r.id)?._count ?? 0, officers: officerCount.get(r.id) ?? 0, delegates: delegateOf.get(r.id) ?? [] })),
     ranks,
     totals: { stations: totals[0], departments: totals[1], officers: totals[2], adminDepartments: totals[3] },
   };

@@ -1431,5 +1431,8 @@ export const fr = {
   "wsearch.notQueried": "Sources non interrogées (non connectées) : {list}.",
   "wsearch.allNotices": "Tous les avis de recherche ({n})",
   "app.mfaOff": "Authentification à deux facteurs DÉSACTIVÉE — réglage temporaire (MFA_ENFORCEMENT=off)",
+  "org.col.delegate": "Délégué provincial",
+  "org.noDelegate": "aucun",
+  "org.missingDelegates": "{n} province(s) sans délégué provincial : {list}. Créez son compte (Utilisateurs, rôle « Délégué provincial de Police »).",
   "wsearch.pendingNote": "La recherche se poursuit jusqu'à la réception d'un résultat (trouvé ou non).",
 } as const;
