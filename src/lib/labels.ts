@@ -733,3 +733,19 @@ export const WARRANT_STATUS: LabelMap = {
   CANCELLED: def("Annulé", "ملغى", "neutral"),
   REJECTED: def("Rejeté", "مرفوض", "danger"),
 };
+
+export const ARREST_AUTHORITY: LabelMap = {
+  WARRANT: def("Sur mandat", "بموجب مذكرة", "info"),
+  FLAGRANTE_DELICTO: def("Flagrant délit", "تلبس", "danger"),
+  COURT_ORDER: def("Ordre du tribunal", "أمر المحكمة", "info"),
+  PROBABLE_CAUSE: def("Motif plausible", "سبب معقول", "warning"),
+  OTHER: def("Autre", "أخرى", "neutral"),
+};
+
+export const ARREST_STATUS: LabelMap = {
+  RECORDED: def("Enregistrée", "مسجَّل", "info"),
+  IN_CUSTODY: def("En garde à vue", "قيد الحجز", "warning"),
+  RELEASED: def("Libéré", "أُفرج عنه", "success"),
+  TRANSFERRED: def("Transféré", "نُقل", "violet"),
+  CHARGED: def("Inculpé", "وُجهت إليه تهمة", "danger"),
+};
