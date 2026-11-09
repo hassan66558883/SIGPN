@@ -1326,4 +1326,5 @@ export const ar: Record<keyof typeof fr, string> = {
   "detention.endNotes": "تفاصيل",
   "detention.endedOn": "انتهى في",
   "detention.extension": "التمديد الممنوح",
+  "warrants.details": "تفاصيل المذكرة",
 } as const;

@@ -1327,4 +1327,5 @@ export const fr = {
   "detention.endNotes": "Précisions",
   "detention.endedOn": "Terminée le",
   "detention.extension": "Prolongation accordée",
+  "warrants.details": "Détails du mandat",
 } as const;

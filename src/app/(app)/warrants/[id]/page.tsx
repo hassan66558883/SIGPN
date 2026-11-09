@@ -45,7 +45,7 @@ export default async function WarrantDetailPage({ params, searchParams }: PagePr
       />
       {sp.created === "1" ? <Alert tone="success" className="mb-4">{t("warrants.created", { number: w.number })}</Alert> : null}
       <div className="grid gap-4 lg:grid-cols-3">
-        <Card title={t("warrants.title")} className="lg:col-span-2">
+        <Card title={t("warrants.details")} className="lg:col-span-2">
           <DL
             items={[
               { label: t("warrants.person"), value: w.person ? <Link href={`/persons/${w.person.id}`} className="text-blue hover:underline">{w.person.number} · {w.person.lastName} {w.person.firstName}</Link> : "—" },

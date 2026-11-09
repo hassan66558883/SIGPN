@@ -36,8 +36,8 @@ export function NewArrestForm({ cases, warrants, officers, hasOwnOfficer }: { ca
             <Field label={t("arrests.circumstances")} htmlFor="a-circ" className="sm:col-span-2">
               <textarea id="a-circ" name="circumstances" className="input" rows={4} maxLength={3000} />
             </Field>
-            <Field label={t("arrests.officer")} htmlFor="a-officer">
-              <Select id="a-officer" name="arrestingOfficerId" placeholder={hasOwnOfficer ? t("arrests.officerSelf") : "—"} options={officers.map((o) => ({ value: o.id, label: o.label }))} />
+            <Field label={t("arrests.officer")} htmlFor="a-officer" required={!hasOwnOfficer} error={s.fieldErrors?.arrestingOfficerId}>
+              <Select id="a-officer" name="arrestingOfficerId" required={!hasOwnOfficer} placeholder={hasOwnOfficer ? t("arrests.officerSelf") : "—"} options={officers.map((o) => ({ value: o.id, label: o.label }))} />
             </Field>
             <Field label={t("arrests.case")} htmlFor="a-case">
               <Select id="a-case" name="caseId" placeholder={t("arrests.noCase")} options={cases.map((c) => ({ value: c.id, label: c.label }))} />
