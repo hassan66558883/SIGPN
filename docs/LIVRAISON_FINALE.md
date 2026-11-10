@@ -190,6 +190,28 @@ Autres améliorations de cette étape : les formulaires de création et de modif
 **Limites.** Délai légal fixé à 48 h (constante du code, à confirmer avec la Direction et le parquet) ; pas de pièce jointe sur ces trois modules ; pas de génération de document de mandat imprimable ; parcours en arabe et sur téléphone non rejoués pour ces écrans.
 
 
+## 10. Évolutions postérieures (audit de sécurité, recherche, paiement en ligne)
+
+**Audit de sécurité en sept lots** (un commit par lot) : séparation de l'administration technique et du commandement (1) ; titre provincial et directions centrales du décret 0572/2023 (2) ; niveaux d'habilitation et second facteur selon la sensibilité (3) ; circuit d'approbation des comptes, rôles et habilitations (4) ; effets d'une réaffectation sur les accès (5) ; journal d'audit infalsifiable (chaîne de hachage) et lectures sensibles journalisées (6) ; sessions des comptes sensibles et clés d'API (7). Parcours d'écrans : `docs/demo/screens/`.
+
+**Périmètre territorial.** Chacune des 23 provinces a son délégué (`delegue.<code>`). Un délégué ne voit que sa province, un commissariat que le sien : prouvé par `tests/integration/scope-sweep.test.ts` et `provinces.test.ts`. L'écran *Organisation* montre la couverture. Les rôles à portée nationale sont les seuls à tout voir.
+
+**Recherche des personnes recherchées** (écran de la maquette du client) et **nouvelle coque d'application** (barre latérale, icônes agrandies).
+
+**Paiement en ligne des amendes** (`/payer`, module *Paiements en ligne* côté agents). Le citoyen retrouve son amende (n° de PV + plaque), choisit un opérateur et reçoit la demande de paiement sur son téléphone. **Rien n'est encaissé sur la seule parole du payeur** : le paiement n'est enregistré, avec son reçu, qu'après une notification authentifiée de l'opérateur ou une interrogation de son statut. Une notification rejouée ne crée qu'un paiement ; un montant différent, ou une amende réglée entre-temps, met la demande en échec avec la mention `REFUND_REQUIRED` et apparaît dans la liste de remboursement des agents (le remboursement lui-même est manuel, hors application). Code d'accès haché, téléphone masqué, débits limités par adresse et par PV.
+
+| Opérateur | État | Preuve |
+|---|---|---|
+| Simulation (`sandbox`) | Complet, signature HMAC | Tests d'intégration et parcours dans le navigateur |
+| Airtel Money Tchad | Adaptateur écrit (OAuth2, collecte, interrogation du statut ; l'appel de retour ne sert que de déclencheur) | **Contre une maquette locale uniquement** : 5 tests unitaires et 13 contrôles de bout en bout. **Jamais essayé sur l'environnement d'Airtel** : il manque les identifiants marchands |
+| Moov Africa Tchad | **Non construit** | Pas de documentation publique ; ouverture marchande à obtenir |
+
+Activation : `TRAFFIC_ONLINE_PROVIDER` (`off` par défaut), `ONLINE_PAYMENT_WEBHOOK_SECRET`, variables `AIRTEL_*` (voir `.env.example`). **En production, laisser `off` tant que l'essai chez Airtel n'est pas fait.** Détail : `docs/INFRACTIONS_ROUTIERES.md`.
+
+**Réserves.** Le second facteur est actuellement **désactivé** (`MFA_ENFORCEMENT=off` dans `.env`, interrupteur temporaire à retirer avant toute mise en service). Les modules *rapports* et *statistiques* ne sont toujours pas construits.
+
+
+
 ## Annexe A — Fichiers ajoutés ou modifiés
 
 Comparaison avec la branche principale : **220 fichiers** (174 ajoutés, 46 modifiés). `A` = ajouté, `M` = modifié.

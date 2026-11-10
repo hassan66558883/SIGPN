@@ -274,6 +274,8 @@ La page de connexion est réservée au personnel autorisé de la Police National
 | Est-ce sûr ? | Chaque route est testée sans droit, avec un mauvais droit et avec le bon droit ; injections, données hostiles, reprise après coupure, doubles passes de maintenance : voir le rapport de tests. Aucun audit externe n'a été fait. |
 | Combien d'unités supporte-t-il ? | Mesuré : 300 unités simulées et 20 avis, diffusion en 138 ms au 95e centile, supervision nationale en 27 ms, sur un seul poste. À confirmer sur le réseau réel. |
 | Quand peut-on le mettre en service ? | Voir le plan de déploiement du dossier de livraison : sauvegarde testée, reverse proxy, secrets, formation, période de double commande. |
+| Peut-on payer une amende depuis un téléphone ? | Oui, page publique *Payer une amende* : la demande part vers l'opérateur et le paiement n'est enregistré qu'après sa confirmation. En démonstration, l'opérateur est **simulé** (boutons « validé / refusé »). Airtel est écrit mais pas encore essayé sur leur environnement ; Moov n'est pas fait. |
+| Un délégué provincial voit-il les autres provinces ? | Non : chaque délégué (`delegue.<code>`) et chaque commissariat ne voit que son périmètre, vérifié par test. |
 | Les données de la démonstration sont-elles réelles ? | Non. Personnes, mandats, plaintes, adresses et textes sont fictifs. |
 
 ## 10. Si quelque chose se passe mal pendant la démonstration
