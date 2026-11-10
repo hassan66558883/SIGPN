@@ -1,0 +1,26 @@
+flowchart TD
+  N0["Agent d'accueil<br/>Accueille le plaignant (étape physique, hors système) et lui explique ce qui sera enregistré."]
+  N1["Agent d'accueil<br/>Identifie le plaignant : Personnes > recherche ; s'il n'existe pas, Nouvelle personne (nom, prénom, naissance, téléphone, pièce d'identité). Une plainte anonyme est possible (case « Plainte anonyme »)."]
+  N2["Agent d'accueil<br/>Plaintes > Nouvelle plainte : catégorie (20 catégories), titre (5 à 200 caractères), description des faits (20 à 5000 caractères), date et lieu des faits, priorité (Basse, Normale, Haute, Urgente), commissariat récepteur.<br/><b>Statut : Brouillon (DRAFT) ou Enregistrée (REGISTERED)</b>"]
+  N3["Système<br/>Attribue le numéro automatique (CMP-AAAA-NNNNN), horodate, journalise, et avertit les titulaires du droit « examiner les plaintes » du commissariat.<br/><b>Statut : Enregistrée</b>"]
+  N4["Chef de service / Commissaire<br/>Ouvre la plainte, consulte les faits, ajoute ses observations et ajuste la priorité : action « Examiner ».<br/><b>Statut : En examen (UNDER_REVIEW)</b>"]
+  N5["Chef de service / Commissaire<br/>Choisit l'enquêteur : action « Affecter ». L'enquêteur doit être actif, dans le périmètre du commissariat et avoir le droit de traiter plaintes ou affaires.<br/><b>Statut : Affectée (ASSIGNED)</b>"]
+  N6{"Chef de service / Commissaire<br/>Les faits justifient-ils une enquête ? OUI : convertir en affaire. NON : classer (Clôturer) ou rejeter, avec un motif écrit d'au moins 5 caractères.<br/><b>Statut : Clôturée (CLOSED) ou Rejetée (REJECTED)</b>"}
+  N7["Chef de service / Commissaire<br/>Action « Convertir en affaire » : titre, enquêteur responsable, case « Affaire sensible ». Le plaignant devient partie « Plaignant » de l'affaire ; la plainte garde le lien vers l'affaire.<br/><b>Statut : Plainte : Convertie (CONVERTED) ; Affaire : Affectée (ASSIGNED) ou Ouverte (OPEN)</b>"]
+  N8["Enquêteur<br/>Instruit l'affaire : ajoute personnes (victime, témoin, mis en cause…), tâches, notes, pièces à conviction ; fait passer l'affaire « En enquête ».<br/><b>Statut : En enquête (UNDER_INVESTIGATION)</b>"]
+  N9["Enquêteur<br/>Soumet l'affaire au contrôle du responsable : « Soumettre à examen ».<br/><b>Statut : En attente d'examen (PENDING_REVIEW)</b>"]
+  N10{"Chef de service / Commissaire<br/>Contrôle le travail. Peut RENVOYER à l'enquête pour correction (retour à En enquête), TRANSMETTRE, ou CLÔTURER.<br/><b>Statut : Retournée / Transmise (REFERRED) / Clôturée (CLOSED)</b>"}
+  N11["Chef de service / Commissaire<br/>Transmission : l'affaire passe en « Transmise » avec l'issue « Transmise au parquet » (ou « Transférée »). Le système enregistre la décision ; il n'envoie pas le dossier à une juridiction.<br/><b>Statut : Transmise (REFERRED)</b>"]
+  N12(["Chef de service / Commissaire<br/>Clôture puis archivage : une affaire clôturée est en lecture seule ; l'archivage exige un droit distinct.<br/><b>Statut : Clôturée → Archivée</b>"])
+  N0 --> N1
+  N1 --> N2
+  N2 --> N3
+  N3 --> N4
+  N4 --> N5
+  N5 --> N6
+  N6 --> N7
+  N7 --> N8
+  N8 --> N9
+  N9 --> N10
+  N10 --> N11
+  N11 --> N12

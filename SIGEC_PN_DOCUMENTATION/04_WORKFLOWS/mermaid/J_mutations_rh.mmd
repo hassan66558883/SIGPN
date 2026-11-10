@@ -1,0 +1,10 @@
+flowchart TD
+  N0["RH<br/>Proposition de mutation d'un agent du périmètre (ou proposition automatique issue de la rotation).<br/><b>Statut : Proposée (PROPOSED)</b>"]
+  N1{"RH<br/>Examen par les RH : approuve (transmis à l'autorité compétente) ou rejette avec note ; le proposant est averti du rejet.<br/><b>Statut : Approuvée RH (HR_APPROVED) ou Rejetée</b>"}
+  N2{"Direction générale<br/>Validation par l'autorité compétente, qui doit couvrir la structure d'origine ET la destination.<br/><b>Statut : Approuvée (APPROVED) ou Rejetée</b>"}
+  N3["RH<br/>Exécution : le poste change, les sessions de l'agent prennent fin, l'habilitation retombe au niveau standard, une approbation de rétablissement est créée pour la nouvelle unité.<br/><b>Statut : Exécutée (EXECUTED)</b>"]
+  N4(["Agent<br/>Congés : l'agent (ou la personne habilitée) dépose une demande ; le supérieur approuve ou rejette ; notification du résultat.<br/><b>Statut : Demandé → Approuvé / Rejeté / Annulé</b>"])
+  N0 --> N1
+  N1 --> N2
+  N2 --> N3
+  N3 --> N4

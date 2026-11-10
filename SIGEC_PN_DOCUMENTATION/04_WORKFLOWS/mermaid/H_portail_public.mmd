@@ -1,0 +1,8 @@
+flowchart TD
+  N0["Citoyen<br/>Dépose une plainte ou un signalement sur le portail (consentement obligatoire, pas de pièce jointe).<br/><b>Statut : Reçu (RECEIVED)</b>"]
+  N1["Chef de service / Commissaire<br/>Gestionnaire du site public : Site public > Dépôts : ouvre, passe en examen, rédige la réponse publique.<br/><b>Statut : En examen (IN_REVIEW)</b>"]
+  N2{"Chef de service / Commissaire<br/>Convertit en plainte interne (choix du commissariat) ou rejette/clôt avec réponse publique.<br/><b>Statut : Transmis (FORWARDED) / Clos / Rejeté</b>"}
+  N3(["Citoyen<br/>Suit sa demande avec la référence et le code : voit le statut et la réponse publique, jamais de données personnelles.<br/><b>Statut : Selon traitement</b>"])
+  N0 --> N1
+  N1 --> N2
+  N2 --> N3

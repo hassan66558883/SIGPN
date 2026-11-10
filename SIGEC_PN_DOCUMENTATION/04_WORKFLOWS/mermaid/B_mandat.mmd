@@ -1,0 +1,24 @@
+flowchart TD
+  N0["Enquêteur<br/>Mandats > Nouveau mandat : type (arrestation, perquisition, détention, citation, saisie, autre), personne visée, affaire liée, autorité émettrice (3 à 200 car.), référence de l'autorité, motifs (10 à 3000 car.), adresse visée, date d'expiration.<br/><b>Statut : Brouillon (DRAFT)</b>"]
+  N1{"Chef de service / Commissaire<br/>Vérifie l'authenticité et la validité (référence, autorité, motifs, date d'expiration non dépassée), puis approuve ou rejette. Le demandeur ne peut JAMAIS approuver ni rejeter son propre mandat ; un mandat déjà expiré ne s'approuve pas ; le rejet exige un motif.<br/><b>Statut : Actif (ACTIVE) ou Rejeté (REJECTED)</b>"}
+  N2["Enquêteur<br/>Personnes recherchées > Nouvel avis : personne, infraction, nature (mandat de recherche, citation à comparaître, personne disparue), niveau de danger, périmètre de diffusion (national, régional, local), base légale, autorité émettrice, motif, dernière localisation connue.<br/><b>Statut : Brouillon (DRAFT)</b>"]
+  N3["Chef de service / Commissaire<br/>Vérification (quatre yeux) : contrôle les pièces et la base légale, ajoute ses observations, « Valider la vérification ». L'émetteur ne peut pas vérifier son propre avis.<br/><b>Statut : En attente d'approbation (PENDING_APPROVAL)</b>"]
+  N4{"Direction générale / Commandement<br/>Approuve l'avis (autre personne que l'émetteur, vérification faite) : passage à Actif.<br/><b>Statut : Actif (ACTIVE)</b>"}
+  N5["Système<br/>Diffuse automatiquement l'alerte aux unités du périmètre choisi, avec relances toutes les 5 minutes puis escalade (niveau 1 : unité parente et superviseurs régionaux ; niveau 2 : superviseurs nationaux).<br/><b>Statut : Alerte : en attente → remise → lue → acquittée</b>"]
+  N6["Agent<br/>Reçoit l'alerte : « Marquer comme lu » puis « Acquitter ». Consulte l'avis depuis son commissariat (le périmètre de diffusion détermine ce qu'il voit).<br/><b>Statut : Alerte acquittée</b>"]
+  N7["Agent<br/>Une correspondance peut apparaître : à la recherche (écran Personnes recherchées), au contrôle biométrique, ou lors d'un contrôle routier (plaque ou conducteur). Le système affiche « correspondance possible », jamais une certitude.<br/><b>Statut : Correspondance signalée</b>"]
+  N8{"Agent<br/>Vérification de l'identité par un humain : « Demander vérification », « Notifier le supérieur », « Signaler une erreur » (faux positif, mauvaise capture, contesté), ou confirmer/rejeter la correspondance.<br/><b>Statut : Contrôle : vérification demandée / supérieur notifié / confirmé / rejeté</b>"}
+  N9["Agent<br/>Si l'arrestation a lieu : Arrestations > Nouvelle arrestation avec le mandat en autorité « Mandat » : le mandat doit être ACTIF, non expiré et viser la même personne.<br/><b>Statut : Arrestation enregistrée</b>"]
+  N10["Chef de service / Commissaire<br/>Enregistrement de l'exécution : le mandat est marqué « Exécuté » (droit « exécuter les mandats ») ; l'avis passe à Localisé ou Arrêté.<br/><b>Statut : Mandat : Exécuté (EXECUTED) ; Avis : Arrêté (ARRESTED)</b>"]
+  N11(["Chef de service / Commissaire<br/>Mise à jour du statut et retrait : un avis arrêté, annulé ou expiré cesse d'être actif ; son éventuelle publication sur le site public est retirée automatiquement.<br/><b>Statut : Arrêté / Annulé / Expiré / Suspendu</b>"])
+  N0 --> N1
+  N1 --> N2
+  N2 --> N3
+  N3 --> N4
+  N4 --> N5
+  N5 --> N6
+  N6 --> N7
+  N7 --> N8
+  N8 --> N9
+  N9 --> N10
+  N10 --> N11

@@ -1,0 +1,12 @@
+flowchart TD
+  N0["Chef de service / Commissaire<br/>Affectation interne : Affaire > Affecter : choix d'un utilisateur du périmètre et d'un rôle dans l'affaire (responsable, enquêteur, superviseur, analyste, appui)."]
+  N1["Système<br/>Quand un agent est muté, le système signale aux titulaires du droit d'affecter de son ancienne unité : « Travail à réaffecter » (nombre d'affaires et de tâches ouvertes)."]
+  N2["Chef de service / Commissaire<br/>Transmission : l'affaire peut passer au statut « Transmise » (issue : transmise au parquet ou transférée)."]
+  N3["Agent<br/>Pièces à conviction : « Transférer la garde » vers un autre agent ou un autre lieu de stockage, avec motif ; l'état de la pièce est consigné."]
+  N4["RH<br/>Mutation d'agent : voir circuit J (proposition, examen RH, validation, exécution)."]
+  N5(["Chef de service / Commissaire<br/>Pas de circuit « acceptation / refus motivé » entre commissariat, délégation provinciale, direction générale ou services centraux."])
+  N0 --> N1
+  N1 --> N2
+  N2 --> N3
+  N3 --> N4
+  N4 --> N5

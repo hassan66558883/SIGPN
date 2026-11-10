@@ -1,0 +1,2848 @@
+{
+ "roles": [
+  {
+   "code": "SUPER_ADMIN",
+   "name": "Technical Administrator",
+   "description": "Administers the technical platform (settings, backups, organisation structure, role catalogue). Holds no police operational authority and reads no police data.",
+   "scopeLevel": "NATIONAL",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "org:manage",
+    "roles:view",
+    "roles:manage",
+    "permissions:view",
+    "security:view",
+    "system:settings",
+    "system:backup",
+    "system:demo",
+    "approvals:view",
+    "apikeys:manage_own"
+   ]
+  },
+  {
+   "code": "SECURITY_ADMIN",
+   "name": "Security Administrator",
+   "description": "Manages accounts, sessions and security settings and reads the audit log. Holds no police operational authority and reads no police data.",
+   "scopeLevel": "NATIONAL",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "users:view",
+    "users:create",
+    "users:update",
+    "users:manage_status",
+    "users:reset_password",
+    "users:manage_sessions",
+    "roles:view",
+    "permissions:view",
+    "security:view",
+    "security:manage",
+    "audit:view",
+    "audit:export",
+    "approvals:view",
+    "apikeys:manage_own"
+   ]
+  },
+  {
+   "code": "NATIONAL_COMMANDER",
+   "name": "National Commander",
+   "description": "National oversight: reads everything, approves warrants, wanted notices, operations and reports.",
+   "scopeLevel": "NATIONAL",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "statistics:view",
+    "users:view",
+    "roles:view",
+    "permissions:view",
+    "cases:view_sensitive",
+    "documents:view_confidential",
+    "biometric:history_view",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "hr:view",
+    "hr:transfer_propose",
+    "hr:attendance_record",
+    "hr:leave_request",
+    "hr:leave_approve",
+    "complaints:review",
+    "complaints:assign",
+    "complaints:convert",
+    "complaints:close",
+    "cases:assign",
+    "cases:close",
+    "cases:view_sensitive",
+    "investigations:review",
+    "transcripts:approve",
+    "wanted:approve",
+    "wanted:verify",
+    "wanted:publish",
+    "wanted:export",
+    "warrants:approve",
+    "warrants:cancel",
+    "operations:manage",
+    "operations:approve",
+    "patrols:manage",
+    "detention:manage",
+    "detention:extend",
+    "documents:view_confidential",
+    "reports:export",
+    "statistics:view",
+    "officers:manage",
+    "users:view",
+    "users:create",
+    "users:update",
+    "users:manage_status",
+    "users:reset_password",
+    "users:manage_sessions",
+    "approvals:view",
+    "approvals:decide",
+    "hr:transfer_validate",
+    "hr:discipline_view",
+    "hr:discipline_manage",
+    "hr:discipline_decide",
+    "cases:archive",
+    "audit:view",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:ticket_cancel",
+    "traffic:fine_manage",
+    "traffic:export"
+   ]
+  },
+  {
+   "code": "REGIONAL_COMMANDER",
+   "name": "Regional Commander",
+   "description": "Commands all stations of a region.",
+   "scopeLevel": "REGIONAL",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "statistics:view",
+    "users:view",
+    "roles:view",
+    "permissions:view",
+    "cases:view_sensitive",
+    "documents:view_confidential",
+    "biometric:history_view",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "persons:create",
+    "persons:update",
+    "wanted:create",
+    "wanted:update",
+    "wanted:status",
+    "complaints:create",
+    "complaints:update",
+    "cases:create",
+    "cases:update",
+    "investigations:manage",
+    "statements:create",
+    "statements:finalize",
+    "interviews:manage",
+    "transcripts:review",
+    "evidence:create",
+    "evidence:update",
+    "evidence:transfer",
+    "warrants:create",
+    "arrests:create",
+    "arrests:update",
+    "incidents:create",
+    "incidents:update",
+    "documents:upload",
+    "reports:generate",
+    "hr:view",
+    "hr:transfer_propose",
+    "hr:attendance_record",
+    "hr:leave_request",
+    "hr:leave_approve",
+    "complaints:review",
+    "complaints:assign",
+    "complaints:convert",
+    "complaints:close",
+    "cases:assign",
+    "cases:close",
+    "cases:view_sensitive",
+    "investigations:review",
+    "transcripts:approve",
+    "wanted:approve",
+    "wanted:verify",
+    "wanted:publish",
+    "wanted:export",
+    "warrants:approve",
+    "warrants:cancel",
+    "operations:manage",
+    "operations:approve",
+    "patrols:manage",
+    "detention:manage",
+    "detention:extend",
+    "documents:view_confidential",
+    "reports:export",
+    "statistics:view",
+    "officers:manage",
+    "users:view",
+    "users:create",
+    "users:update",
+    "users:manage_status",
+    "users:reset_password",
+    "users:manage_sessions",
+    "approvals:view",
+    "approvals:decide",
+    "hr:transfer_validate",
+    "hr:discipline_view",
+    "hr:discipline_manage",
+    "hr:discipline_decide",
+    "cases:archive",
+    "warrants:execute",
+    "org:manage",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:ticket_cancel",
+    "traffic:fine_manage",
+    "traffic:export",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:control_create",
+    "traffic:evidence_upload",
+    "traffic:drivers_manage",
+    "traffic:vehicles_manage"
+   ]
+  },
+  {
+   "code": "DEPARTMENTAL_COMMANDER",
+   "name": "Departmental Commander",
+   "description": "Commands the police structures of one administrative department.",
+   "scopeLevel": "DEPARTMENTAL",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "statistics:view",
+    "users:view",
+    "roles:view",
+    "permissions:view",
+    "cases:view_sensitive",
+    "documents:view_confidential",
+    "biometric:history_view",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "persons:create",
+    "persons:update",
+    "wanted:create",
+    "wanted:update",
+    "wanted:status",
+    "complaints:create",
+    "complaints:update",
+    "cases:create",
+    "cases:update",
+    "investigations:manage",
+    "statements:create",
+    "statements:finalize",
+    "interviews:manage",
+    "transcripts:review",
+    "evidence:create",
+    "evidence:update",
+    "evidence:transfer",
+    "warrants:create",
+    "arrests:create",
+    "arrests:update",
+    "incidents:create",
+    "incidents:update",
+    "documents:upload",
+    "reports:generate",
+    "hr:view",
+    "hr:transfer_propose",
+    "hr:attendance_record",
+    "hr:leave_request",
+    "hr:leave_approve",
+    "complaints:review",
+    "complaints:assign",
+    "complaints:convert",
+    "complaints:close",
+    "cases:assign",
+    "cases:close",
+    "cases:view_sensitive",
+    "investigations:review",
+    "transcripts:approve",
+    "wanted:approve",
+    "wanted:verify",
+    "wanted:publish",
+    "wanted:export",
+    "warrants:approve",
+    "warrants:cancel",
+    "operations:manage",
+    "operations:approve",
+    "patrols:manage",
+    "detention:manage",
+    "detention:extend",
+    "documents:view_confidential",
+    "reports:export",
+    "statistics:view",
+    "officers:manage",
+    "users:view",
+    "users:create",
+    "users:update",
+    "users:manage_status",
+    "users:reset_password",
+    "users:manage_sessions",
+    "approvals:view",
+    "approvals:decide",
+    "hr:transfer_validate",
+    "warrants:execute",
+    "vehicles:manage",
+    "maintenance:manage",
+    "evidence:manage_locations",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:ticket_cancel",
+    "traffic:fine_manage",
+    "traffic:export",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:control_create",
+    "traffic:evidence_upload",
+    "traffic:drivers_manage",
+    "traffic:vehicles_manage"
+   ]
+  },
+  {
+   "code": "STATION_COMMANDER",
+   "name": "Station Commander",
+   "description": "Commands a police station: reviews complaints, assigns cases, supervises investigations.",
+   "scopeLevel": "STATION",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "statistics:view",
+    "users:view",
+    "roles:view",
+    "permissions:view",
+    "cases:view_sensitive",
+    "documents:view_confidential",
+    "biometric:history_view",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "persons:create",
+    "persons:update",
+    "wanted:create",
+    "wanted:update",
+    "wanted:status",
+    "complaints:create",
+    "complaints:update",
+    "cases:create",
+    "cases:update",
+    "investigations:manage",
+    "statements:create",
+    "statements:finalize",
+    "interviews:manage",
+    "transcripts:review",
+    "evidence:create",
+    "evidence:update",
+    "evidence:transfer",
+    "warrants:create",
+    "arrests:create",
+    "arrests:update",
+    "incidents:create",
+    "incidents:update",
+    "documents:upload",
+    "reports:generate",
+    "hr:view",
+    "hr:transfer_propose",
+    "hr:attendance_record",
+    "hr:leave_request",
+    "hr:leave_approve",
+    "complaints:review",
+    "complaints:assign",
+    "complaints:convert",
+    "complaints:close",
+    "cases:assign",
+    "cases:close",
+    "cases:view_sensitive",
+    "investigations:review",
+    "transcripts:approve",
+    "wanted:approve",
+    "wanted:verify",
+    "wanted:publish",
+    "wanted:export",
+    "warrants:approve",
+    "warrants:cancel",
+    "operations:manage",
+    "operations:approve",
+    "patrols:manage",
+    "detention:manage",
+    "detention:extend",
+    "documents:view_confidential",
+    "reports:export",
+    "statistics:view",
+    "officers:manage",
+    "users:view",
+    "users:create",
+    "users:update",
+    "users:manage_status",
+    "users:reset_password",
+    "users:manage_sessions",
+    "approvals:view",
+    "approvals:decide",
+    "warrants:execute",
+    "vehicles:manage",
+    "maintenance:manage",
+    "evidence:manage_locations",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:ticket_cancel",
+    "traffic:fine_manage",
+    "traffic:export",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:control_create",
+    "traffic:evidence_upload",
+    "traffic:drivers_manage",
+    "traffic:vehicles_manage"
+   ]
+  },
+  {
+   "code": "INVESTIGATOR",
+   "name": "Investigator",
+   "description": "Leads investigations on assigned cases: persons, statements, interviews, evidence, warrants requests, arrests.",
+   "scopeLevel": "STATION",
+   "requiresMfa": false,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "persons:create",
+    "persons:update",
+    "wanted:create",
+    "wanted:update",
+    "wanted:status",
+    "complaints:create",
+    "complaints:update",
+    "cases:create",
+    "cases:update",
+    "investigations:manage",
+    "statements:create",
+    "statements:finalize",
+    "interviews:manage",
+    "transcripts:review",
+    "evidence:create",
+    "evidence:update",
+    "evidence:transfer",
+    "warrants:create",
+    "arrests:create",
+    "arrests:update",
+    "incidents:create",
+    "incidents:update",
+    "documents:upload",
+    "reports:generate",
+    "warrants:execute",
+    "biometric:search_fingerprint",
+    "biometric:search_face",
+    "biometric:search_voice",
+    "biometric:search_anpr",
+    "biometric:verify",
+    "biometric:history_view",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard"
+   ]
+  },
+  {
+   "code": "DESK_OFFICER",
+   "name": "Desk / Duty Officer",
+   "description": "Front desk: registers complaints, persons and incidents.",
+   "scopeLevel": "STATION",
+   "requiresMfa": false,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "persons:create",
+    "persons:update",
+    "complaints:create",
+    "complaints:update",
+    "incidents:create",
+    "incidents:update",
+    "documents:upload",
+    "arrests:create",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard"
+   ]
+  },
+  {
+   "code": "PATROL_OFFICER",
+   "name": "Patrol Officer",
+   "description": "Field officer: patrols and incident reporting.",
+   "scopeLevel": "STATION",
+   "requiresMfa": false,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "patrols:manage",
+    "incidents:create",
+    "incidents:update",
+    "persons:create",
+    "arrests:create",
+    "documents:upload",
+    "biometric:search_anpr",
+    "biometric:history_view",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:control_create",
+    "traffic:evidence_upload"
+   ]
+  },
+  {
+   "code": "EVIDENCE_CUSTODIAN",
+   "name": "Evidence Custodian",
+   "description": "Manages the evidence room and chain of custody.",
+   "scopeLevel": "STATION",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "evidence:create",
+    "evidence:update",
+    "evidence:transfer",
+    "evidence:release",
+    "evidence:manage_locations",
+    "documents:upload",
+    "reports:generate"
+   ]
+  },
+  {
+   "code": "CUSTODY_OFFICER",
+   "name": "Custody Officer",
+   "description": "Manages detention cells and detainee welfare logs.",
+   "scopeLevel": "STATION",
+   "requiresMfa": false,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "detention:manage",
+    "arrests:update",
+    "documents:upload"
+   ]
+  },
+  {
+   "code": "FLEET_MANAGER",
+   "name": "Fleet Manager",
+   "description": "Manages vehicles, maintenance and fuel for a region.",
+   "scopeLevel": "REGIONAL",
+   "requiresMfa": false,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "vehicles:view",
+    "vehicles:manage",
+    "maintenance:view",
+    "maintenance:manage",
+    "patrols:view",
+    "operations:view",
+    "documents:view",
+    "documents:upload",
+    "reports:view",
+    "reports:generate",
+    "apikeys:manage_own"
+   ]
+  },
+  {
+   "code": "ANALYST",
+   "name": "Crime Analyst",
+   "description": "Read-only national analytics and reporting.",
+   "scopeLevel": "NATIONAL",
+   "requiresMfa": false,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "statistics:view",
+    "users:view",
+    "roles:view",
+    "permissions:view",
+    "cases:view_sensitive",
+    "documents:view_confidential",
+    "biometric:history_view",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "reports:generate",
+    "reports:export",
+    "traffic:export"
+   ]
+  },
+  {
+   "code": "AUDITOR",
+   "name": "Auditor",
+   "description": "Read-only access to all records and the audit log.",
+   "scopeLevel": "NATIONAL",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "statistics:view",
+    "users:view",
+    "roles:view",
+    "permissions:view",
+    "cases:view_sensitive",
+    "documents:view_confidential",
+    "biometric:history_view",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "audit:view",
+    "audit:export",
+    "security:view"
+   ]
+  },
+  {
+   "code": "BIOMETRIC_OFFICER",
+   "name": "Biometric Officer",
+   "description": "Runs fingerprint, face, voice and ANPR searches and records investigator verification of matches.",
+   "scopeLevel": "STATION",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "biometric:search_fingerprint",
+    "biometric:search_face",
+    "biometric:search_voice",
+    "biometric:search_anpr",
+    "biometric:verify",
+    "biometric:history_view"
+   ]
+  },
+  {
+   "code": "FORENSIC_OFFICER",
+   "name": "Forensic Officer",
+   "description": "Manages forensic evidence and chain of custody; enrolls biometric templates and runs fingerprint searches.",
+   "scopeLevel": "STATION",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "evidence:create",
+    "evidence:update",
+    "evidence:transfer",
+    "evidence:manage_locations",
+    "biometric:manage",
+    "biometric:search_fingerprint",
+    "biometric:history_view"
+   ]
+  },
+  {
+   "code": "PROSECUTOR",
+   "name": "Prosecutor",
+   "description": "Legal oversight: read-only access to cases, evidence and biometric activity, including sensitive and confidential records.",
+   "scopeLevel": "STATION",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "statistics:view",
+    "users:view",
+    "roles:view",
+    "permissions:view",
+    "cases:view_sensitive",
+    "documents:view_confidential",
+    "biometric:history_view",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard"
+   ]
+  },
+  {
+   "code": "POLICE_ADMIN",
+   "name": "Police Administrator",
+   "description": "National administration of the police information system: users, organization and every traffic function, without system security or backup settings.",
+   "scopeLevel": "NATIONAL",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "statistics:view",
+    "users:view",
+    "roles:view",
+    "permissions:view",
+    "cases:view_sensitive",
+    "documents:view_confidential",
+    "biometric:history_view",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "hr:view",
+    "hr:transfer_propose",
+    "hr:attendance_record",
+    "hr:leave_request",
+    "hr:leave_approve",
+    "complaints:review",
+    "complaints:assign",
+    "complaints:convert",
+    "complaints:close",
+    "cases:assign",
+    "cases:close",
+    "cases:view_sensitive",
+    "investigations:review",
+    "transcripts:approve",
+    "wanted:approve",
+    "wanted:verify",
+    "wanted:publish",
+    "wanted:export",
+    "warrants:approve",
+    "warrants:cancel",
+    "operations:manage",
+    "operations:approve",
+    "patrols:manage",
+    "detention:manage",
+    "detention:extend",
+    "documents:view_confidential",
+    "reports:export",
+    "statistics:view",
+    "officers:manage",
+    "users:view",
+    "users:create",
+    "users:update",
+    "users:manage_status",
+    "users:reset_password",
+    "users:manage_sessions",
+    "approvals:view",
+    "approvals:decide",
+    "cases:archive",
+    "audit:view",
+    "org:manage",
+    "hr:auto_assign_config",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:ticket_cancel",
+    "traffic:fine_manage",
+    "traffic:export",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:control_create",
+    "traffic:evidence_upload",
+    "traffic:drivers_manage",
+    "traffic:vehicles_manage",
+    "traffic:payment_record",
+    "traffic:payment_void",
+    "traffic:catalog_manage",
+    "cash:view",
+    "cash:reports"
+   ]
+  },
+  {
+   "code": "HR_DIRECTOR",
+   "name": "HR Director",
+   "description": "Direction des ressources humaines: HR dossiers and career decisions (promotion, appointment, status, retirement) for the whole police.",
+   "scopeLevel": "NATIONAL",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "officers:manage",
+    "hr:view",
+    "hr:manage",
+    "hr:transfer_propose",
+    "hr:transfer_review",
+    "hr:attendance_record",
+    "hr:leave_request",
+    "hr:training_manage",
+    "hr:document_issue",
+    "statistics:view",
+    "documents:view",
+    "apikeys:manage_own",
+    "hr:leave_approve",
+    "hr:discipline_view",
+    "hr:discipline_manage",
+    "hr:career",
+    "reports:view",
+    "reports:generate",
+    "audit:view"
+   ]
+  },
+  {
+   "code": "HR_PAYROLL",
+   "name": "Payroll Officer",
+   "description": "Pay and benefits: requests pay scale changes and pay elements and generates the monthly statements. Cannot validate or export (separation of duties).",
+   "scopeLevel": "NATIONAL",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "hr:view",
+    "hr:pay_view",
+    "apikeys:manage_own",
+    "hr:pay_manage"
+   ]
+  },
+  {
+   "code": "HR_PAYROLL_CONTROL",
+   "name": "Payroll Controller",
+   "description": "Pay control: validates pay scale changes, pay elements and monthly statements, and exports them to the financial services. Cannot create the data it validates.",
+   "scopeLevel": "NATIONAL",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "hr:view",
+    "hr:pay_view",
+    "apikeys:manage_own",
+    "hr:pay_validate",
+    "hr:pay_export"
+   ]
+  },
+  {
+   "code": "HR_OFFICER",
+   "name": "HR Service Officer",
+   "description": "Human resources service: maintains HR dossiers; cannot record career decisions.",
+   "scopeLevel": "NATIONAL",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "officers:manage",
+    "hr:view",
+    "hr:manage",
+    "hr:transfer_propose",
+    "hr:transfer_review",
+    "hr:attendance_record",
+    "hr:leave_request",
+    "hr:training_manage",
+    "hr:document_issue",
+    "statistics:view",
+    "documents:view",
+    "apikeys:manage_own"
+   ]
+  },
+  {
+   "code": "OFFICER",
+   "name": "Police Officer",
+   "description": "Police officer (OPJ): records traffic controls and PV, maintains driver and vehicle records, registers persons.",
+   "scopeLevel": "STATION",
+   "requiresMfa": false,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "complaints:view",
+    "cases:view",
+    "investigations:view",
+    "statements:view",
+    "interviews:view",
+    "transcripts:view",
+    "evidence:view",
+    "warrants:view",
+    "arrests:view",
+    "detention:view",
+    "patrols:view",
+    "incidents:view",
+    "operations:view",
+    "vehicles:view",
+    "maintenance:view",
+    "documents:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "persons:create",
+    "persons:update",
+    "documents:upload",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:control_create",
+    "traffic:evidence_upload",
+    "traffic:drivers_manage",
+    "traffic:vehicles_manage",
+    "cash:collect",
+    "cash:register",
+    "cash:deposit_create"
+   ]
+  },
+  {
+   "code": "TRAFFIC_OFFICER",
+   "name": "Traffic Officer",
+   "description": "Traffic police officer: roadside controls, electronic PV, evidence photos, driver and vehicle records.",
+   "scopeLevel": "STATION",
+   "requiresMfa": false,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "persons:view",
+    "wanted:view",
+    "incidents:view",
+    "patrols:view",
+    "apikeys:manage_own",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:control_create",
+    "traffic:evidence_upload",
+    "traffic:drivers_manage",
+    "traffic:vehicles_manage",
+    "cash:collect",
+    "cash:register",
+    "cash:deposit_create"
+   ]
+  },
+  {
+   "code": "TRAFFIC_CONTROL_AGENT",
+   "name": "Traffic Control Agent",
+   "description": "Roadside control agent: records controls and issues PV; reads driver and vehicle records but cannot edit them.",
+   "scopeLevel": "STATION",
+   "requiresMfa": false,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "persons:view",
+    "wanted:view",
+    "apikeys:manage_own",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:control_create",
+    "traffic:evidence_upload",
+    "cash:collect",
+    "cash:register",
+    "cash:deposit_create"
+   ]
+  },
+  {
+   "code": "TRAFFIC_SUPERVISOR",
+   "name": "Traffic Supervisor",
+   "description": "Supervises traffic enforcement for a unit: reviews controls and PV, cancels a PV, manages fine status, exports statistics.",
+   "scopeLevel": "STATION",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "wanted:view",
+    "reports:view",
+    "statistics:view",
+    "apikeys:manage_own",
+    "audit:view",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:ticket_cancel",
+    "traffic:fine_manage",
+    "traffic:export",
+    "traffic:drivers_manage",
+    "traffic:vehicles_manage",
+    "cash:view",
+    "cash:reports"
+   ]
+  },
+  {
+   "code": "TRAFFIC_PAYMENT_MANAGER",
+   "name": "Payment & Finance Manager",
+   "description": "Records fine payments, issues receipts, voids payments recorded by mistake and follows collection statistics.",
+   "scopeLevel": "REGIONAL",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "reports:view",
+    "apikeys:manage_own",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "traffic:payment_record",
+    "traffic:payment_void",
+    "traffic:fine_manage",
+    "traffic:export",
+    "audit:view",
+    "cash:view",
+    "cash:reports",
+    "cash:verify_closure",
+    "cash:deposit_review",
+    "cash:deposit_validate",
+    "cash:reconcile",
+    "cash:deposit_create",
+    "cash:block"
+   ]
+  },
+  {
+   "code": "TRAFFIC_UNIT_HEAD",
+   "name": "Unit Head (revenue)",
+   "description": "Unit head: follows the revenue collected by the unit's agents, verifies the daily closings and controls the deposits.",
+   "scopeLevel": "STATION",
+   "requiresMfa": true,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "officers:view",
+    "persons:view",
+    "reports:view",
+    "statistics:view",
+    "apikeys:manage_own",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard",
+    "cash:view",
+    "cash:reports",
+    "cash:verify_closure",
+    "cash:deposit_review"
+   ]
+  },
+  {
+   "code": "TRAFFIC_READONLY",
+   "name": "Traffic Read-only",
+   "description": "Consultation only: traffic controls, PV, fines, drivers, vehicles and the offence catalogue.",
+   "scopeLevel": "STATION",
+   "requiresMfa": false,
+   "permissions": [
+    "dashboard:view",
+    "org:view",
+    "apikeys:manage_own",
+    "traffic:view",
+    "traffic:drivers_view",
+    "traffic:vehicles_view",
+    "traffic:violations_view",
+    "traffic:dashboard"
+   ]
+  }
+ ],
+ "permissions": [
+  [
+   "dashboard:view",
+   "View the dashboard"
+  ],
+  [
+   "statistics:view",
+   "View statistics and analytics"
+  ],
+  [
+   "users:view",
+   "View user accounts"
+  ],
+  [
+   "users:create",
+   "Create user accounts"
+  ],
+  [
+   "users:update",
+   "Update user accounts (profile, role, scope)"
+  ],
+  [
+   "users:manage_status",
+   "Activate, suspend, disable, unlock accounts"
+  ],
+  [
+   "users:reset_password",
+   "Issue password resets"
+  ],
+  [
+   "users:manage_sessions",
+   "View and revoke other users' sessions"
+  ],
+  [
+   "roles:view",
+   "View roles and their permissions"
+  ],
+  [
+   "roles:manage",
+   "Create roles and edit their permission sets"
+  ],
+  [
+   "permissions:view",
+   "View the permission catalog"
+  ],
+  [
+   "security:view",
+   "View security centre (login attempts, sessions, locks)"
+  ],
+  [
+   "security:manage",
+   "Manage security settings, force MFA reset, revoke API keys"
+  ],
+  [
+   "audit:view",
+   "View the audit log"
+  ],
+  [
+   "audit:export",
+   "Export the audit log"
+  ],
+  [
+   "system:settings",
+   "Edit system settings"
+  ],
+  [
+   "system:backup",
+   "Run and restore backups"
+  ],
+  [
+   "system:demo",
+   "Load demonstration data"
+  ],
+  [
+   "org:view",
+   "View organizations, regions, stations, departments, ranks"
+  ],
+  [
+   "org:manage",
+   "Manage organizations, regions, stations, departments, ranks"
+  ],
+  [
+   "officers:view",
+   "View officers"
+  ],
+  [
+   "officers:manage",
+   "Create/update officers and assignments"
+  ],
+  [
+   "persons:view",
+   "View persons"
+  ],
+  [
+   "persons:create",
+   "Register persons"
+  ],
+  [
+   "persons:update",
+   "Update persons, identifiers, relationships"
+  ],
+  [
+   "persons:merge",
+   "Merge duplicate persons"
+  ],
+  [
+   "wanted:view",
+   "View wanted persons"
+  ],
+  [
+   "wanted:create",
+   "Create wanted notices"
+  ],
+  [
+   "wanted:approve",
+   "Approve/cancel wanted notices"
+  ],
+  [
+   "biometric:control",
+   "Run identity checks at a control point (simulation screen) and report their errors"
+  ],
+  [
+   "intake:view",
+   "View complaints, reports and messages filed on the public site"
+  ],
+  [
+   "intake:manage",
+   "Handle public submissions: status, public reply, conversion to an internal complaint"
+  ],
+  [
+   "public:content",
+   "Manage the public site content: news and the public directory of units"
+  ],
+  [
+   "alerts:view",
+   "Receive and read the alerts of the national network (own unit)"
+  ],
+  [
+   "alerts:ack",
+   "Acknowledge an alert on behalf of the unit"
+  ],
+  [
+   "alerts:supervise",
+   "Supervise alert diffusion: receipts, offline units, reminders, escalations"
+  ],
+  [
+   "alerts:simulate",
+   "Publish fictitious alerts and simulate unit outages (demonstration)"
+  ],
+  [
+   "wanted:verify",
+   "Verify the exhibits and legal basis of a wanted notice (four-eyes step before approval)"
+  ],
+  [
+   "wanted:update",
+   "Update wanted notices"
+  ],
+  [
+   "wanted:status",
+   "Change the status of a wanted notice (located, apprehended, etc.)"
+  ],
+  [
+   "wanted:publish",
+   "Generate the public wanted notice"
+  ],
+  [
+   "wanted:export",
+   "Export/print the public wanted notice"
+  ],
+  [
+   "complaints:view",
+   "View complaints"
+  ],
+  [
+   "complaints:create",
+   "Register complaints"
+  ],
+  [
+   "complaints:update",
+   "Update complaints"
+  ],
+  [
+   "complaints:review",
+   "Review complaints"
+  ],
+  [
+   "complaints:assign",
+   "Assign complaints"
+  ],
+  [
+   "complaints:convert",
+   "Convert complaints to cases"
+  ],
+  [
+   "complaints:close",
+   "Close or reject complaints"
+  ],
+  [
+   "cases:view",
+   "View cases within scope"
+  ],
+  [
+   "cases:view_sensitive",
+   "View cases flagged sensitive"
+  ],
+  [
+   "cases:create",
+   "Open cases"
+  ],
+  [
+   "cases:update",
+   "Update cases, add parties, notes, tasks"
+  ],
+  [
+   "cases:assign",
+   "Assign investigators and supervisors"
+  ],
+  [
+   "cases:close",
+   "Close cases with a disposition"
+  ],
+  [
+   "cases:archive",
+   "Archive closed cases"
+  ],
+  [
+   "investigations:view",
+   "View investigations"
+  ],
+  [
+   "investigations:manage",
+   "Open and manage investigations, tasks, reports"
+  ],
+  [
+   "investigations:review",
+   "Supervisor review of investigations and reports"
+  ],
+  [
+   "statements:view",
+   "View statements"
+  ],
+  [
+   "statements:create",
+   "Record statements"
+  ],
+  [
+   "statements:finalize",
+   "Finalize or retract statements"
+  ],
+  [
+   "interviews:view",
+   "View interviews"
+  ],
+  [
+   "interviews:manage",
+   "Schedule and conduct interviews"
+  ],
+  [
+   "transcripts:view",
+   "View transcripts"
+  ],
+  [
+   "transcripts:review",
+   "Review/edit automated transcripts"
+  ],
+  [
+   "transcripts:approve",
+   "Approve transcripts"
+  ],
+  [
+   "evidence:view",
+   "View evidence"
+  ],
+  [
+   "evidence:create",
+   "Register evidence"
+  ],
+  [
+   "evidence:update",
+   "Update evidence descriptions"
+  ],
+  [
+   "evidence:transfer",
+   "Transfer custody / check in-out"
+  ],
+  [
+   "evidence:release",
+   "Return, release, destroy or archive evidence"
+  ],
+  [
+   "evidence:manage_locations",
+   "Manage storage locations"
+  ],
+  [
+   "warrants:view",
+   "View warrants"
+  ],
+  [
+   "warrants:create",
+   "Request warrants"
+  ],
+  [
+   "warrants:approve",
+   "Approve or reject warrants"
+  ],
+  [
+   "warrants:execute",
+   "Execute warrants"
+  ],
+  [
+   "warrants:cancel",
+   "Cancel warrants"
+  ],
+  [
+   "arrests:view",
+   "View arrests"
+  ],
+  [
+   "arrests:create",
+   "Record arrests"
+  ],
+  [
+   "arrests:update",
+   "Update arrests"
+  ],
+  [
+   "detention:view",
+   "View detention records"
+  ],
+  [
+   "detention:manage",
+   "Manage detention records and logs"
+  ],
+  [
+   "detention:extend",
+   "Extend detention beyond legal limit with authority"
+  ],
+  [
+   "patrols:view",
+   "View patrols"
+  ],
+  [
+   "patrols:manage",
+   "Plan and run patrols"
+  ],
+  [
+   "incidents:view",
+   "View incidents"
+  ],
+  [
+   "incidents:create",
+   "Report incidents"
+  ],
+  [
+   "incidents:update",
+   "Update and close incidents"
+  ],
+  [
+   "operations:view",
+   "View operations"
+  ],
+  [
+   "operations:manage",
+   "Plan and execute operations"
+  ],
+  [
+   "operations:approve",
+   "Approve operations"
+  ],
+  [
+   "vehicles:view",
+   "View vehicles"
+  ],
+  [
+   "vehicles:manage",
+   "Manage vehicles, assignments, fuel"
+  ],
+  [
+   "maintenance:view",
+   "View maintenance"
+  ],
+  [
+   "maintenance:manage",
+   "Manage maintenance records"
+  ],
+  [
+   "documents:view",
+   "View and download documents"
+  ],
+  [
+   "documents:view_confidential",
+   "View confidential/restricted documents"
+  ],
+  [
+   "documents:upload",
+   "Upload documents and new versions"
+  ],
+  [
+   "documents:archive",
+   "Archive documents"
+  ],
+  [
+   "reports:view",
+   "View generated reports"
+  ],
+  [
+   "reports:generate",
+   "Generate reports"
+  ],
+  [
+   "reports:export",
+   "Export reports and data"
+  ],
+  [
+   "biometric:search_fingerprint",
+   "Perform fingerprint verification/identification searches"
+  ],
+  [
+   "biometric:search_face",
+   "Perform face verification/identification searches"
+  ],
+  [
+   "biometric:search_voice",
+   "Perform voice verification/identification searches"
+  ],
+  [
+   "biometric:search_anpr",
+   "Perform license-plate (ANPR) searches"
+  ],
+  [
+   "biometric:manage",
+   "Enroll biometric templates (fingerprint/face/voice) for persons"
+  ],
+  [
+   "biometric:history_view",
+   "View biometric search history"
+  ],
+  [
+   "biometric:verify",
+   "Record investigator verification action on a biometric match"
+  ],
+  [
+   "traffic:view",
+   "View traffic controls, tickets (PV) and fines within scope"
+  ],
+  [
+   "traffic:control_create",
+   "Record a traffic control and issue an electronic ticket (PV)"
+  ],
+  [
+   "traffic:evidence_upload",
+   "Attach photos and evidence to a traffic control"
+  ],
+  [
+   "traffic:ticket_cancel",
+   "Cancel a ticket (PV) with a reason"
+  ],
+  [
+   "traffic:fine_manage",
+   "Manage fine status (on hold, contested, cancelled)"
+  ],
+  [
+   "traffic:payment_record",
+   "Record a fine payment and issue the receipt"
+  ],
+  [
+   "traffic:payment_void",
+   "Void a payment recorded by mistake"
+  ],
+  [
+   "traffic:drivers_view",
+   "View drivers and their history"
+  ],
+  [
+   "traffic:drivers_manage",
+   "Create and update driver records"
+  ],
+  [
+   "traffic:vehicles_view",
+   "View vehicles and their history"
+  ],
+  [
+   "traffic:vehicles_manage",
+   "Create and update vehicle records and their documents"
+  ],
+  [
+   "traffic:violations_view",
+   "View the offence catalogue and flat fine rates"
+  ],
+  [
+   "traffic:catalog_manage",
+   "Activate or deactivate an offence of the catalogue"
+  ],
+  [
+   "traffic:dashboard",
+   "View the traffic dashboard and statistics"
+  ],
+  [
+   "traffic:export",
+   "Export traffic lists and statistics"
+  ],
+  [
+   "cash:collect",
+   "Collect a fine payment in the field into one's own cash register"
+  ],
+  [
+   "cash:register",
+   "Open, view and close one's own cash register and daily statement"
+  ],
+  [
+   "cash:view",
+   "View cash registers, collected revenue, deposits and reconciliations within scope"
+  ],
+  [
+   "cash:verify_closure",
+   "Verify the closing of an agent's cash register"
+  ],
+  [
+   "cash:deposit_create",
+   "Declare the deposit of collected revenue to the administration"
+  ],
+  [
+   "cash:deposit_review",
+   "Verify, accept, reject or ask for a justification on a deposit"
+  ],
+  [
+   "cash:deposit_validate",
+   "Definitively validate a deposit"
+  ],
+  [
+   "cash:reconcile",
+   "Manage reconciliations and process cash discrepancies"
+  ],
+  [
+   "cash:reports",
+   "View and export financial revenue reports and the revenue dashboard"
+  ],
+  [
+   "cash:block",
+   "Block or unblock an agent's cash register"
+  ],
+  [
+   "hr:view",
+   "View HR dossiers and career history within scope"
+  ],
+  [
+   "hr:manage",
+   "Edit the HR dossier of an officer (identity, corps, administrative data)"
+  ],
+  [
+   "hr:career",
+   "Record career decisions: appointment, promotion, change of function, status, retirement"
+  ],
+  [
+   "hr:transfer_propose",
+   "Propose a transfer (mutation) for an officer within scope"
+  ],
+  [
+   "hr:transfer_review",
+   "Examine transfer proposals as HR, cancel and execute approved transfers"
+  ],
+  [
+   "hr:transfer_validate",
+   "Validate or reject a transfer as the competent authority (must cover both structures)"
+  ],
+  [
+   "hr:auto_assign_config",
+   "Activate, deactivate and configure the automatic assignment (AFFECTATION_AUTOMATIQUE)"
+  ],
+  [
+   "hr:attendance_record",
+   "Record the daily roll-call (presences, absences, lateness) of structures within scope"
+  ],
+  [
+   "hr:leave_request",
+   "File leave, permission and absence requests on behalf of officers within scope"
+  ],
+  [
+   "hr:leave_approve",
+   "Approve or reject leave, permission and absence requests within scope"
+  ],
+  [
+   "hr:training_manage",
+   "Evaluate trainings, grant competences and issue training certificates"
+  ],
+  [
+   "hr:discipline_view",
+   "View disciplinary files (strictly confidential, every read is audited)"
+  ],
+  [
+   "hr:discipline_manage",
+   "Open disciplinary cases and record the steps of the procedure"
+  ],
+  [
+   "hr:discipline_decide",
+   "Decide the sanction of a disciplinary case within scope"
+  ],
+  [
+   "hr:document_issue",
+   "Generate HR documents (certificates, orders, service notes) and upload supporting files"
+  ],
+  [
+   "hr:pay_view",
+   "View pay scales, pay elements and pay statements (strictly confidential, every read is audited)"
+  ],
+  [
+   "hr:pay_manage",
+   "Request pay scale changes and pay elements, generate monthly pay statements"
+  ],
+  [
+   "hr:pay_validate",
+   "Validate pay scale changes, pay elements and pay statements (never one's own request)"
+  ],
+  [
+   "hr:pay_export",
+   "Export a validated pay statement to the financial services"
+  ],
+  [
+   "approvals:view",
+   "View approval requests (own requests and those the actor may decide)"
+  ],
+  [
+   "approvals:decide",
+   "Approve or reject approval requests within one's scope"
+  ],
+  [
+   "apikeys:manage_own",
+   "Create/revoke own API keys"
+  ]
+ ],
+ "accounts": [
+  {
+   "username": "admin",
+   "roleCode": "SUPER_ADMIN",
+   "roleName": "Technical Administrator",
+   "firstName": "Aisha",
+   "lastName": "Mbaye",
+   "hint": "technique · national · MFA required"
+  },
+  {
+   "username": "security.admin",
+   "roleCode": "SECURITY_ADMIN",
+   "roleName": "Security Administrator",
+   "firstName": "Moussa",
+   "lastName": "Dagache",
+   "hint": "sécurité et audit · national · MFA required"
+  },
+  {
+   "username": "commander.national",
+   "roleCode": "NATIONAL_COMMANDER",
+   "roleName": "National Commander",
+   "firstName": "Daniel",
+   "lastName": "Okafor",
+   "hint": "Direction générale · MFA required"
+  },
+  {
+   "username": "commander.central",
+   "roleCode": "REGIONAL_COMMANDER",
+   "roleName": "Regional Commander",
+   "firstName": "Grace",
+   "lastName": "Abubakar",
+   "hint": "Province de N'Djamena · MFA required",
+   "province": "NDJ"
+  },
+  {
+   "username": "commander.dept",
+   "roleCode": "DEPARTMENTAL_COMMANDER",
+   "roleName": "Departmental Commander",
+   "firstName": "Hamid",
+   "lastName": "Doumro",
+   "hint": "Département Ville de N'Djamena · MFA required",
+   "province": "NDJ",
+   "department": "DEP-NDJ"
+  },
+  {
+   "username": "chief.cs1",
+   "roleCode": "STATION_COMMANDER",
+   "roleName": "Station Commander",
+   "firstName": "Samuel",
+   "lastName": "Kone",
+   "hint": "Commissariat Central N'Djamena · MFA required",
+   "station": "CS-01"
+  },
+  {
+   "username": "chief.arr5",
+   "roleCode": "STATION_COMMANDER",
+   "roleName": "Station Commander",
+   "firstName": "Ngarmbatina",
+   "lastName": "Kemba",
+   "hint": "Commissariat 5e arrondissement · MFA required",
+   "station": "CA-NDJ-05"
+  },
+  {
+   "username": "chief.mdu",
+   "roleCode": "STATION_COMMANDER",
+   "roleName": "Station Commander",
+   "firstName": "Djasrabé",
+   "lastName": "Nadjita",
+   "hint": "Commissariat Central Moundou · MFA required",
+   "station": "NS-01"
+  },
+  {
+   "username": "chief.abe",
+   "roleCode": "STATION_COMMANDER",
+   "roleName": "Station Commander",
+   "firstName": "Mahamat",
+   "lastName": "Haggar",
+   "hint": "Commissariat Central Abéché · MFA required",
+   "station": "CC-ABE"
+  },
+  {
+   "username": "desk.abe",
+   "roleCode": "DESK_OFFICER",
+   "roleName": "Desk / Duty Officer",
+   "firstName": "Zenaba",
+   "lastName": "Hissein",
+   "hint": "Commissariat Central Abéché",
+   "station": "CC-ABE"
+  },
+  {
+   "username": "inv.diallo",
+   "roleCode": "INVESTIGATOR",
+   "roleName": "Investigator",
+   "firstName": "Fatou",
+   "lastName": "Diallo",
+   "hint": "Commissariat Central N'Djamena",
+   "station": "CS-01"
+  },
+  {
+   "username": "inv.mensah",
+   "roleCode": "INVESTIGATOR",
+   "roleName": "Investigator",
+   "firstName": "Kwame",
+   "lastName": "Mensah",
+   "hint": "Commissariat Central N'Djamena",
+   "station": "CS-01"
+  },
+  {
+   "username": "desk.cs1",
+   "roleCode": "DESK_OFFICER",
+   "roleName": "Desk / Duty Officer",
+   "firstName": "Amina",
+   "lastName": "Sow",
+   "hint": "Commissariat Central N'Djamena",
+   "station": "CS-01"
+  },
+  {
+   "username": "desk.post1",
+   "roleCode": "DESK_OFFICER",
+   "roleName": "Desk / Duty Officer",
+   "firstName": "Mounira",
+   "lastName": "Abbo",
+   "hint": "Poste 1er arrondissement",
+   "station": "PP-NDJ-01A"
+  },
+  {
+   "username": "patrol.cs1",
+   "roleCode": "PATROL_OFFICER",
+   "roleName": "Patrol Officer",
+   "firstName": "Joseph",
+   "lastName": "Traore",
+   "hint": "Commissariat Central N'Djamena",
+   "station": "CS-01"
+  },
+  {
+   "username": "evidence.cs1",
+   "roleCode": "EVIDENCE_CUSTODIAN",
+   "roleName": "Evidence Custodian",
+   "firstName": "Mariam",
+   "lastName": "Bello",
+   "hint": "Commissariat Central N'Djamena · MFA required",
+   "station": "CS-01"
+  },
+  {
+   "username": "custody.cs1",
+   "roleCode": "CUSTODY_OFFICER",
+   "roleName": "Custody Officer",
+   "firstName": "Peter",
+   "lastName": "Adeyemi",
+   "hint": "Commissariat Central N'Djamena",
+   "station": "CS-01"
+  },
+  {
+   "username": "fleet.central",
+   "roleCode": "FLEET_MANAGER",
+   "roleName": "Fleet Manager",
+   "firstName": "Ibrahim",
+   "lastName": "Sanogo",
+   "hint": "Province de N'Djamena",
+   "province": "NDJ"
+  },
+  {
+   "username": "analyst",
+   "roleCode": "ANALYST",
+   "roleName": "Crime Analyst",
+   "firstName": "Ruth",
+   "lastName": "Nakamura",
+   "hint": "national"
+  },
+  {
+   "username": "auditor",
+   "roleCode": "AUDITOR",
+   "roleName": "Auditor",
+   "firstName": "Omar",
+   "lastName": "Haddad",
+   "hint": "national · MFA required"
+  },
+  {
+   "username": "biometric.cs1",
+   "roleCode": "BIOMETRIC_OFFICER",
+   "roleName": "Biometric Officer",
+   "firstName": "Hassan",
+   "lastName": "Idriss",
+   "hint": "Commissariat Central N'Djamena · MFA required",
+   "station": "CS-01"
+  },
+  {
+   "username": "forensic.cs1",
+   "roleCode": "FORENSIC_OFFICER",
+   "roleName": "Forensic Officer",
+   "firstName": "Zara",
+   "lastName": "Nadjita",
+   "hint": "Commissariat Central N'Djamena · MFA required",
+   "station": "CS-01"
+  },
+  {
+   "username": "prosecutor.cs1",
+   "roleCode": "PROSECUTOR",
+   "roleName": "Prosecutor",
+   "firstName": "Youssouf",
+   "lastName": "Tahir",
+   "hint": "Commissariat Central N'Djamena · MFA required",
+   "station": "CS-01"
+  },
+  {
+   "username": "police.admin",
+   "roleCode": "POLICE_ADMIN",
+   "roleName": "Police Administrator",
+   "firstName": "Abdelaziz",
+   "lastName": "Mahamat",
+   "hint": "Administrateur police · national · MFA required"
+  },
+  {
+   "username": "hr.director",
+   "roleCode": "HR_DIRECTOR",
+   "roleName": "HR Director",
+   "firstName": "Halimé",
+   "lastName": "Brahim",
+   "hint": "Direction des ressources humaines · national · MFA required"
+  },
+  {
+   "username": "hr.service",
+   "roleCode": "HR_OFFICER",
+   "roleName": "HR Service Officer",
+   "firstName": "Tidjani",
+   "lastName": "Saleh",
+   "hint": "Service RH · national · MFA required"
+  },
+  {
+   "username": "payroll.officer",
+   "roleCode": "HR_PAYROLL",
+   "roleName": "Payroll Officer",
+   "firstName": "Nadjiba",
+   "lastName": "Kassim",
+   "hint": "Solde et avantages · national · MFA required"
+  },
+  {
+   "username": "payroll.control",
+   "roleCode": "HR_PAYROLL_CONTROL",
+   "roleName": "Payroll Controller",
+   "firstName": "Adoum",
+   "lastName": "Gadaya",
+   "hint": "Contrôle de la solde · national · MFA required"
+  },
+  {
+   "username": "officer.cs1",
+   "roleCode": "OFFICER",
+   "roleName": "Police Officer",
+   "firstName": "Nodjiel",
+   "lastName": "Ngarta",
+   "hint": "Officier · Commissariat Central N'Djamena",
+   "station": "CS-01"
+  },
+  {
+   "username": "traffic.cs1",
+   "roleCode": "TRAFFIC_OFFICER",
+   "roleName": "Traffic Officer",
+   "firstName": "Moussa",
+   "lastName": "Ali",
+   "hint": "Agent de circulation · Commissariat Central N'Djamena",
+   "station": "CS-01"
+  },
+  {
+   "username": "control.cs1",
+   "roleCode": "TRAFFIC_CONTROL_AGENT",
+   "roleName": "Traffic Control Agent",
+   "firstName": "Kadidja",
+   "lastName": "Oumar",
+   "hint": "Agent de contrôle · Commissariat Central N'Djamena",
+   "station": "CS-01"
+  },
+  {
+   "username": "control.cs2",
+   "roleCode": "TRAFFIC_CONTROL_AGENT",
+   "roleName": "Traffic Control Agent",
+   "firstName": "Fatimé",
+   "lastName": "Idriss",
+   "hint": "Agent de contrôle (2e caisse) · Commissariat Central N'Djamena",
+   "station": "CS-01"
+  },
+  {
+   "username": "unit.head",
+   "roleCode": "TRAFFIC_UNIT_HEAD",
+   "roleName": "Unit Head (revenue)",
+   "firstName": "Abakar",
+   "lastName": "Moussa",
+   "hint": "Responsable d'unité · Commissariat Central N'Djamena · MFA required",
+   "station": "CS-01"
+  },
+  {
+   "username": "traffic.supervisor",
+   "roleCode": "TRAFFIC_SUPERVISOR",
+   "roleName": "Traffic Supervisor",
+   "firstName": "Brahim",
+   "lastName": "Senoussi",
+   "hint": "Superviseur circulation · Commissariat Central N'Djamena · MFA required",
+   "station": "CS-01"
+  },
+  {
+   "username": "finance.central",
+   "roleCode": "TRAFFIC_PAYMENT_MANAGER",
+   "roleName": "Payment & Finance Manager",
+   "firstName": "Halimé",
+   "lastName": "Doungous",
+   "hint": "Responsable financier / paiement · Province de N'Djamena · MFA required",
+   "province": "NDJ"
+  },
+  {
+   "username": "readonly.traffic",
+   "roleCode": "TRAFFIC_READONLY",
+   "roleName": "Traffic Read-only",
+   "firstName": "Idriss",
+   "lastName": "Kalzeube",
+   "hint": "Consultation circulation · Commissariat Central N'Djamena",
+   "station": "CS-01"
+  }
+ ],
+ "navigation": [
+  {
+   "titleKey": null,
+   "items": [
+    {
+     "href": "/dashboard",
+     "labelKey": "nav.dashboard",
+     "permission": "dashboard:view",
+     "icon": "▦"
+    },
+    {
+     "href": "/search",
+     "planned": true,
+     "labelKey": "nav.search",
+     "permission": "persons:view",
+     "icon": "⌕"
+    }
+   ]
+  },
+  {
+   "titleKey": "nav.section.frontDesk",
+   "items": [
+    {
+     "href": "/complaints",
+     "labelKey": "nav.complaints",
+     "permission": "complaints:view",
+     "icon": "✉"
+    },
+    {
+     "href": "/incidents",
+     "labelKey": "nav.incidents",
+     "permission": "incidents:view",
+     "icon": "⚠"
+    },
+    {
+     "href": "/persons",
+     "labelKey": "nav.persons",
+     "permission": "persons:view",
+     "icon": "☺"
+    },
+    {
+     "href": "/wanted",
+     "labelKey": "nav.wanted",
+     "permission": "wanted:view",
+     "icon": "⚑"
+    },
+    {
+     "href": "/approvals",
+     "labelKey": "nav.approvals",
+     "permission": "approvals:view",
+     "icon": "✔"
+    },
+    {
+     "href": "/public-admin",
+     "labelKey": "nav.publicAdmin",
+     "permission": "intake:view",
+     "anyOf": [
+      "public:content",
+      "intake:manage"
+     ],
+     "icon": "◌"
+    },
+    {
+     "href": "/alerts",
+     "labelKey": "nav.alerts",
+     "permission": "alerts:view",
+     "icon": "◬"
+    },
+    {
+     "href": "/alerts/supervision",
+     "labelKey": "nav.alerts.supervision",
+     "permission": "alerts:supervise",
+     "icon": "◎"
+    }
+   ]
+  },
+  {
+   "titleKey": "nav.section.investigation",
+   "items": [
+    {
+     "href": "/cases",
+     "labelKey": "nav.cases",
+     "permission": "cases:view",
+     "icon": "▤"
+    },
+    {
+     "href": "/investigations",
+     "planned": true,
+     "labelKey": "nav.investigations",
+     "permission": "investigations:view",
+     "icon": "◉"
+    },
+    {
+     "href": "/tasks",
+     "labelKey": "nav.tasks",
+     "permission": "investigations:view",
+     "icon": "☑"
+    },
+    {
+     "href": "/evidence",
+     "labelKey": "nav.evidence",
+     "permission": "evidence:view",
+     "icon": "◈"
+    },
+    {
+     "href": "/statements",
+     "planned": true,
+     "labelKey": "nav.statements",
+     "permission": "statements:view",
+     "icon": "✎"
+    },
+    {
+     "href": "/interviews",
+     "planned": true,
+     "labelKey": "nav.interviews",
+     "permission": "interviews:view",
+     "icon": "♫"
+    },
+    {
+     "href": "/biometric",
+     "labelKey": "nav.biometric",
+     "permission": "biometric:history_view",
+     "anyOf": [
+      "biometric:search_fingerprint",
+      "biometric:search_face",
+      "biometric:search_voice",
+      "biometric:search_anpr",
+      "biometric:manage",
+      "biometric:verify"
+     ],
+     "icon": "⚛"
+    },
+    {
+     "href": "/biometric/control",
+     "labelKey": "nav.biocontrol",
+     "permission": "biometric:control",
+     "icon": "◐"
+    }
+   ]
+  },
+  {
+   "titleKey": "nav.section.enforcement",
+   "items": [
+    {
+     "href": "/warrants",
+     "labelKey": "nav.warrants",
+     "permission": "warrants:view",
+     "icon": "⚖"
+    },
+    {
+     "href": "/arrests",
+     "labelKey": "nav.arrests",
+     "permission": "arrests:view",
+     "icon": "⛓"
+    },
+    {
+     "href": "/detention",
+     "labelKey": "nav.detention",
+     "permission": "detention:view",
+     "icon": "▣"
+    }
+   ]
+  },
+  {
+   "titleKey": "nav.section.traffic",
+   "items": [
+    {
+     "href": "/traffic",
+     "labelKey": "nav.traffic.dashboard",
+     "permission": "traffic:dashboard",
+     "icon": "◧"
+    },
+    {
+     "href": "/traffic/controls",
+     "labelKey": "nav.traffic.controls",
+     "permission": "traffic:view",
+     "icon": "⚑"
+    },
+    {
+     "href": "/traffic/tickets",
+     "labelKey": "nav.traffic.tickets",
+     "permission": "traffic:view",
+     "icon": "▤"
+    },
+    {
+     "href": "/traffic/fines",
+     "labelKey": "nav.traffic.fines",
+     "permission": "traffic:view",
+     "icon": "₣"
+    },
+    {
+     "href": "/traffic/online-payments",
+     "labelKey": "nav.traffic.online",
+     "permission": "traffic:payment_record",
+     "icon": "☎"
+    },
+    {
+     "href": "/traffic/drivers",
+     "labelKey": "nav.traffic.drivers",
+     "permission": "traffic:drivers_view",
+     "icon": "☺"
+    },
+    {
+     "href": "/traffic/vehicles",
+     "labelKey": "nav.traffic.vehicles",
+     "permission": "traffic:vehicles_view",
+     "icon": "⛟"
+    },
+    {
+     "href": "/traffic/violations",
+     "labelKey": "nav.traffic.violations",
+     "permission": "traffic:violations_view",
+     "icon": "§"
+    },
+    {
+     "href": "/traffic/search",
+     "labelKey": "nav.traffic.search",
+     "permission": "traffic:view",
+     "icon": "⌕"
+    }
+   ]
+  },
+  {
+   "titleKey": "cash.section",
+   "items": [
+    {
+     "href": "/traffic/cash",
+     "labelKey": "cash.nav.dashboard",
+     "permission": "cash:reports",
+     "icon": "◨"
+    },
+    {
+     "href": "/traffic/cash/registers",
+     "labelKey": "cash.nav.registers",
+     "permission": "cash:view",
+     "anyOf": [
+      "cash:register"
+     ],
+     "icon": "▣"
+    },
+    {
+     "href": "/traffic/cash/collections",
+     "labelKey": "cash.nav.collections",
+     "permission": "cash:view",
+     "anyOf": [
+      "cash:register"
+     ],
+     "icon": "₣"
+    },
+    {
+     "href": "/traffic/cash/closures",
+     "labelKey": "cash.nav.closures",
+     "permission": "cash:view",
+     "anyOf": [
+      "cash:register"
+     ],
+     "icon": "⊟"
+    },
+    {
+     "href": "/traffic/cash/deposits",
+     "labelKey": "cash.nav.deposits",
+     "permission": "cash:view",
+     "anyOf": [
+      "cash:register"
+     ],
+     "icon": "⇥"
+    },
+    {
+     "href": "/traffic/cash/slips",
+     "labelKey": "cash.nav.slips",
+     "permission": "cash:view",
+     "anyOf": [
+      "cash:register"
+     ],
+     "icon": "▤"
+    },
+    {
+     "href": "/traffic/cash/reconciliation",
+     "labelKey": "cash.nav.reconciliation",
+     "permission": "cash:view",
+     "icon": "⇄"
+    },
+    {
+     "href": "/traffic/cash/discrepancies",
+     "labelKey": "cash.nav.discrepancies",
+     "permission": "cash:view",
+     "anyOf": [
+      "cash:register"
+     ],
+     "icon": "≠"
+    },
+    {
+     "href": "/traffic/cash/reports",
+     "labelKey": "cash.nav.reports",
+     "permission": "cash:reports",
+     "icon": "≡"
+    },
+    {
+     "href": "/traffic/cash/audit",
+     "labelKey": "cash.nav.audit",
+     "permission": "audit:view",
+     "anyOf": [],
+     "icon": "☷"
+    }
+   ]
+  },
+  {
+   "titleKey": "nav.section.operations",
+   "items": [
+    {
+     "href": "/patrols",
+     "labelKey": "nav.patrols",
+     "permission": "patrols:view",
+     "icon": "➶"
+    },
+    {
+     "href": "/operations",
+     "planned": true,
+     "labelKey": "nav.operations",
+     "permission": "operations:view",
+     "icon": "◎"
+    }
+   ]
+  },
+  {
+   "titleKey": "nav.section.resources",
+   "items": [
+    {
+     "href": "/officers",
+     "labelKey": "nav.officers",
+     "permission": "officers:view",
+     "icon": "★"
+    },
+    {
+     "href": "/vehicles",
+     "planned": true,
+     "labelKey": "nav.vehicles",
+     "permission": "vehicles:view",
+     "icon": "⛟"
+    },
+    {
+     "href": "/documents",
+     "planned": true,
+     "labelKey": "nav.documents",
+     "permission": "documents:view",
+     "icon": "▭"
+    },
+    {
+     "href": "/reports",
+     "planned": true,
+     "labelKey": "nav.reports",
+     "permission": "reports:view",
+     "icon": "≡"
+    },
+    {
+     "href": "/statistics",
+     "planned": true,
+     "labelKey": "nav.statistics",
+     "permission": "statistics:view",
+     "icon": "▥"
+    }
+   ]
+  },
+  {
+   "titleKey": "hr.section",
+   "items": [
+    {
+     "href": "/hr",
+     "labelKey": "nav.hr.overview",
+     "permission": "hr:view",
+     "icon": "◆"
+    },
+    {
+     "href": "/hr/dossiers",
+     "labelKey": "nav.hr.dossiers",
+     "permission": "hr:view",
+     "icon": "▤"
+    },
+    {
+     "href": "/hr/transfers",
+     "labelKey": "nav.hr.transfers",
+     "permission": "hr:view",
+     "icon": "⇄"
+    },
+    {
+     "href": "/hr/rotation",
+     "labelKey": "nav.hr.rotation",
+     "permission": "hr:view",
+     "icon": "↻"
+    },
+    {
+     "href": "/hr/attendance",
+     "labelKey": "nav.hr.attendance",
+     "permission": "hr:view",
+     "icon": "✓"
+    },
+    {
+     "href": "/hr/leaves",
+     "labelKey": "nav.hr.leaves",
+     "permission": "hr:view",
+     "icon": "☀"
+    },
+    {
+     "href": "/hr/training",
+     "labelKey": "nav.hr.training",
+     "permission": "hr:view",
+     "icon": "✎"
+    },
+    {
+     "href": "/hr/documents",
+     "labelKey": "nav.hr.documents",
+     "permission": "hr:view",
+     "icon": "▭"
+    },
+    {
+     "href": "/hr/discipline",
+     "labelKey": "nav.hr.discipline",
+     "permission": "hr:discipline_view",
+     "icon": "⚖"
+    },
+    {
+     "href": "/hr/leaves/mine",
+     "labelKey": "nav.hr.myLeaves",
+     "permission": "dashboard:view",
+     "icon": "☺"
+    },
+    {
+     "href": "/hr/pay",
+     "labelKey": "nav.hr.pay",
+     "permission": "hr:pay_view",
+     "icon": "₣"
+    },
+    {
+     "href": "/hr/pay/mine",
+     "labelKey": "nav.hr.myPay",
+     "permission": "dashboard:view",
+     "icon": "◔"
+    }
+   ]
+  },
+  {
+   "titleKey": "nav.section.administration",
+   "items": [
+    {
+     "href": "/admin/organization",
+     "labelKey": "nav.organization",
+     "permission": "org:view",
+     "icon": "⌂"
+    },
+    {
+     "href": "/admin/users",
+     "labelKey": "nav.users",
+     "permission": "users:view",
+     "icon": "⚙"
+    },
+    {
+     "href": "/admin/roles",
+     "labelKey": "nav.roles",
+     "permission": "roles:view",
+     "icon": "⚿"
+    },
+    {
+     "href": "/admin/security",
+     "labelKey": "nav.security",
+     "permission": "security:view",
+     "icon": "⛨"
+    },
+    {
+     "href": "/admin/system",
+     "planned": true,
+     "labelKey": "nav.system",
+     "permission": "system:settings",
+     "icon": "☰"
+    },
+    {
+     "href": "/audit",
+     "labelKey": "nav.audit",
+     "permission": "audit:view",
+     "icon": "☷"
+    }
+   ]
+  }
+ ],
+ "sensitive": [
+  "warrants:approve",
+  "wanted:approve",
+  "wanted:publish",
+  "detention:extend",
+  "roles:manage",
+  "approvals:decide",
+  "cases:view_sensitive",
+  "documents:view_confidential",
+  "hr:discipline_view",
+  "hr:discipline_manage",
+  "hr:discipline_decide",
+  "hr:pay_view",
+  "hr:pay_manage",
+  "hr:pay_validate",
+  "hr:pay_export",
+  "reports:export",
+  "audit:export",
+  "wanted:export",
+  "traffic:export",
+  "system:backup"
+ ]
+}

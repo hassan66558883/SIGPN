@@ -1,0 +1,14 @@
+flowchart TD
+  N0["Chef de service / Commissaire<br/>Le commissaire ouvre Plaintes et filtre par statut « Enregistrée » / « En examen » pour voir les plaintes en attente. Le tableau de bord indique le nombre de plaintes de la période et d'affaires ouvertes."]
+  N1["Chef de service / Commissaire<br/>Il examine et affecte (circuit A). Pour une affaire sans responsable, il reçoit la notification « en attente d'affectation » et affecte une équipe (responsable, enquêteur, superviseur, analyste, appui)."]
+  N2["Enquêteur<br/>Reçoit l'affectation, ouvre Mes tâches, met à jour l'avancement : tâches (à faire, en cours, bloquée, terminée, annulée) avec résultat."]
+  N3["Enquêteur<br/>Met à jour l'état de l'affaire (En enquête) et ajoute notes, personnes, pièces."]
+  N4["Chef de service / Commissaire<br/>Contrôle des résultats : examine l'affaire soumise (En attente d'examen) ; renvoie à l'enquête, transmet ou clôture."]
+  N5["Délégué provincial<br/>Supervise : voit les plaintes et affaires de toute sa province (périmètre régional) et les commissariats rattachés."]
+  N6(["Direction générale<br/>Supervision nationale : vue d'ensemble de toutes les affaires et plaintes (périmètre national)."])
+  N0 --> N1
+  N1 --> N2
+  N2 --> N3
+  N3 --> N4
+  N4 --> N5
+  N5 --> N6

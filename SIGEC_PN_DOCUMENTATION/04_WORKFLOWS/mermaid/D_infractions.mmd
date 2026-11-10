@@ -1,0 +1,14 @@
+flowchart TD
+  N0["Agent<br/>Constatation : contrôle routier ou constat d'une infraction. Circulation > Contrôles > Nouveau contrôle : conducteur, véhicule (plaque), lieu, résultat (conforme ou infraction)."]
+  N1["Agent<br/>Identification de l'infraction : choix dans le catalogue des infractions (montant forfaitaire indiqué). Identification des personnes : fiche conducteur / véhicule."]
+  N2["Agent<br/>Ajout des preuves : photos, vidéos, documents rattachés au contrôle."]
+  N3["Agent<br/>Enregistrement et émission du PV électronique (numéro PV-AAAA-NNNNNN) ; une amende (AMD-…) est créée.<br/><b>Statut : PV émis (ISSUED) ; Amende : À payer (TO_PAY)</b>"]
+  N4["Chef de service / Commissaire<br/>Transmission / affectation : le superviseur circulation passe en revue les contrôles et PV de l'unité ; il peut annuler un PV avec motif (l'agent émetteur est averti)."]
+  N5["Finance<br/>Suivi : paiement au guichet ou en tournée (caisse de l'agent) ou en ligne (page publique « Payer une amende »). Reçu REC-AAAA-NNNNNN.<br/><b>Statut : Payée (PAID)</b>"]
+  N6(["Chef de service / Commissaire<br/>Validation et rapport final : tableau de bord circulation, statistiques, rapports de recettes (12 rapports) ; export autorisé aux titulaires du droit d'export.<br/><b>Statut : Rapports de recettes et statistiques</b>"])
+  N0 --> N1
+  N1 --> N2
+  N2 --> N3
+  N3 --> N4
+  N4 --> N5
+  N5 --> N6

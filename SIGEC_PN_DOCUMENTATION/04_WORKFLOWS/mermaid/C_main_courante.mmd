@@ -1,0 +1,14 @@
+flowchart TD
+  N0["Agent<br/>Reçoit l'information (appel, passant, patrouille) — étape hors système."]
+  N1["Agent<br/>Incidents > Nouvel incident : type (12 types), gravité (Faible, Moyenne, Élevée, Critique), titre (5 à 200 car.), description (10 à 8000 car.), lieu (3 à 300 car.), coordonnées facultatives, commissariat, patrouille éventuelle.<br/><b>Statut : Signalé (REPORTED)</b>"]
+  N2["Système<br/>Pour un incident de gravité Élevée ou Critique, avertit les titulaires du droit de modifier les incidents du commissariat.<br/><b>Statut : Signalé</b>"]
+  N3["Agent<br/>Ajoute les personnes concernées (plaignant, victime, témoin, suspect…) et les agents présents."]
+  N4["Agent<br/>Fait évoluer l'incident : En intervention, Sur place, Résolu, puis Clôturé, avec un rapport d'intervention : passer à « Résolu » exige un rapport d'au moins 10 caractères.<br/><b>Statut : En intervention → Sur place → Résolu → Clôturé</b>"]
+  N5{"Chef de service / Commissaire<br/>Si l'incident révèle une infraction à instruire : « Escalader en affaire » (titre, responsable, sensible ou non). Sinon, clôture.<br/><b>Statut : Escaladé (ESCALATED)</b>"}
+  N6(["Chef de service / Commissaire<br/>Consultation et suivi : liste filtrée, tableau de bord (nombre d'incidents sur la période, répartition par type, tendance). Clôture.<br/><b>Statut : Clôturé (CLOSED)</b>"])
+  N0 --> N1
+  N1 --> N2
+  N2 --> N3
+  N3 --> N4
+  N4 --> N5
+  N5 --> N6

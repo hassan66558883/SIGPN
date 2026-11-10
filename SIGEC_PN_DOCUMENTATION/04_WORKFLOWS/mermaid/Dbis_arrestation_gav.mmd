@@ -1,0 +1,12 @@
+flowchart TD
+  N0["Agent<br/>Arrestations > Nouvelle arrestation : personne, affaire éventuelle, fondement (Mandat, Flagrant délit, Ordre du tribunal, Cause probable, Autre), lieu, chefs d'accusation, circonstances, heure de lecture des droits, agent arrêtant.<br/><b>Statut : Enregistrée (RECORDED)</b>"]
+  N1["Agent de garde<br/>Gardes à vue > Ouvrir : arrestation, numéro de cellule, notes médicales. Une seule garde à vue ouverte par arrestation ; début non antérieur à l'arrestation.<br/><b>Statut : Garde à vue active (ACTIVE) ; Arrestation : En garde à vue (IN_CUSTODY)</b>"]
+  N2["Agent de garde<br/>Journal de surveillance : contrôle de bien-être, repas, médical, visite, avocat, transfert, incident, note."]
+  N3{"Chef de service / Commissaire<br/>Prolongation (si nécessaire) : autorité qui autorise et motif obligatoires, au plus 48 h au-delà de l'échéance légale ; la nouvelle échéance doit dépasser l'ancienne. Droit distinct et sensible.<br/><b>Statut : Prolongée (EXTENDED)</b>"}
+  N4["Chef de service / Commissaire<br/>Fin de garde à vue : issue (libéré sans charge, libéré sous caution, transféré au parquet, transféré à un autre poste, présenté au tribunal, médical, autre) et notes.<br/><b>Statut : Terminée (ENDED)</b>"]
+  N5(["Chef de service / Commissaire<br/>Statut final de l'arrestation : Libérée (motif obligatoire ; impossible tant qu'une garde à vue est ouverte), Transférée ou Inculpée.<br/><b>Statut : Libérée / Transférée / Inculpée</b>"])
+  N0 --> N1
+  N1 --> N2
+  N2 --> N3
+  N3 --> N4
+  N4 --> N5

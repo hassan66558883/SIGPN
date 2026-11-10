@@ -1,0 +1,18 @@
+flowchart TD
+  N0["Administration<br/>Demande de changement sensible (création de compte, changement de rôle, élévation d'habilitation, ajout d'un droit sensible à un rôle) : crée une demande d'approbation.<br/><b>Statut : En attente (PENDING)</b>"]
+  N1{"Chef de service / Commissaire<br/>Un ou deux approbateurs de niveaux différents décident ; le demandeur ne peut pas approuver sa propre demande (contrainte de base de données).<br/><b>Statut : Approuvée / Rejetée</b>"}
+  N2["Système<br/>Exécute le changement approuvé et notifie le demandeur ; en cas d'échec : « Changement approuvé non exécuté ».<br/><b>Statut : Exécutée (EXECUTED) ou Échec (FAILED)</b>"]
+  N3["Enquêteur<br/>Mandats : demande → approbation par un autre → exécution/annulation."]
+  N4["Enquêteur<br/>Avis de recherche : émission → vérification → approbation → publication publique (chacune par une personne différente de l'émetteur)."]
+  N5["Enquêteur<br/>Affaires : soumission à examen → contrôle du superviseur → clôture/archivage (droits distincts)."]
+  N6["RH<br/>Mutations : proposition → examen RH → validation de l'autorité compétente → exécution. Congés : demande → approbation. Paie : demande → validation par une autre personne → export."]
+  N7["Finance<br/>Recettes : clôture de caisse → vérification → versement → examen → validation définitive → rapprochement."]
+  N8(["Chef de service / Commissaire<br/>Retour pour correction : possible pour l'affaire (retour à En enquête), la clôture de caisse/versement (justification demandée), les justificatifs ; un mandat ou avis refusé est rejeté avec motif et doit être recréé."])
+  N0 --> N1
+  N1 --> N2
+  N2 --> N3
+  N3 --> N4
+  N4 --> N5
+  N5 --> N6
+  N6 --> N7
+  N7 --> N8
