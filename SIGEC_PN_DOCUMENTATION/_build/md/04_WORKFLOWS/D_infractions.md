@@ -64,6 +64,16 @@ Le système traite les infractions de deux façons. (1) **Infractions routières
 
 ![Tableau de bord circulation](../07_ANNEXES/captures/theme-traffic.png)
 
+![Contrôles routiers](../07_ANNEXES/captures/doc-circ-controles.png)
+
+![Fiche d'un contrôle](../07_ANNEXES/captures/doc-circ-controles-fiche.png)
+
+![Procès-verbaux routiers](../07_ANNEXES/captures/doc-circ-pv.png)
+
+![Amendes et paiements](../07_ANNEXES/captures/doc-circ-amendes.png)
+
+![Catalogue des infractions](../07_ANNEXES/captures/doc-circ-catalogue.png)
+
 ### À confirmer auprès de la hiérarchie
 
 - Les barèmes d'amendes forfaitaires et la liste des délits non arbitrables doivent être validés par la hiérarchie et la justice (catalogue chargé à partir de la source indiquée dans la documentation Infractions routières).

@@ -68,6 +68,8 @@ Le portail public permet à un citoyen, sans compte, de déposer une plainte ou 
 
 ![Avis public publié](../07_ANNEXES/captures/s5-9-avis-public-publie.png)
 
+![Gestion du site public (côté agent)](../07_ANNEXES/captures/doc-site-public.png)
+
 ### À confirmer auprès de la hiérarchie
 
 - Réponses types et délais de réponse aux citoyens.

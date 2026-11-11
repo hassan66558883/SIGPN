@@ -118,6 +118,10 @@ Ce circuit décrit le suivi quotidien des plaintes déjà enregistrées et des a
 
 ![Tableau de bord](../07_ANNEXES/captures/theme-dashboard.png)
 
+![Mes tâches](../07_ANNEXES/captures/doc-taches.png)
+
+![Notifications](../07_ANNEXES/captures/doc-notifications.png)
+
 ### À confirmer auprès de la hiérarchie
 
 - Les délais de traitement attendus par type de plainte (aucun délai automatique n'existe dans le système).

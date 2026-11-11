@@ -130,6 +130,22 @@ Du paiement d'une amende (au guichet, sur le terrain ou en ligne) jusqu'au rappr
 
 ![Tableau de bord circulation](../07_ANNEXES/captures/theme-traffic.png)
 
+![Tableau de bord des recettes](../07_ANNEXES/captures/doc-recettes-tableau.png)
+
+![Caisses des agents](../07_ANNEXES/captures/doc-recettes-caisses.png)
+
+![Versements](../07_ANNEXES/captures/doc-recettes-versements.png)
+
+![Rapprochements](../07_ANNEXES/captures/doc-recettes-rapprochements.png)
+
+![Écarts](../07_ANNEXES/captures/doc-recettes-ecarts.png)
+
+![Rapports de recettes](../07_ANNEXES/captures/doc-recettes-rapports.png)
+
+![Paiements en ligne](../07_ANNEXES/captures/doc-paiements-en-ligne.png)
+
+![Caisse vue par un agent](../07_ANNEXES/captures/doc-caisse-agent.png)
+
 ### À confirmer auprès de la hiérarchie
 
 - Comptes bancaires/Trésor de versement, délais de versement, barème des écarts tolérés.

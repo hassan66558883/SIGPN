@@ -10,7 +10,7 @@
 | Statut | Projet pour validation par la hiérarchie : les points marqués « À confirmer » ne sont pas des décisions |
 | Source des informations | Lecture seule du système existant (code, catalogue des rôles et droits, écrans) — aucune donnée, aucun compte, aucun rôle, aucune permission n'a été modifié |
 
-83 captures réelles sont fournies dans `07_ANNEXES/captures/`. **Aucune capture n'a été fabriquée.** Les écrans suivants n'y figurent pas : Incidents, Patrouilles, Pièces à conviction, Ressources humaines, Recettes (caisses, versements), Paiements en ligne, Notifications. Ils restent à capturer sur l'installation de démonstration (cela suppose une connexion, donc une trace de session dans la base de démonstration, ce qui n'a pas été fait pour respecter la consigne de lecture seule).
+122 captures réelles sont fournies dans `07_ANNEXES/captures/`. **Aucune capture n'a été fabriquée.** Les captures `doc-*.png` (Incidents, Patrouilles, Pièces, Ressources humaines, Recettes, Paiements en ligne, Notifications, Circulation…) ont été ajoutées ensuite par connexion de comptes fictifs sur l'installation de **démonstration** (script `scripts/docgen/captures.ts`), ce qui a créé des sessions dans la base de démonstration et nulle part ailleurs. La base de démonstration ne contient pas de recettes encaissées : les écrans de recettes montrent des compteurs à zéro.
 
 | Fichier | Série |
 |---|---|
@@ -27,6 +27,45 @@
 | aud-7-second-approver.png | Audit de sécurité |
 | aud-8-requests-executed.png | Audit de sécurité |
 | aud-9-clearance-request.png | Audit de sécurité |
+| doc-agent-circulation.png | Complément (installation de démonstration) |
+| doc-agents.png | Complément (installation de démonstration) |
+| doc-alertes.png | Complément (installation de démonstration) |
+| doc-caisse-agent.png | Complément (installation de démonstration) |
+| doc-circ-amendes-fiche.png | Complément (installation de démonstration) |
+| doc-circ-amendes.png | Complément (installation de démonstration) |
+| doc-circ-catalogue.png | Complément (installation de démonstration) |
+| doc-circ-controles-fiche.png | Complément (installation de démonstration) |
+| doc-circ-controles.png | Complément (installation de démonstration) |
+| doc-circ-pv-fiche.png | Complément (installation de démonstration) |
+| doc-circ-pv.png | Complément (installation de démonstration) |
+| doc-controle-biometrique.png | Complément (installation de démonstration) |
+| doc-incident-nouveau.png | Complément (installation de démonstration) |
+| doc-incidents-fiche.png | Complément (installation de démonstration) |
+| doc-incidents.png | Complément (installation de démonstration) |
+| doc-notifications.png | Complément (installation de démonstration) |
+| doc-paiements-en-ligne.png | Complément (installation de démonstration) |
+| doc-patrouille-nouvelle.png | Complément (installation de démonstration) |
+| doc-patrouilles-fiche.png | Complément (installation de démonstration) |
+| doc-patrouilles.png | Complément (installation de démonstration) |
+| doc-piece-nouvelle.png | Complément (installation de démonstration) |
+| doc-pieces.png | Complément (installation de démonstration) |
+| doc-recettes-caisses.png | Complément (installation de démonstration) |
+| doc-recettes-ecarts.png | Complément (installation de démonstration) |
+| doc-recettes-rapports.png | Complément (installation de démonstration) |
+| doc-recettes-rapprochements.png | Complément (installation de démonstration) |
+| doc-recettes-tableau.png | Complément (installation de démonstration) |
+| doc-recettes-versements.png | Complément (installation de démonstration) |
+| doc-rh-conges.png | Complément (installation de démonstration) |
+| doc-rh-discipline.png | Complément (installation de démonstration) |
+| doc-rh-documents.png | Complément (installation de démonstration) |
+| doc-rh-dossiers.png | Complément (installation de démonstration) |
+| doc-rh-formation.png | Complément (installation de démonstration) |
+| doc-rh-mutations.png | Complément (installation de démonstration) |
+| doc-rh-presences.png | Complément (installation de démonstration) |
+| doc-rh-rotation.png | Complément (installation de démonstration) |
+| doc-rh-vue.png | Complément (installation de démonstration) |
+| doc-site-public.png | Complément (installation de démonstration) |
+| doc-taches.png | Complément (installation de démonstration) |
 | enf-1-warrant-form.png | Parcours de démonstration |
 | enf-2-warrant-draft.png | Parcours de démonstration |
 | enf-3-warrant-active.png | Parcours de démonstration |

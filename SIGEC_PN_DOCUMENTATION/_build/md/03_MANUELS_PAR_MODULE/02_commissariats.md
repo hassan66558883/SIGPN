@@ -90,6 +90,8 @@ Une structure à jour qui détermine le périmètre de chaque agent (ce qu'il vo
 
 ![Écran Organisation : provinces, délégués provinciaux et couverture](../07_ANNEXES/captures/prov-1-organization.png)
 
+![Agents d'un périmètre](../07_ANNEXES/captures/doc-agents.png)
+
 ## À confirmer auprès de la hiérarchie
 
 - L'organigramme détaillé de chaque direction et service est fixé par arrêté ministériel (art. 91 du décret 0572/2023) : seule l'arborescence générale (14 directions centrales et unités du décret) est chargée ; la structure détaillée au niveau commissariat doit être fournie.

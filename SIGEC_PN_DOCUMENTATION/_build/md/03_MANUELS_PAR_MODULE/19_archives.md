@@ -70,6 +70,10 @@ Affaire en lecture seule.
 | `documents:upload` | Déposer des documents |  | 10 profils |
 | `documents:archive` | Archiver des documents |  |  |
 
+## Écrans
+
+![Documents RH](../07_ANNEXES/captures/doc-rh-documents.png)
+
 ## À confirmer auprès de la hiérarchie
 
 - Durées de conservation et règles d'archivage.

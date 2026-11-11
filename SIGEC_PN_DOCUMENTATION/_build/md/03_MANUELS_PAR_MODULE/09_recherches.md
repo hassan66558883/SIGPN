@@ -182,6 +182,10 @@ Le système distingue deux objets liés : le **mandat** (acte de l'autorité jud
 
 ![Mandat exécuté](../07_ANNEXES/captures/enf-8-warrant-executed.png)
 
+![Alertes nationales d'une unité](../07_ANNEXES/captures/doc-alertes.png)
+
+![Contrôle biométrique](../07_ANNEXES/captures/doc-controle-biometrique.png)
+
 ### À confirmer auprès de la hiérarchie
 
 - Qui, dans la hiérarchie, détient le pouvoir d'approuver un mandat et un avis de recherche : le système le lie au droit « approuver » (portés par les commandants) ; la décision organisationnelle finale revient à la Direction.

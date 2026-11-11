@@ -317,3 +317,20 @@ WF.append(dict(
     confirm=["Les durées de rotation et les délais d'alerte sont des paramètres du système à valider."],
     gaps=["Écrans RH non capturés dans le dossier d'images actuel."],
 ))
+
+# captures complémentaires (installation de démonstration, données fictives ; voir captures.ts)
+_EXTRA = {
+    "C_main_courante": [("doc-incidents.png", "Liste des incidents : compteurs, filtres, statuts"), ("doc-incident-nouveau.png", "Signaler un incident"), ("doc-incidents-fiche.png", "Fiche d'un incident"), ("doc-patrouilles.png", "Patrouilles")],
+    "D_infractions": [("doc-circ-controles.png", "Contrôles routiers"), ("doc-circ-controles-fiche.png", "Fiche d'un contrôle"), ("doc-circ-pv.png", "Procès-verbaux routiers"), ("doc-circ-amendes.png", "Amendes et paiements"), ("doc-circ-catalogue.png", "Catalogue des infractions")],
+    "E_plaintes_en_cours": [("doc-taches.png", "Mes tâches"), ("doc-notifications.png", "Notifications")],
+    "F_transferts": [("doc-pieces.png", "Pièces à conviction et chaîne de possession"), ("doc-rh-mutations.png", "Mutations des agents")],
+    "G_validations": [("doc-notifications.png", "Notifications de décisions à prendre")],
+    "H_portail_public": [("doc-site-public.png", "Gestion du site public (côté agent)")],
+    "I_recettes": [("doc-recettes-tableau.png", "Tableau de bord des recettes"), ("doc-recettes-caisses.png", "Caisses des agents"), ("doc-recettes-versements.png", "Versements"), ("doc-recettes-rapprochements.png", "Rapprochements"), ("doc-recettes-ecarts.png", "Écarts"), ("doc-recettes-rapports.png", "Rapports de recettes"), ("doc-paiements-en-ligne.png", "Paiements en ligne"), ("doc-caisse-agent.png", "Caisse vue par un agent")],
+    "J_mutations_rh": [("doc-rh-vue.png", "Vue d'ensemble RH"), ("doc-rh-dossiers.png", "Dossiers du personnel"), ("doc-rh-mutations.png", "Mutations"), ("doc-rh-presences.png", "Présences"), ("doc-rh-conges.png", "Congés et absences"), ("doc-rh-rotation.png", "Rotation"), ("doc-rh-formation.png", "Formations"), ("doc-rh-discipline.png", "Discipline"), ("doc-rh-documents.png", "Documents RH")],
+    "Dbis_arrestation_gav": [],
+    "A_plainte": [("doc-taches.png", "Mes tâches de l'enquêteur"), ("doc-pieces.png", "Pièces à conviction")],
+    "B_mandat": [("doc-alertes.png", "Alertes nationales d'une unité"), ("doc-controle-biometrique.png", "Contrôle biométrique")],
+}
+for _w in WF:
+    _w["screens"] = list(_w["screens"]) + _EXTRA.get(_w["id"], [])

@@ -57,7 +57,23 @@ Le module Ressources humaines gère les dossiers des agents, les mutations, la r
 
 ### Écrans
 
-Captures d'écran non disponibles dans le dossier d'images actuel pour ce circuit (voir l'annexe « Limites »).
+![Vue d'ensemble RH](../07_ANNEXES/captures/doc-rh-vue.png)
+
+![Dossiers du personnel](../07_ANNEXES/captures/doc-rh-dossiers.png)
+
+![Mutations](../07_ANNEXES/captures/doc-rh-mutations.png)
+
+![Présences](../07_ANNEXES/captures/doc-rh-presences.png)
+
+![Congés et absences](../07_ANNEXES/captures/doc-rh-conges.png)
+
+![Rotation](../07_ANNEXES/captures/doc-rh-rotation.png)
+
+![Formations](../07_ANNEXES/captures/doc-rh-formation.png)
+
+![Discipline](../07_ANNEXES/captures/doc-rh-discipline.png)
+
+![Documents RH](../07_ANNEXES/captures/doc-rh-documents.png)
 
 ### À confirmer auprès de la hiérarchie
 

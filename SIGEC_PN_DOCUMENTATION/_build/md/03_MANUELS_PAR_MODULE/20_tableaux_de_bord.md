@@ -96,6 +96,8 @@ Vue d'ensemble adaptée au profil.
 
 ![Sur téléphone](../07_ANNEXES/captures/theme-phone-dashboard.png)
 
+![Tableau de bord des recettes](../07_ANNEXES/captures/doc-recettes-tableau.png)
+
 ## À confirmer auprès de la hiérarchie
 
 - —

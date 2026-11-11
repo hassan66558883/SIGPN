@@ -64,6 +64,10 @@ Liste des notifications reçues.
 | `alerts:supervise` | Superviser la diffusion des alertes |  | Commandement national (Direction générale), Délégué provincial de police, Commandant de département (rôle dormant), Commissaire (chef de commissariat), Administrateur de la police (système d'information) |
 | `alerts:simulate` | Publier des alertes fictives (exercice) |  | Commandement national (Direction générale) |
 
+## Écrans
+
+![Notifications](../07_ANNEXES/captures/doc-notifications.png)
+
 ## À confirmer auprès de la hiérarchie
 
 - Aucune notification par SMS ou courriel.

@@ -90,6 +90,8 @@ Le système impose des **validations réelles**, reposant sur des droits précis
 
 ![Demandes exécutées](../07_ANNEXES/captures/aud-8-requests-executed.png)
 
+![Notifications de décisions à prendre](../07_ANNEXES/captures/doc-notifications.png)
+
 ### À confirmer auprès de la hiérarchie
 
 - Qui doit valider chaque acte organisationnel (le système reflète seulement les droits attribués aux rôles actuels).

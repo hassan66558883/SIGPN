@@ -114,6 +114,14 @@ Un incident numéroté INC-AAAA-NNNNN.
 
 ![Tableau de bord (incidents récents, répartition)](../07_ANNEXES/captures/theme-dashboard.png)
 
+![Liste des incidents : compteurs, filtres, statuts](../07_ANNEXES/captures/doc-incidents.png)
+
+![Signaler un incident](../07_ANNEXES/captures/doc-incident-nouveau.png)
+
+![Fiche d'un incident](../07_ANNEXES/captures/doc-incidents-fiche.png)
+
+![Patrouilles](../07_ANNEXES/captures/doc-patrouilles.png)
+
 ### À confirmer auprès de la hiérarchie
 
 - Si la main courante réglementaire doit être un registre distinct (chronologique, non modifiable, tenu par le poste) ou si le module Incidents suffit.

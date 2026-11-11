@@ -139,3 +139,17 @@ add(n=20, key="tableaux_de_bord", title="Gestion des tableaux de bord", dispo="D
     objectif="Présenter à chaque profil les chiffres de son périmètre : national, province, commissariat.",
     fonctions=["Cartes de chiffres : agents, unités, incidents, affaires ouvertes, plaintes de la période, avis actifs.", "Graphiques : incidents par type, tendance.", "Listes : incidents récents, avis récents.", "Filtre de province pour le national."],
     forms=[], etapes=["Ouvrir Tableau de bord."], resultats="Vue d'ensemble adaptée au profil.", screens=[("theme-dashboard.png", "Tableau de bord"), ("theme-phone-dashboard.png", "Sur téléphone")], confirm=[], gaps=[])
+
+_MEXTRA = {
+    "utilisateurs": [], "commissariats": [("doc-agents.png", "Agents d'un périmètre")], "plaintes_en_cours": [("doc-taches.png", "Mes tâches")],
+    "mains_courantes": [("doc-incidents.png", "Incidents (module le plus proche)"), ("doc-incident-nouveau.png", "Nouvel incident")],
+    "infractions": [("doc-circ-controles.png", "Contrôles routiers"), ("doc-circ-pv.png", "Procès-verbaux"), ("doc-circ-amendes.png", "Amendes"), ("doc-circ-catalogue.png", "Catalogue")],
+    "enquetes": [("doc-taches.png", "Mes tâches"), ("doc-pieces.png", "Pièces à conviction"), ("doc-piece-nouvelle.png", "Nouvelle pièce")],
+    "transferts": [("doc-rh-mutations.png", "Mutations d'agents"), ("doc-pieces.png", "Pièces : transfert de garde")],
+    "interventions": [("doc-patrouilles.png", "Patrouilles"), ("doc-patrouille-nouvelle.png", "Nouvelle patrouille"), ("doc-patrouilles-fiche.png", "Fiche de patrouille"), ("doc-incidents.png", "Incidents")],
+    "rapports": [("doc-recettes-rapports.png", "Rapports de recettes")], "notifications": [("doc-notifications.png", "Notifications")],
+    "archives": [("doc-rh-documents.png", "Documents RH")], "tableaux_de_bord": [("doc-recettes-tableau.png", "Tableau de bord des recettes")],
+    "recherches": [("doc-alertes.png", "Alertes nationales"), ("doc-controle-biometrique.png", "Contrôle biométrique")],
+}
+for _m in M:
+    _m["screens"] = list(_m["screens"]) + _MEXTRA.get(_m["key"], [])

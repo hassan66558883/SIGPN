@@ -133,7 +133,9 @@ Affectation d'une affaire, transmission, transfert de garde des pièces, mutatio
 
 ### Écrans
 
-Captures d'écran non disponibles dans le dossier d'images actuel pour ce circuit (voir l'annexe « Limites »).
+![Pièces à conviction et chaîne de possession](../07_ANNEXES/captures/doc-pieces.png)
+
+![Mutations des agents](../07_ANNEXES/captures/doc-rh-mutations.png)
 
 ### À confirmer auprès de la hiérarchie
 

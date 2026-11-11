@@ -87,6 +87,10 @@ Une plainte est reçue à l'accueil d'un commissariat (ou déposée par un citoy
 
 ![Liste des affaires](../07_ANNEXES/captures/theme-cases.png)
 
+![Mes tâches de l'enquêteur](../07_ANNEXES/captures/doc-taches.png)
+
+![Pièces à conviction](../07_ANNEXES/captures/doc-pieces.png)
+
 ### À confirmer auprès de la hiérarchie
 
 - Qui, dans l'organisation, joue le rôle de « chef de service » entre l'agent d'accueil et le commissaire : le système n'a pas de rôle distinct, c'est le Commissaire (ou toute personne portant le droit « examiner ») qui examine et affecte.

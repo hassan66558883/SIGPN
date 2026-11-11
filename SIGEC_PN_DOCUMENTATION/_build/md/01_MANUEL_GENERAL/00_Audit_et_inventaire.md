@@ -253,7 +253,7 @@ Voir le catalogue des notifications (dossier 07). Aucune notification par SMS ou
 
 - Le fonctionnement sur le réseau réel des unités, en production : seules la démonstration et les tests le prouvent.
 - Les procédures judiciaires et hiérarchiques réelles : aucune supposition n'a été faite.
-- Certains écrans ne figurent pas dans le dossier d'images existant (incidents, patrouilles, pièces à conviction, ressources humaines, recettes) : pas de capture d'écran inventée.
+- Toutes les captures sont réelles (installation de démonstration, données fictives) ; la base de démonstration ne contient aucune recette encaissée, donc les écrans de recettes montrent des compteurs à zéro.
 - Le second facteur est suspendu sur l'installation de démonstration (interrupteur temporaire à retirer avant la mise en service).
 - Les droits des 29 rôles sont ceux **effectivement enregistrés** dans la base de démonstration, lue en lecture seule (le code des rôles, plus les droits ajoutés à la synchronisation : alertes, site public, contrôle biométrique). Un rôle temporaire de test (TMP_UI_TEST), résidu présent dans la base de développement, n'est pas un rôle du système et n'est pas documenté.
 
