@@ -1457,4 +1457,6 @@ export const fr = {
   "traffic.online.refundFlag": "À rembourser",
   "traffic.online.searchPh": "N° paiement, amende, plaque, réf. opérateur",
   "traffic.online.refundOnly": "À rembourser seulement",
+  "export.pdf": "Exporter en PDF",
+  "export.pdf.hint": "Réservé aux chefs de chaque niveau de commandement ; chaque export est enregistré au journal d'audit",
 } as const;

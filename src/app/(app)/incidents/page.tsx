@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { IncidentStatus, IncidentType, Severity } from "@/generated/prisma/client";
 import { requirePermission } from "@/server/auth/dal";
 import { incidentCounts, listIncidents } from "@/server/ops/queries";
+import { ExportPdf } from "@/components/export-pdf";
 import { Badge, ButtonLink, Card, EmptyState, PageHeader, Pagination, Select, StatCard, Table } from "@/components/ui";
 import { INCIDENT_STATUS, INCIDENT_TYPE, SEVERITY, labelOf, optionsOf } from "@/lib/labels";
 import { fmtDateTime } from "@/lib/format";
@@ -29,7 +30,7 @@ export default async function IncidentsPage({ searchParams }: PageProps<"/incide
   const kpi = (statuses: string[]) => statuses.reduce((n, s) => n + (counts[s] ?? 0), 0);
   return (
     <div>
-      <PageHeader eyebrow={t("incident.eyebrow")} title={t("incidents.title")} subtitle={t("incidents.subtitle", { n: total })} actions={actor.permissions.has("incidents:create") ? <ButtonLink href="/incidents/new">{t("incidents.new")}</ButtonLink> : null} />
+      <PageHeader eyebrow={t("incident.eyebrow")} title={t("incidents.title")} subtitle={t("incidents.subtitle", { n: total })} actions={<>{actor.permissions.has("incidents:create") ? <ButtonLink href="/incidents/new">{t("incidents.new")}</ButtonLink> : null}<ExportPdf show={actor.permissions.has("records:export_pdf")} module="incidents" params={p} t={t} /></>} />
       <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label={t("incidents.open")} value={kpi(["REPORTED", "RESPONDING", "ON_SCENE"])} tone={kpi(["REPORTED", "RESPONDING", "ON_SCENE"]) ? "warning" : "neutral"} href="/incidents?open=1" />
         <StatCard label={labelOf(INCIDENT_STATUS, "ON_SCENE", locale).label} value={kpi(["ON_SCENE"])} tone="violet" href="/incidents?status=ON_SCENE" />

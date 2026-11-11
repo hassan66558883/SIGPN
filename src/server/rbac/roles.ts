@@ -174,7 +174,10 @@ export const SECURITY_ADMIN_PERMISSIONS: readonly Permission[] = [
 /** System roles whose permission set is fixed by the system and cannot be edited from the interface. */
 export const LOCKED_ROLE_CODES: readonly string[] = ["SUPER_ADMIN", "SECURITY_ADMIN"];
 
-export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
+/** Heads of each level of command: the only roles that export lists and records to PDF (a recommendation of the editor, to be confirmed by the Direction). */
+export const PDF_EXPORT_HEADS: readonly string[] = ["NATIONAL_COMMANDER", "REGIONAL_COMMANDER", "DEPARTMENTAL_COMMANDER", "STATION_COMMANDER"];
+
+const BASE_ROLES: readonly SystemRoleDef[] = [
   {
     code: "SUPER_ADMIN",
     name: "Technical Administrator",
@@ -408,6 +411,9 @@ export const SYSTEM_ROLES: readonly SystemRoleDef[] = [
     permissions: ["dashboard:view", "org:view", "apikeys:manage_own", ...TRAFFIC_READ],
   },
 ];
+
+export const SYSTEM_ROLES: readonly SystemRoleDef[] = BASE_ROLES.map((r) => (PDF_EXPORT_HEADS.includes(r.code) ? { ...r, permissions: [...r.permissions, "records:export_pdf" as Permission] } : r));
+
 
 /** Traffic permissions granted by default to each system role (applied once to already-seeded databases). */
 export const TRAFFIC_DEFAULT_GRANTS: Record<string, readonly Permission[]> = Object.fromEntries(SYSTEM_ROLES.map((r) => [r.code, r.permissions.filter((p) => p.startsWith("traffic:"))]));

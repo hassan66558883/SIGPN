@@ -154,6 +154,7 @@ export const PERMISSION_CATALOG = [
   ["cash:deposit_validate", "Definitively validate a deposit"],
   ["cash:reconcile", "Manage reconciliations and process cash discrepancies"],
   ["cash:reports", "View and export financial revenue reports and the revenue dashboard"],
+  ["records:export_pdf", "Export lists and records (complaints, cases, warrants, arrests, custody, incidents) to PDF: heads of structures only, every export is audited"],
   ["cash:block", "Block or unblock an agent's cash register"],
   // human resources (dossiers, career)
   ["hr:view", "View HR dossiers and career history within scope"],

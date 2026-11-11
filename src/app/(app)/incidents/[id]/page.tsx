@@ -7,6 +7,7 @@ import { getIncident, INCIDENT_TRANSITIONS } from "@/server/ops/service";
 import { officersOf, stationIdsForForms } from "@/server/ops/queries";
 import { assignableInvestigators } from "@/server/complaints/queries";
 import { NotFoundError } from "@/server/errors";
+import { ExportPdf } from "@/components/export-pdf";
 import { Alert, Badge, Card, DL, EmptyState, PageHeader, Stepper } from "@/components/ui";
 import { INCIDENT_STATUS, INCIDENT_TYPE, PARTY_ROLE, SEVERITY, labelOf } from "@/lib/labels";
 import { fmtDateTime, toInputDateTime } from "@/lib/format";
@@ -54,7 +55,7 @@ export default async function IncidentPage({ params, searchParams }: PageProps<"
             <Badge tone={st.tone}>{st.label}</Badge>
             <Badge tone={sv.tone}>{sv.label}</Badge>
             <Badge tone={ty.tone}>{ty.label}</Badge>
-          </>
+          <ExportPdf show={actor.permissions.has("records:export_pdf")} module="incidents" id={id} t={t} /></>
         }
       />
       {sp.created === "1" ? (

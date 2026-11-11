@@ -5,6 +5,7 @@ import { requirePermission } from "@/server/auth/dal";
 import { viewWarrant } from "@/server/warrants/service";
 import { getRequestContext } from "@/server/request-context";
 import { NotFoundError } from "@/server/errors";
+import { ExportPdf } from "@/components/export-pdf";
 import { Alert, Badge, Card, DL, PageHeader } from "@/components/ui";
 import { WARRANT_STATUS, WARRANT_TYPE, labelOf } from "@/lib/labels";
 import { fmtDateTime } from "@/lib/format";
@@ -42,7 +43,7 @@ export default async function WarrantDetailPage({ params, searchParams }: PagePr
         eyebrow={t("warrants.eyebrow")}
         title={w.number}
         breadcrumbs={[{ href: "/warrants", label: t("warrants.title") }, { label: w.number }]}
-        actions={<><Badge tone={st.tone}>{st.label}</Badge><Badge tone={ty.tone}>{ty.label}</Badge></>}
+        actions={<><Badge tone={st.tone}>{st.label}</Badge><Badge tone={ty.tone}>{ty.label}</Badge><ExportPdf show={actor.permissions.has("records:export_pdf")} module="warrants" id={id} t={t} /></>}
       />
       {sp.created === "1" ? <Alert tone="success" className="mb-4">{t("warrants.created", { number: w.number })}</Alert> : null}
       <div className="grid gap-4 lg:grid-cols-3">

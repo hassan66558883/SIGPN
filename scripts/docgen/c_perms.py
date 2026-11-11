@@ -7,7 +7,7 @@ MOD = {
     "public": "Site public", "alerts": "Alertes nationales", "complaints": "Plaintes", "cases": "Affaires", "investigations": "Enquêtes", "statements": "Déclarations", "interviews": "Auditions",
     "transcripts": "Transcriptions", "evidence": "Preuves", "warrants": "Mandats", "arrests": "Arrestations", "detention": "Gardes à vue", "patrols": "Patrouilles", "incidents": "Incidents",
     "operations": "Opérations", "vehicles": "Véhicules de service", "maintenance": "Maintenance", "documents": "Documents", "reports": "Rapports", "traffic": "Circulation", "cash": "Caisses et recettes",
-    "hr": "Ressources humaines", "approvals": "Approbations", "apikeys": "Clés d'accès (API)",
+    "hr": "Ressources humaines", "approvals": "Approbations", "apikeys": "Clés d'accès (API)", "records": "Export PDF",
 }
 
 # libellés précis pour chaque code (verbe d'action en français)
@@ -55,7 +55,7 @@ PERM = {
     "hr:transfer_validate": "Valider une mutation (autorité compétente)", "hr:auto_assign_config": "Paramétrer l'affectation automatique", "hr:attendance_record": "Enregistrer l'appel quotidien", "hr:leave_request": "Déposer une demande de congé",
     "hr:leave_approve": "Approuver ou rejeter un congé", "hr:training_manage": "Gérer les formations et attestations", "hr:discipline_view": "Voir les dossiers disciplinaires (sensible)", "hr:discipline_manage": "Instruire un dossier disciplinaire (sensible)",
     "hr:discipline_decide": "Décider d'une sanction (sensible)", "hr:document_issue": "Éditer des documents RH", "hr:pay_view": "Voir la paie (sensible)", "hr:pay_manage": "Demander des éléments de paie (sensible)", "hr:pay_validate": "Valider la paie (sensible)", "hr:pay_export": "Exporter la paie (sensible)",
-    "approvals:view": "Voir les demandes d'approbation", "approvals:decide": "Décider d'une demande d'approbation (sensible)", "apikeys:manage_own": "Gérer ses propres clés d'accès",
+    "records:export_pdf": "Exporter en PDF les listes et fiches (chefs de chaque niveau ; chaque export est journalisé)", "approvals:view": "Voir les demandes d'approbation", "approvals:decide": "Décider d'une demande d'approbation (sensible)", "apikeys:manage_own": "Gérer ses propres clés d'accès",
 }
 
 # traduction des rôles (code -> nom français, famille, supérieur hiérarchique habituel d'après les périmètres, destinataires)

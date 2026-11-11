@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/server/auth/dal";
 import { listArrests } from "@/server/arrests/service";
+import { ExportPdf } from "@/components/export-pdf";
 import { Badge, ButtonLink, Card, EmptyState, PageHeader, Pagination, Select, Table } from "@/components/ui";
 import { ARREST_AUTHORITY, ARREST_STATUS, labelOf, optionsOf } from "@/lib/labels";
 import { fmtDateTime } from "@/lib/format";
@@ -27,7 +28,7 @@ export default async function ArrestsPage({ searchParams }: PageProps<"/arrests"
   };
   return (
     <div>
-      <PageHeader eyebrow={t("arrests.eyebrow")} title={t("arrests.title")} subtitle={t("arrests.subtitle", { n: total })} actions={actor.permissions.has("arrests:create") ? <ButtonLink href="/arrests/new">{t("arrests.new")}</ButtonLink> : null} />
+      <PageHeader eyebrow={t("arrests.eyebrow")} title={t("arrests.title")} subtitle={t("arrests.subtitle", { n: total })} actions={<>{actor.permissions.has("arrests:create") ? <ButtonLink href="/arrests/new">{t("arrests.new")}</ButtonLink> : null}<ExportPdf show={actor.permissions.has("records:export_pdf")} module="arrests" params={p} t={t} /></>} />
       <Card className="mb-4">
         <form method="get" className="grid gap-3 sm:grid-cols-4">
           <input name="q" defaultValue={filter.q ?? ""} placeholder={t("arrests.search")} className="input sm:col-span-2" aria-label={t("common.search")} />

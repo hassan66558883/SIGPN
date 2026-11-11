@@ -2,7 +2,7 @@ import "server-only";
 import { prisma } from "@/server/db";
 import { PERMISSION_CATALOG } from "@/server/rbac/permissions";
 import { logAudit } from "@/server/audit";
-import { APPROVAL_DEFAULT_GRANTS, CASH_DEFAULT_GRANTS, HR_DEFAULT_GRANTS, SYSTEM_ROLES, TECH_ADMIN_PERMISSIONS, TRAFFIC_DEFAULT_GRANTS } from "@/server/rbac/roles";
+import { APPROVAL_DEFAULT_GRANTS, CASH_DEFAULT_GRANTS, HR_DEFAULT_GRANTS, PDF_EXPORT_HEADS, SYSTEM_ROLES, TECH_ADMIN_PERMISSIONS, TRAFFIC_DEFAULT_GRANTS } from "@/server/rbac/roles";
 
 export async function syncPermissionCatalog() {
   for (const [code, description] of PERMISSION_CATALOG) {
@@ -42,6 +42,7 @@ export async function syncSystemRoles(opts: { resetPermissions?: boolean } = {})
   await grantAlertsOnce(byCode);
   await grantBiometricControlOnce(byCode);
   await grantPublicPortalOnce(byCode);
+  await grantPdfExportOnce(byCode);
   return SYSTEM_ROLES.length;
 }
 
@@ -228,6 +229,18 @@ async function grantBiometricControlOnce(byCode: Map<string, string>) {
     await prisma.rolePermission.createMany({ data: [...new Set(holders.map((h) => h.roleId))].map((roleId) => ({ roleId, permissionId: perm })), skipDuplicates: true });
   }
   await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "La permission de contrôle biométrique a été accordée aux rôles qui effectuent déjà des recherches d'empreinte ou de visage." } });
+}
+
+/** PDF export of lists and records: the heads of each level of command only (PDF_EXPORT_HEADS), granted once to already-seeded databases. */
+async function grantPdfExportOnce(byCode: Map<string, string>) {
+  const KEY = "rbac.pdf_export_defaults_applied";
+  if (await prisma.systemSetting.findUnique({ where: { key: KEY } })) return;
+  const perm = byCode.get("records:export_pdf");
+  if (perm) {
+    const roles = await prisma.role.findMany({ where: { code: { in: [...PDF_EXPORT_HEADS] }, isSystem: true }, select: { id: true } });
+    await prisma.rolePermission.createMany({ data: roles.map((r) => ({ roleId: r.id, permissionId: perm })), skipDuplicates: true });
+  }
+  await prisma.systemSetting.create({ data: { key: KEY, value: true, description: "L'export PDF des listes et fiches a été accordé aux chefs de chaque niveau de commandement." } });
 }
 
 /** Public portal: roles that review complaints handle public submissions; roles that publish notices manage the public content. Granted once. */

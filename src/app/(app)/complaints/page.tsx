@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ComplaintStatus, OffenseCategory, Priority } from "@/generated/prisma/client";
 import { requirePermission } from "@/server/auth/dal";
 import { complaintCounts, listComplaints } from "@/server/complaints/queries";
+import { ExportPdf } from "@/components/export-pdf";
 import { Badge, ButtonLink, Card, EmptyState, PageHeader, Pagination, Select, StatCard, Table } from "@/components/ui";
 import { COMPLAINT_STATUS, OFFENSE_CATEGORY, PRIORITY, labelOf, optionsOf } from "@/lib/labels";
 import { fmtDateTime } from "@/lib/format";
@@ -29,7 +30,7 @@ export default async function ComplaintsPage({ searchParams }: PageProps<"/compl
   const kpi = (statuses: string[]) => statuses.reduce((n, s) => n + (counts[s] ?? 0), 0);
   return (
     <div>
-      <PageHeader eyebrow={t("complaint.eyebrow")} title={t("complaints.title")} subtitle={t("complaints.subtitle", { n: total })} actions={actor.permissions.has("complaints:create") ? <ButtonLink href="/complaints/new">{t("complaints.new")}</ButtonLink> : null} />
+      <PageHeader eyebrow={t("complaint.eyebrow")} title={t("complaints.title")} subtitle={t("complaints.subtitle", { n: total })} actions={<>{actor.permissions.has("complaints:create") ? <ButtonLink href="/complaints/new">{t("complaints.new")}</ButtonLink> : null}<ExportPdf show={actor.permissions.has("records:export_pdf")} module="complaints" params={p} t={t} /></>} />
       <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label={labelOf(COMPLAINT_STATUS, "REGISTERED", locale).label} value={kpi(["REGISTERED"])} tone="info" href="/complaints?status=REGISTERED" />
         <StatCard label={labelOf(COMPLAINT_STATUS, "UNDER_REVIEW", locale).label} value={kpi(["UNDER_REVIEW"])} tone="warning" href="/complaints?status=UNDER_REVIEW" />

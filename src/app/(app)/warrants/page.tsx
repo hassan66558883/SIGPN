@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/server/auth/dal";
 import { listWarrants } from "@/server/warrants/service";
+import { ExportPdf } from "@/components/export-pdf";
 import { Badge, ButtonLink, Card, EmptyState, PageHeader, Pagination, Select, Table } from "@/components/ui";
 import { WARRANT_STATUS, WARRANT_TYPE, labelOf, optionsOf } from "@/lib/labels";
 import { fmtDate } from "@/lib/format";
@@ -27,7 +28,7 @@ export default async function WarrantsPage({ searchParams }: PageProps<"/warrant
   };
   return (
     <div>
-      <PageHeader eyebrow={t("warrants.eyebrow")} title={t("warrants.title")} subtitle={t("warrants.subtitle", { n: total })} actions={actor.permissions.has("warrants:create") ? <ButtonLink href="/warrants/new">{t("warrants.new")}</ButtonLink> : null} />
+      <PageHeader eyebrow={t("warrants.eyebrow")} title={t("warrants.title")} subtitle={t("warrants.subtitle", { n: total })} actions={<>{actor.permissions.has("warrants:create") ? <ButtonLink href="/warrants/new">{t("warrants.new")}</ButtonLink> : null}<ExportPdf show={actor.permissions.has("records:export_pdf")} module="warrants" params={p} t={t} /></>} />
       <Card className="mb-4">
         <form method="get" className="grid gap-3 sm:grid-cols-4">
           <input name="q" defaultValue={filter.q ?? ""} placeholder={t("warrants.search")} className="input sm:col-span-2" aria-label={t("common.search")} />

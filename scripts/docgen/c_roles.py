@@ -81,6 +81,7 @@ DOC_VIEW = {
     "hr:view": "Dossiers RH", "hr:discipline_view": "Dossiers disciplinaires", "hr:pay_view": "Paie", "officers:view": "Fiches agents", "org:view": "Organisation", "alerts:view": "Alertes nationales", "intake:view": "Dépôts du site public",
 }
 DOC_SEND = {
+    "records:export_pdf": "Export PDF des listes et fiches : plaintes, affaires, mandats, arrestations, gardes à vue, incidents",
     "complaints:assign": "Plainte vers un enquêteur", "complaints:convert": "Plainte vers une affaire", "cases:assign": "Affaire vers un membre de l'équipe", "cases:close": "Affaire vers le parquet (statut Transmise) ou clôture",
     "evidence:transfer": "Pièce à conviction vers un autre agent ou lieu", "hr:transfer_propose": "Mutation vers les RH", "cash:deposit_create": "Versement vers le responsable financier", "intake:manage": "Dépôt public converti en plainte interne",
     "detention:manage": "Garde à vue vers sa fin (parquet, tribunal, autre poste)", "arrests:update": "Arrestation vers transfert / inculpation",
@@ -102,6 +103,7 @@ NOTIF = {
 }
 # opérations « clés » dont l'absence est notable (droit -> phrase)
 KEYOPS = [
+    ("records:export_pdf", "Exporter en PDF les listes et fiches"),
     ("complaints:create", "Enregistrer une plainte"), ("complaints:review", "Examiner / affecter une plainte"), ("cases:create", "Ouvrir une affaire"), ("cases:close", "Transmettre ou clôturer une affaire"),
     ("cases:view_sensitive", "Voir les affaires sensibles"), ("warrants:create", "Demander un mandat"), ("warrants:approve", "Approuver un mandat"), ("wanted:create", "Créer un avis de recherche"),
     ("wanted:approve", "Approuver un avis de recherche"), ("wanted:publish", "Publier un avis sur le site public"), ("arrests:create", "Enregistrer une arrestation"), ("detention:manage", "Gérer une garde à vue"),

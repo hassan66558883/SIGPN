@@ -1456,4 +1456,6 @@ export const ar: Record<keyof typeof fr, string> = {
   "traffic.online.refundFlag": "يجب ردّها",
   "traffic.online.searchPh": "رقم الدفعة، الغرامة، اللوحة، مرجع المشغّل",
   "traffic.online.refundOnly": "المستحقة للرد فقط",
+  "export.pdf": "تصدير PDF",
+  "export.pdf.hint": "مخصّص لرؤساء كل مستوى قيادة؛ يُسجَّل كل تصدير في سجل التدقيق",
 } as const;

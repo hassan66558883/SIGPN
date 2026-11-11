@@ -5,6 +5,7 @@ import { requirePermission } from "@/server/auth/dal";
 import { getComplaint } from "@/server/complaints/service";
 import { assignableInvestigators } from "@/server/complaints/queries";
 import { NotFoundError } from "@/server/errors";
+import { ExportPdf } from "@/components/export-pdf";
 import { Alert, Badge, Card, DL, PageHeader, Stepper } from "@/components/ui";
 import { ActionButton } from "@/components/forms";
 import { registerComplaintAction } from "@/server/complaints/actions";
@@ -51,7 +52,7 @@ export default async function ComplaintPage({ params, searchParams }: PageProps<
             <Badge tone={st.tone}>{st.label}</Badge>
             <Badge tone={pr.tone}>{pr.label}</Badge>
             <Badge tone={cat.tone}>{cat.label}</Badge>
-          </>
+          <ExportPdf show={actor.permissions.has("records:export_pdf")} module="complaints" id={id} t={t} /></>
         }
       />
       {sp.created === "1" ? (

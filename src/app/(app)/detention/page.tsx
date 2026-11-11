@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requirePermission } from "@/server/auth/dal";
 import { deadlineOf, listDetentions } from "@/server/detention/service";
+import { ExportPdf } from "@/components/export-pdf";
 import { Badge, ButtonLink, Card, EmptyState, PageHeader, Pagination, Select, Table } from "@/components/ui";
 import { DETENTION_STATUS, labelOf, optionsOf } from "@/lib/labels";
 import { fmtDateTime } from "@/lib/format";
@@ -28,7 +29,7 @@ export default async function DetentionPage({ searchParams }: PageProps<"/detent
   };
   return (
     <div>
-      <PageHeader eyebrow={t("detention.eyebrow")} title={t("detention.title")} subtitle={t("detention.subtitle", { n: total })} actions={actor.permissions.has("detention:manage") ? <ButtonLink href="/detention/new">{t("detention.new")}</ButtonLink> : null} />
+      <PageHeader eyebrow={t("detention.eyebrow")} title={t("detention.title")} subtitle={t("detention.subtitle", { n: total })} actions={<>{actor.permissions.has("detention:manage") ? <ButtonLink href="/detention/new">{t("detention.new")}</ButtonLink> : null}<ExportPdf show={actor.permissions.has("records:export_pdf")} module="detention" params={p} t={t} /></>} />
       <Card className="mb-4">
         <form method="get" className="grid gap-3 sm:grid-cols-4">
           <input name="q" defaultValue={filter.q ?? ""} placeholder={t("detention.search")} className="input sm:col-span-2" aria-label={t("common.search")} />

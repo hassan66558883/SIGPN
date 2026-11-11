@@ -49,7 +49,7 @@ Après connexion, le **Tableau de bord** résume les chiffres de votre périmèt
 | Second facteur exigé par le rôle | Oui |
 | Supérieur hiérarchique (selon le périmètre du système) | Autorité de tutelle (Ministère) — hors système — organigramme officiel à confirmer |
 | Destinataires de ses rapports et transmissions | Hors système |
-| Nombre de droits | 84 sur 157 |
+| Nombre de droits | 85 sur 157 |
 | Droits sensibles détenus | 13 |
 | Comptes de démonstration | `commander.national` |
 
@@ -111,6 +111,7 @@ Ce profil voit, **dans son périmètre**, : Nombre d'agents actifs; Incidents de
 | Ressources humaines | Voir les dossiers RH; Enregistrer l'appel quotidien; Décider d'une sanction (sensible); Instruire un dossier disciplinaire (sensible); Voir les dossiers disciplinaires (sensible); Approuver ou rejeter un congé; Déposer une demande de congé; Proposer une mutation; Valider une mutation (autorité compétente) |
 | Approbations | Voir les demandes d'approbation; Décider d'une demande d'approbation (sensible) |
 | Clés d'accès (API) | Gérer ses propres clés d'accès |
+| Export PDF | Exporter en PDF les listes et fiches (chefs de chaque niveau ; chaque export est journalisé) |
 
 Les droits marqués *(sensible)* n'agissent que si le compte a l'habilitation requise (droit sensible = habilitation « Sensible » ou « Confidentiel », attribuée par l'administrateur de sécurité).
 
@@ -126,7 +127,7 @@ Toute opération qui n'est pas dans la liste des opérations autorisées est ref
 |---|---|
 | Créer | Garde à vue et son journal; Patrouille et son rapport; Demande de création de compte; Proposition de mutation; Demande de congé |
 | Consulter | Plaintes; Affaires; Affaires sensibles; Mandats; Avis de recherche; Arrestations; Gardes à vue; Incidents; Patrouilles; Pièces à conviction; Fiches personnes; Contrôles, PV et amendes; Conducteurs; Véhicules; Journal d'audit; Dossiers RH; Dossiers disciplinaires; Fiches agents; Organisation; Alertes nationales; Dépôts du site public |
-| Transmettre | Plainte vers un enquêteur; Plainte vers une affaire; Affaire vers un membre de l'équipe; Affaire vers le parquet (statut Transmise) ou clôture; Mutation vers les RH; Dépôt public converti en plainte interne; Garde à vue vers sa fin (parquet, tribunal, autre poste) |
+| Transmettre | Export PDF des listes et fiches : plaintes, affaires, mandats, arrestations, gardes à vue, incidents; Plainte vers un enquêteur; Plainte vers une affaire; Affaire vers un membre de l'équipe; Affaire vers le parquet (statut Transmise) ou clôture; Mutation vers les RH; Dépôt public converti en plainte interne; Garde à vue vers sa fin (parquet, tribunal, autre poste) |
 | Valider / décider | Examen d'une plainte; Approbation / rejet d'un mandat; Vérification d'un avis; Approbation d'un avis; Publication publique d'un avis; Clôture d'une affaire; Archivage d'une affaire; Prolongation d'une garde à vue; Décision sur une demande d'approbation; Validation d'une mutation; Décision sur un congé; Décision de sanction; Annulation d'un PV; Gestion du statut d'une amende; Approbation de transcription (écran non construit) |
 
 ## Notifications reçues
@@ -341,6 +342,16 @@ Toute opération qui n'est pas dans la liste des opérations autorisées est ref
 
 1. Menu **Approbations** : ouvrir la demande.
 2. Lire le résumé ; **Approuver** ou **Rejeter**. Vous ne pouvez pas décider d'une demande que vous avez déposée.
+
+## Procédures — Export PDF
+
+### Exporter une liste ou une fiche en PDF
+
+1. Ouvrir la liste voulue (Plaintes, Affaires, Mandats, Arrestations, Garde à vue ou Incidents) et appliquer les filtres souhaités.
+2. Cliquer sur **Exporter en PDF** en haut à droite : le PDF reprend exactement les filtres de l'écran (jusqu'à 500 lignes).
+3. Pour une fiche : ouvrir le dossier puis cliquer **Exporter en PDF** : un document d'une ou plusieurs pages est téléchargé.
+
+> **À savoir :** Le PDF ne montre jamais plus que l'écran (même périmètre, mêmes règles de confidentialité). Chaque export est enregistré au journal d'audit avec votre nom : ne le transmettez qu'aux personnes habilitées.
 
 ## Procédures — Contrôle
 

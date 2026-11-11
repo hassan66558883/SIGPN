@@ -115,10 +115,10 @@ Lecture seule du système existant : code source (services, schémas, droits, na
 |---|---|---|---|---|---|
 | `SUPER_ADMIN` | Administrateur technique | National (tout le pays) | Oui | 12 | admin |
 | `SECURITY_ADMIN` | Administrateur de sécurité | National (tout le pays) | Oui | 16 | security.admin |
-| `NATIONAL_COMMANDER` | Commandement national (Direction générale) | National (tout le pays) | Oui | 84 | commander.national |
-| `REGIONAL_COMMANDER` | Délégué provincial de police | Provincial (sa province) | Oui | 112 | commander.central |
-| `DEPARTMENTAL_COMMANDER` | Commandant de département (rôle dormant) | Départemental (son département) | Oui | 110 | commander.dept |
-| `STATION_COMMANDER` | Commissaire (chef de commissariat) | Commissariat (son unité et ses postes rattachés) | Oui | 109 | chief.cs1, chief.arr5, chief.mdu, chief.abe |
+| `NATIONAL_COMMANDER` | Commandement national (Direction générale) | National (tout le pays) | Oui | 85 | commander.national |
+| `REGIONAL_COMMANDER` | Délégué provincial de police | Provincial (sa province) | Oui | 113 | commander.central |
+| `DEPARTMENTAL_COMMANDER` | Commandant de département (rôle dormant) | Départemental (son département) | Oui | 111 | commander.dept |
+| `STATION_COMMANDER` | Commissaire (chef de commissariat) | Commissariat (son unité et ses postes rattachés) | Oui | 110 | chief.cs1, chief.arr5, chief.mdu, chief.abe |
 | `INVESTIGATOR` | Enquêteur | Commissariat (son unité et ses postes rattachés) | Non | 62 | inv.diallo, inv.mensah |
 | `DESK_OFFICER` | Agent d'accueil / de permanence | Commissariat (son unité et ses postes rattachés) | Non | 38 | desk.abe, desk.cs1, desk.post1 |
 | `PATROL_OFFICER` | Agent de patrouille | Commissariat (son unité et ses postes rattachés) | Non | 40 | patrol.cs1 |

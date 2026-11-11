@@ -52,7 +52,11 @@ Le SIGPN-T est le système d'information de la Police nationale du Tchad. Il per
 
 La cloche signale : affectations, décisions à prendre, échéances, alertes, sécurité. Les alertes nationales (avis de recherche) s'affichent en **bandeau rouge** sur toutes les pages. Les notifications ne sont pas envoyées par SMS ni par courriel.
 
-## 5. Les statuts
+## 5. Exporter en PDF (chefs de commandement)
+
+Les **listes** (Plaintes, Affaires, Mandats, Arrestations, Garde à vue, Incidents) et les **fiches** de ces dossiers peuvent être exportées en PDF par le bouton **Exporter en PDF**. **Ce droit est réservé aux chefs de chaque niveau de commandement** (commandement national, délégué provincial, commandant de département, commissaire) : l'agent d'accueil, l'enquêteur, l'administrateur technique, l'auditeur ou l'administrateur de la police ne le voient pas. Le PDF respecte le périmètre et la confidentialité de l'écran, est limité à 500 lignes, porte le nom de l'exportateur et la date, et **chaque export est journalisé**. (Recommandation de l'éditeur, à confirmer par la Direction.)
+
+## 5 bis. Les statuts
 
 Chaque dossier a un statut visible (par exemple pour une plainte : Brouillon, Enregistrée, En examen, Affectée, Convertie, Clôturée, Rejetée). Les statuts « définitifs » ne se modifient plus. Voir les circuits (dossier 04).
 

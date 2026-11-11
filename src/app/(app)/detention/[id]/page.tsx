@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { requirePermission } from "@/server/auth/dal";
 import { deadlineOf, getDetention } from "@/server/detention/service";
 import { NotFoundError } from "@/server/errors";
+import { ExportPdf } from "@/components/export-pdf";
 import { Alert, Badge, Card, DL, EmptyState, PageHeader } from "@/components/ui";
 import { DETENTION_END_REASON, DETENTION_LOG_TYPE, DETENTION_STATUS, labelOf } from "@/lib/labels";
 import { fmtDateTime } from "@/lib/format";
@@ -39,7 +40,7 @@ export default async function DetentionDetailPage({ params, searchParams }: Page
         title={d.number}
         subtitle={`${d.station.name} · ${d.person.lastName} ${d.person.firstName}`}
         breadcrumbs={[{ href: "/detention", label: t("detention.title") }, { label: d.number }]}
-        actions={<><Badge tone={st.tone}>{st.label}</Badge>{late ? <Badge tone="danger">{t("detention.overdue")}</Badge> : null}</>}
+        actions={<><Badge tone={st.tone}>{st.label}</Badge>{late ? <Badge tone="danger">{t("detention.overdue")}</Badge> : null}<ExportPdf show={actor.permissions.has("records:export_pdf")} module="detention" id={id} t={t} /></>}
       />
       {sp.created === "1" ? <Alert tone="success" className="mb-4">{t("detention.created", { number: d.number })}</Alert> : null}
       {late ? <Alert tone="danger" className="mb-4">{t("detention.overdue")} — {fmtDateTime(dl, locale)}</Alert> : null}

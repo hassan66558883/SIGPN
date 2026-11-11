@@ -8,6 +8,7 @@ import { caseAuditTrail, caseNotes, caseTasks, caseTimeline } from "@/server/cas
 import { assignableInvestigators } from "@/server/complaints/queries";
 import { caseBiometricActivity } from "@/server/biometric/queries";
 import { NotFoundError } from "@/server/errors";
+import { ExportPdf } from "@/components/export-pdf";
 import { Alert, Badge, ButtonLink, Card, DL, EmptyState, PageHeader, Table, Tabs } from "@/components/ui";
 import { BIOMETRIC_ACTION, BIOMETRIC_SEARCH_RESULT, BIOMETRIC_TYPE, CASE_DISPOSITION, CASE_ROLE, CASE_STATUS, LPR_STATUS, OFFENSE_CATEGORY, PARTY_ROLE, PARTY_STATUS, PRIORITY, TASK_STATUS, labelOf } from "@/lib/labels";
 import { fmtDateTime } from "@/lib/format";
@@ -75,7 +76,7 @@ export default async function CasePage({ params, searchParams }: PageProps<"/cas
             <Badge tone={pr.tone}>{pr.label}</Badge>
             <Badge tone={cat.tone}>{cat.label}</Badge>
             {k.isSensitive ? <Badge tone="danger">{t("case.sensitive")}</Badge> : null}
-          </>
+          <ExportPdf show={actor.permissions.has("records:export_pdf")} module="cases" id={id} t={t} /></>
         }
       />
       {sp.created === "1" ? (

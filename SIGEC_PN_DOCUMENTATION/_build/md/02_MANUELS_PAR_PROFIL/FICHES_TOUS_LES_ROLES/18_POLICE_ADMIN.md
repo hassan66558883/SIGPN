@@ -90,7 +90,7 @@ Les droits marqués *(sensible)* n'agissent que si le compte a l'habilitation re
 
 ## Opérations interdites (principales)
 
-Ce profil **ne peut pas** : Enregistrer une plainte ; Ouvrir une affaire ; Demander un mandat ; Créer un avis de recherche ; Enregistrer une arrestation ; Enregistrer une pièce à conviction ; Modifier les droits d'un rôle ; Enregistrer une décision de carrière ; Voir les dossiers disciplinaires ; Voir la paie ; Lancer des sauvegardes.
+Ce profil **ne peut pas** : Exporter en PDF les listes et fiches ; Enregistrer une plainte ; Ouvrir une affaire ; Demander un mandat ; Créer un avis de recherche ; Enregistrer une arrestation ; Enregistrer une pièce à conviction ; Modifier les droits d'un rôle ; Enregistrer une décision de carrière ; Voir les dossiers disciplinaires ; Voir la paie ; Lancer des sauvegardes.
 
 Toute opération qui n'est pas dans la liste des opérations autorisées est refusée par le système.
 

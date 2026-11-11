@@ -106,7 +106,7 @@ Les droits marqués *(sensible)* n'agissent que si le compte a l'habilitation re
 
 ## Opérations interdites (principales)
 
-Ce profil **ne peut pas** : Examiner / affecter une plainte ; Transmettre ou clôturer une affaire ; Voir les affaires sensibles ; Approuver un mandat ; Approuver un avis de recherche ; Publier un avis sur le site public ; Gérer une garde à vue ; Prolonger une garde à vue ; Émettre un PV routier ; Enregistrer un paiement d'amende ; Créer un compte ; Modifier les droits d'un rôle ; Décider d'une approbation ; Consulter le journal d'audit ; Enregistrer une décision de carrière ; Voir les dossiers disciplinaires ; Voir la paie ; Lancer des sauvegardes.
+Ce profil **ne peut pas** : Exporter en PDF les listes et fiches ; Examiner / affecter une plainte ; Transmettre ou clôturer une affaire ; Voir les affaires sensibles ; Approuver un mandat ; Approuver un avis de recherche ; Publier un avis sur le site public ; Gérer une garde à vue ; Prolonger une garde à vue ; Émettre un PV routier ; Enregistrer un paiement d'amende ; Créer un compte ; Modifier les droits d'un rôle ; Décider d'une approbation ; Consulter le journal d'audit ; Enregistrer une décision de carrière ; Voir les dossiers disciplinaires ; Voir la paie ; Lancer des sauvegardes.
 
 Toute opération qui n'est pas dans la liste des opérations autorisées est refusée par le système.
 

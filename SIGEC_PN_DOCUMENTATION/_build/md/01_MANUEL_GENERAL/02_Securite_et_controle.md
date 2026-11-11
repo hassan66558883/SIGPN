@@ -36,6 +36,7 @@
 - Toute action importante est inscrite au journal d'audit : qui, quoi, quand, avant/après, adresse.
 - Le journal est **infalsifiable** : chaîne de hachage ; un bouton de contrôle d'intégrité (Centre de sécurité) vérifie la chaîne. Limite : la suppression de la toute dernière ligne n'est détectable que si l'empreinte de tête est conservée en dehors de la base.
 - Les validations sont tracées (qui a demandé, qui a vérifié, qui a approuvé).
+- **Exports PDF** (listes et fiches) : réservés aux chefs de chaque niveau de commandement ; chaque export est inscrit au journal (qui, quel module, combien de lignes, quels filtres) ; le PDF ne dépasse jamais le périmètre de l'écran.
 
 ## 5. Sessions
 

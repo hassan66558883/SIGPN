@@ -138,7 +138,8 @@
     "traffic:dashboard",
     "traffic:ticket_cancel",
     "traffic:fine_manage",
-    "traffic:export"
+    "traffic:export",
+    "records:export_pdf"
    ]
   },
   {
@@ -267,7 +268,8 @@
     "traffic:control_create",
     "traffic:evidence_upload",
     "traffic:drivers_manage",
-    "traffic:vehicles_manage"
+    "traffic:vehicles_manage",
+    "records:export_pdf"
    ]
   },
   {
@@ -394,7 +396,8 @@
     "traffic:control_create",
     "traffic:evidence_upload",
     "traffic:drivers_manage",
-    "traffic:vehicles_manage"
+    "traffic:vehicles_manage",
+    "records:export_pdf"
    ]
   },
   {
@@ -520,7 +523,8 @@
     "traffic:control_create",
     "traffic:evidence_upload",
     "traffic:drivers_manage",
-    "traffic:vehicles_manage"
+    "traffic:vehicles_manage",
+    "records:export_pdf"
    ]
   },
   {
@@ -1929,6 +1933,10 @@
   [
    "cash:reports",
    "View and export financial revenue reports and the revenue dashboard"
+  ],
+  [
+   "records:export_pdf",
+   "Export lists and records (complaints, cases, warrants, arrests, custody, incidents) to PDF: heads of structures only, every export is audited"
   ],
   [
    "cash:block",

@@ -40,7 +40,7 @@ Après connexion, le **Tableau de bord** résume les chiffres de votre périmèt
 |---|---|---|---|---|
 | Administrateur technique | `SUPER_ADMIN` | 12 | 7 modules au menu | Administre la plate-forme technique (paramètres, sauvegardes, structure organisationnelle, catalogue des rôles). Ne détient AUCUN droit sur les données de police. |
 | Administrateur de sécurité | `SECURITY_ADMIN` | 16 | 10 modules au menu | Gère les comptes, les sessions et les paramètres de sécurité, lit le journal d'audit. Ne détient aucune autorité opérationnelle de police. |
-| Commandement national (Direction générale) | `NATIONAL_COMMANDER` | 84 | 42 modules au menu | Supervision nationale : lit l'ensemble des données, approuve les mandats, avis de recherche, opérations et rapports, décide des approbations sensibles. |
+| Commandement national (Direction générale) | `NATIONAL_COMMANDER` | 85 | 42 modules au menu | Supervision nationale : lit l'ensemble des données, approuve les mandats, avis de recherche, opérations et rapports, décide des approbations sensibles. |
 | Analyste criminel | `ANALYST` | 40 | 28 modules au menu | Analyse nationale en lecture seule et production de rapports. |
 | Auditeur | `AUDITOR` | 40 | 31 modules au menu | Accès en lecture seule à tous les enregistrements et au journal d'audit. |
 | Administrateur de la police (système d'information) | `POLICE_ADMIN` | 90 | 51 modules au menu | Administration nationale du système d'information de la police : utilisateurs, organisation et toutes les fonctions de circulation, avec des droits de commandement. |

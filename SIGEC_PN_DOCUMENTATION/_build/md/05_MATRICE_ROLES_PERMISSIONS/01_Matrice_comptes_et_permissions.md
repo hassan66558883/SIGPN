@@ -18,10 +18,10 @@ Lecture : ● = le rôle détient le droit ; ◆ = droit sensible détenu (n'agi
 |---|---|---|---|---|---|
 | 1 | `SUPER_ADMIN` | Administrateur technique | National (tout le pays) | Oui | 12 |
 | 2 | `SECURITY_ADMIN` | Administrateur de sécurité | National (tout le pays) | Oui | 16 |
-| 3 | `NATIONAL_COMMANDER` | Commandement national (Direction générale) | National (tout le pays) | Oui | 84 |
-| 4 | `REGIONAL_COMMANDER` | Délégué provincial de police | Provincial (sa province) | Oui | 112 |
-| 5 | `DEPARTMENTAL_COMMANDER` | Commandant de département (rôle dormant) | Départemental (son département) | Oui | 110 |
-| 6 | `STATION_COMMANDER` | Commissaire (chef de commissariat) | Commissariat (son unité et ses postes rattachés) | Oui | 109 |
+| 3 | `NATIONAL_COMMANDER` | Commandement national (Direction générale) | National (tout le pays) | Oui | 85 |
+| 4 | `REGIONAL_COMMANDER` | Délégué provincial de police | Provincial (sa province) | Oui | 113 |
+| 5 | `DEPARTMENTAL_COMMANDER` | Commandant de département (rôle dormant) | Départemental (son département) | Oui | 111 |
+| 6 | `STATION_COMMANDER` | Commissaire (chef de commissariat) | Commissariat (son unité et ses postes rattachés) | Oui | 110 |
 | 7 | `INVESTIGATOR` | Enquêteur | Commissariat (son unité et ses postes rattachés) | Non | 62 |
 | 8 | `DESK_OFFICER` | Agent d'accueil / de permanence | Commissariat (son unité et ses postes rattachés) | Non | 38 |
 | 9 | `PATROL_OFFICER` | Agent de patrouille | Commissariat (son unité et ses postes rattachés) | Non | 40 |
@@ -355,6 +355,12 @@ Lecture : ● = le rôle détient le droit ; ◆ = droit sensible détenu (n'agi
 | Gérer les rapprochements et écarts |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | ● |  |  |
 | Voir et exporter les rapports de recettes |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | ● |  |  |  |  |  |  |  | ● | ● | ● |  |
 | Bloquer ou débloquer une caisse |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | ● |  |  |
+
+## Export PDF
+
+| Droit | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 | 27 | 28 | 29 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Exporter en PDF les listes et fiches (chefs de chaque niveau ; chaque export est journalisé) |  |  | ● | ● | ● | ● |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 
 ## Ressources humaines
 

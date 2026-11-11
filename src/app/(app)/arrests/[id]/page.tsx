@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { requirePermission } from "@/server/auth/dal";
 import { getArrest } from "@/server/arrests/service";
 import { NotFoundError } from "@/server/errors";
+import { ExportPdf } from "@/components/export-pdf";
 import { Alert, Badge, ButtonLink, Card, DL, EmptyState, PageHeader } from "@/components/ui";
 import { ARREST_AUTHORITY, ARREST_STATUS, labelOf } from "@/lib/labels";
 import { fmtDateTime } from "@/lib/format";
@@ -41,7 +42,7 @@ export default async function ArrestDetailPage({ params, searchParams }: PagePro
         title={a.number}
         subtitle={`${a.station.name} · ${fmtDateTime(a.arrestedAt, locale)}`}
         breadcrumbs={[{ href: "/arrests", label: t("arrests.title") }, { label: a.number }]}
-        actions={<><Badge tone={st.tone}>{st.label}</Badge><Badge tone={au.tone}>{au.label}</Badge></>}
+        actions={<><Badge tone={st.tone}>{st.label}</Badge><Badge tone={au.tone}>{au.label}</Badge><ExportPdf show={actor.permissions.has("records:export_pdf")} module="arrests" id={id} t={t} /></>}
       />
       {sp.created === "1" ? <Alert tone="success" className="mb-4">{t("arrests.created", { number: a.number })}</Alert> : null}
       <div className="grid gap-4 lg:grid-cols-3">

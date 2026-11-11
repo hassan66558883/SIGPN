@@ -133,6 +133,7 @@ Examiner un versement (accepter, rejeter, demander justification);cash:deposit_r
 Valider définitivement un versement;cash:deposit_validate;Caisses et recettes;;;;;;;;;;;;;;;;;;;;;;;;;;;;x;;
 Gérer les rapprochements et écarts;cash:reconcile;Caisses et recettes;;;;;;;;;;;;;;;;;;;;;;;;;;;;x;;
 Voir et exporter les rapports de recettes;cash:reports;Caisses et recettes;;;;;;;;;;;;;;;;;;;x;;;;;;;;x;x;x;
+"Exporter en PDF les listes et fiches (chefs de chaque niveau ; chaque export est journalisé)";records:export_pdf;Export PDF;;;;x;x;x;x;;;;;;;;;;;;;;;;;;;;;;;
 Bloquer ou débloquer une caisse;cash:block;Caisses et recettes;;;;;;;;;;;;;;;;;;;;;;;;;;;;x;;
 Voir les dossiers RH;hr:view;Ressources humaines;;;;x;x;x;x;;;;;;;;;;;;x;x;x;x;x;;;;;;;
 Modifier le dossier RH d'un agent;hr:manage;Ressources humaines;;;;;;;;;;;;;;;;;;;;x;;;x;;;;;;;

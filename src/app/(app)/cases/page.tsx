@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { CaseStatus, OffenseCategory, Priority } from "@/generated/prisma/client";
 import { requirePermission } from "@/server/auth/dal";
 import { caseCounts, listCases } from "@/server/cases/queries";
+import { ExportPdf } from "@/components/export-pdf";
 import { Badge, ButtonLink, Card, EmptyState, PageHeader, Pagination, Select, StatCard, Table } from "@/components/ui";
 import { CASE_STATUS, OFFENSE_CATEGORY, PRIORITY, labelOf, optionsOf } from "@/lib/labels";
 import { fmtDate } from "@/lib/format";
@@ -29,7 +30,7 @@ export default async function CasesPage({ searchParams }: PageProps<"/cases">) {
   const k = (s: string) => counts[s] ?? 0;
   return (
     <div>
-      <PageHeader eyebrow={t("case.eyebrow")} title={t("cases.title")} subtitle={t("cases.subtitle", { n: total })} actions={actor.permissions.has("cases:create") ? <ButtonLink href="/cases/new">{t("cases.new")}</ButtonLink> : null} />
+      <PageHeader eyebrow={t("case.eyebrow")} title={t("cases.title")} subtitle={t("cases.subtitle", { n: total })} actions={<>{actor.permissions.has("cases:create") ? <ButtonLink href="/cases/new">{t("cases.new")}</ButtonLink> : null}<ExportPdf show={actor.permissions.has("records:export_pdf")} module="cases" params={p} t={t} /></>} />
       <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard label={labelOf(CASE_STATUS, "OPEN", locale).label} value={k("OPEN") + k("ASSIGNED")} tone="info" href="/cases?status=OPEN" />
         <StatCard label={labelOf(CASE_STATUS, "UNDER_INVESTIGATION", locale).label} value={k("UNDER_INVESTIGATION")} tone="warning" href="/cases?status=UNDER_INVESTIGATION" />
